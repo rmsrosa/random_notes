@@ -1,2 +1,3 @@
-# random_notes
-Random notes
+# Random notes
+
+Just some math and computing notes for myself.
