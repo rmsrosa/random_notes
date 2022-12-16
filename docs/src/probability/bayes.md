@@ -65,7 +65,7 @@ Now, if the player changes his choice, then $p(X_2 = R|X_1 = R) = 0$, while $p(X
 Or, using Bayes' rule,
 
 ```math
-???
+    p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R) = \frac{p(X_2 \notin \{X_1, H\}, H \neq R | X_2 = R)p(X_2 = R)}{p(X_2 \notin \{X_1, H\}, H \neq R)} = 
 ```
 
 ## Screening test
