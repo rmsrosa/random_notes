@@ -74,6 +74,28 @@ Now, if the player changes his choice, then $p(X_2 = R|X_1 = R) = 0$, while $p(X
 Using Bayes' rule,
 
 ```math
+    p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R, H \neq X_1) = \frac{p(X_2 \notin \{X_1, H\}| X_2 = R, H \neq R, H \neq X_1)p(X_2 = R| H \neq R, H \neq X_1)}{p(X_2 \notin \{X_1, H\} | H \neq R, H \neq X_1)}. 
+```
+
+```math
+    \begin{align*}
+        p(X_2 \notin \{X_1, H\}| X_2 = R, H \neq R, H \neq X_1) & = 2/3\\
+        p(X_2 = R| H \neq R, H \neq X_1) & = 1/3 \\
+        p(X_2 \notin \{X_1, H\} | H \neq R, H \neq X_1) & = 1/3
+    \end{align*}
+```
+
+Thus,
+
+```math
+    p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R) = \frac{2/3 \times 1/3}{1/3} = \frac{2}{3}.
+```
+
+### Solving it via Bayes' rule
+
+Using Bayes' rule,
+
+```math
     p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R) = \frac{p(X_2 \notin \{X_1, H\}, H \neq R | X_2 = R)p(X_2 = R)}{p(X_2 \notin \{X_1, H\}, H \neq R)}. 
 ```
 
