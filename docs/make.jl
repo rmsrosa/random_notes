@@ -3,11 +3,11 @@ using Documenter
 makedocs(
     sitename = "Random notes",
     pages = [
-        "Welcome" => "index.md",
+        "Random Notes" => "index.md",
         "Probability" => [
-            "Bayes" => "probability/bayes.md",
-            "MCMC" => "probability/mcmc.md",
-            "Linear Regression" => "probability/regression.md"
+            "Bayes Theorem" => "probability/bayes.md",
+            "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
+            "Many Ways to Linear Regression" => "probability/regression.md"
         ],
         "Sensitivity analysis" => [
             "Overview" => "sensitivity/overview.md"
