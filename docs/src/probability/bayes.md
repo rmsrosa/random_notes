@@ -16,16 +16,19 @@ In other words, Bayes' Theorem says that the *posterior* conditional probability
 
 Bayes' theorem has many useful consequences (see e.g. ), but first let us sketch its proof.
 
-!!! tip "Proof of Bayes's Theorem"
-    When $P(A) = 0$, then $P(A|B) = 0$ and the result is trivial. When $p(A) > 0$, the result can be obtained from the conditional probability relations
-    ```math
-        p(A|B) = \frac{p(A\cap B)}{p(B)}, \qquad p(B|A) = \frac{p(B\cap A)}{p(A)},
-    ```
-    which imply
-    ```math
-        p(A|B)p(B) = p(A\cap B) = p(B\cap A) = p(B|A)p(A).
-    ```
-    Solving for $p(A|B)$ yields the desired result.
+**Proof of Bayes's Theorem**
+
+When $P(A) = 0$, then $P(A|B) = 0$ and the result is trivial. When $p(A) > 0$, the result can be obtained from the conditional probability relations
+```math
+    p(A|B) = \frac{p(A\cap B)}{p(B)}, \qquad p(B|A) = \frac{p(B\cap A)}{p(A)},
+```
+which imply
+```math
+    p(A|B)p(B) = p(A\cap B) = p(B\cap A) = p(B|A)p(A).
+```
+Solving for $p(A|B)$ yields the desired result.
+
+**end of proof**
 
 Very often, we are not given $p(B)$ directly, but we can use the law of total probability to find $p(B)$, according to a decomposition of the sample space $\Omega$, such as $\Omega = A \cup \neg A$, where $\neg A = \Omega \setminus A$ denotes the event complementary to $A$. This law has two forms, one in terms of joint probabilities and one in terms of conditional probabilities:
 
@@ -48,7 +51,11 @@ Using this decomposition, we can write the Bayes' formula as
 
 ## Monty Hall problem
 
+### Description and naive solution
+
 The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3. Indeed, if you choose the right one at first and change, you loose, so this is a 1/3 chance of failure. But if you choose either one of the wrong ones at first, with a 2/3 probability, then the remaining wrong one is discarded by the host and you get to chance to the right one, giving you a 2/3 chance of success.
+
+### Solving it via the law of total probability
 
 Let us do this more formally. Suppose $R$ denotes the door with the reward and $W$ the other two doors. Let $X$ be the random variable denoting the player's choice. With a single choice, $p(X=R) = 1/3$.
 
@@ -62,11 +69,43 @@ If the player doesn't change his choice, then $p(X_2 = R|X_1 = R) = 1$ and $p(X_
 
 Now, if the player changes his choice, then $p(X_2 = R|X_1 = R) = 0$, while $p(X_2 = R|X_1 = W) = 1$ and $p(X_1 = W) = 2/3$, so that $p(X_2 = R) = 2/3$.
 
-Or, using Bayes' rule,
+### Solving it via Bayes' rule
+
+Using Bayes' rule,
 
 ```math
-    p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R) = \frac{p(X_2 \notin \{X_1, H\}, H \neq R | X_2 = R)p(X_2 = R)}{p(X_2 \notin \{X_1, H\}, H \neq R)} = 
+    p(X_2 = R | X_2 \notin \{X_1, H\}, H \neq R) = \frac{p(X_2 \notin \{X_1, H\}, H \neq R | X_2 = R)p(X_2 = R)}{p(X_2 \notin \{X_1, H\}, H \neq R)}. 
 ```
+
+
+Given that $X_2 = R$, then the host has two choices and both are not $R$, while $X_1$ has two choices, only one of them is different than $H$, so $p(X_2 \notin \{X_1, H\}, H \neq R | X_2 = R) = 1/2$. Meanwhile, $p(X_2 = R) = 1/3$, and $p(X_2 \notin \{X_1, H\}, H \neq R) = 1/2$.
+
+That's wrong.
+
+### Solving it via Bayes' rule
+
+Suppose you first pick door $D_1$, then the host picks door $D_2$, and you switch your choice to door $D_3$. These are three random variables, each assuming three possible values. We are interested in the chances that $D_3$ has the car, given that all chosen doors are different and that the host does not choose the door with the car. This corresponds to the strategy that the player changes the door. This can be written as the following conditional probability, where $R$ denotes the "right" door, with the car.
+
+```math
+p(D_3 = R| D_2 \neq R, D_i \neq D_j) = \frac{p(D_2 \neq R, D_i \neq D_j | D_3 = R) p(D_3 = R)}{p(D_2 \neq R, D_i \neq D_j)}.
+```
+
+We have
+```math
+    \begin{align}
+        p(D_2 \neq R, D_i \neq D_j | D_3 = R) & = p(D_2 \neq R | D_3 = R) p(D_i \neq D_j | D_3 = R) = 1 \times \frac{2}{9} =\\
+        p(D_3 = R) & = \frac{1}{3} \\
+        p(D_2 \neq R, D_i \neq D_j) & = p(D_2 \neq R)p(D_i \neq D_j) = \frac{2}{3}\frac{6}{27} = \frac{4}{27}
+    \end{align}
+```
+
+Thus,
+
+```math
+p(D_3 = R| D_2 \neq R, D_i \neq D_j) = \frac{\frac{2}{9}\frac{1}{3}}{\frac{4}{27}} = \frac{1}{2}.
+```
+
+That's wrong again.
 
 ## Screening test
 
