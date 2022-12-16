@@ -50,6 +50,24 @@ Using this decomposition, we can write the Bayes' formula as
 
 The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3. Indeed, if you choose the right one at first and change, you loose, so this is a 1/3 chance of failure. But if you choose either one of the wrong ones at first, with a 2/3 probability, then the remaining wrong one is discarded by the host and you get to chance to the right one, giving you a 2/3 chance of success.
 
+Let us do this more formally. Suppose $R$ denotes the door with the reward and $W$ the other two doors. Let $X$ be the random variable denoting the player's choice. With a single choice, $p(X=R) = 1/3$.
+
+Now suppose we make two choices, denoted by the random variables $X_1$ and $X_2$. In the first strategy, that the player doesn't change his choice, we have $X_2 = X_1$. In this case, by the law of total probability
+
+```math
+    p(X_2 = R) = P(X_2 = R|X_1 = R)p(X_1 = R) + p(X_2 = R|X_1 = W)p(X_1 = W).
+```
+
+If the player doesn't change his choice, then $p(X_2 = R|X_1 = R) = 1$ and $p(X_1 = R) = 1/3$, while $p(X_2 = R|X_1 = W) = 0$, so that $p(X_2 = R) = 1/3$.
+
+Now, if the player changes his choice, then $p(X_2 = R|X_1 = R) = 0$, while $p(X_2 = R|X_1 = W) = 1$ and $p(X_1 = W) = 2/3$, so that $p(X_2 = R) = 2/3$.
+
+Or, using Bayes' rule,
+
+```math
+???
+```
+
 ## Screening test
 
 There are many applications of Bayes' Theorem in Biomedicine. Let's say, for example, a certain test for a given endemic disease (or illegal drug use, etc.) has a 4% chance of false negative and 0.1% chance of false positive, and suppose that the disease occurs in 1% of the population.
