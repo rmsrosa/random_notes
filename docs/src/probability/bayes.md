@@ -49,9 +49,11 @@ Using this decomposition, we can write the Bayes' formula as
 
 ## Monty Hall problem
 
-### Description and probabilistic solution
+The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3.
 
-The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3. Indeed, if you choose the right one at first and change, you loose, so this is a 1/3 chance of failure. But if you choose either one of the wrong ones at first, with a 2/3 probability, then the remaining wrong one is discarded by the host and you get to change to the right one, meaning you have a 2/3 chance of success.
+### Solution via probability tree
+
+At first, you have 1/3 chance of choosing the right one and 2/3 chances of choosing a door without the reward. If you choose the right door and changes it after the host reveals an empty door, then you necessarily change to an empty door. This with a 1/3 chance. If you choose a door without reward and changes it after the host reveals an empty door, then you necessarily change it to the right door. This with a 2/3 chance. Hence, you have a 2/3 chance of success!
 
 ### Solving it via the law of total probability
 
