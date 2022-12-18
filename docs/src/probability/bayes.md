@@ -49,23 +49,23 @@ Using this decomposition, we can write the Bayes' formula as
 
 ## Monty Hall problem
 
-### Description and naive solution
+### Description and probabilistic solution
 
 The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3. Indeed, if you choose the right one at first and change, you loose, so this is a 1/3 chance of failure. But if you choose either one of the wrong ones at first, with a 2/3 probability, then the remaining wrong one is discarded by the host and you get to change to the right one, meaning you have a 2/3 chance of success.
 
 ### Solving it via the law of total probability
 
-Let us do this more formally. Suppose $R$ denotes the door with the reward and $W$ the other two doors. Let $X$ be the random variable denoting the player's choice. With a single choice, $p(X=R) = 1/3$.
+Let us do this more formally. Suppose $R$ denotes the door with the reward. Let $X$ be the random variable denoting the player's choice. With a single choice, $p(X=R) = 1/3$.
 
 Now suppose we make two choices, denoted by the random variables $X_1$ and $X_2$. In the first strategy, that the player doesn't change his choice, we have $X_2 = X_1$. In this case, we work with a probability conditioned to $X_2 = X_1$, and we simplify the notation to $p_1(E) = p(E|X_2 = X_1)$, for any possible event $E$. Then, by the law of total probability,
 
 ```math
-    p_1(X_2 = R) = p_1(X_2 = R|X_1 = R)p_1(X_1 = R) + p_1(X_2 = R|X_1 = W)p_1(X_1 = W).
+    p_1(X_2 = R) = p_1(X_2 = R|X_1 = R)p_1(X_1 = R) + p_1(X_2 = R|X_1 \neq R)p_1(X_1 \neq R).
 ```
 
-If the player doesn't change his choice, then $p_1(X_2 = R|X_1 = R) = 1$ and $p_1(X_1 = R) = 1/3$, while $p_1(X_2 = R|X_1 = W) = 0$, so that $p(X_2 = R|X_2 = X_1) = p_1(X_2 = R) = 1/3$.
+If the player doesn't change his choice, then $p_1(X_2 = R|X_1 = R) = 1$ and $p_1(X_1 = R) = 1/3$, while $p_1(X_2 = R|X_1 \neq R) = 0$, so that $p(X_2 = R|X_2 = X_1) = p_1(X_2 = R) = 1/3$.
 
-Now, if the player changes his choice, then we work with the probability $p_2(E) = p(E|X_2 \neq X_1)$. In this case, $p_2(X_2 = R|X_1 = R) = 0$, while $p_2(X_2 = R|X_1 = W) = 1$ and $p_2(X_1 = W) = 2/3$, so that $p_2(X_2 = R) = 2/3$.
+Now, if the player changes his choice, then we work with the probability $p_2(E) = p(E|X_2 \neq X_1)$. In this case, $p_2(X_2 = R|X_1 = R) = 0$, while $p_2(X_2 = R|X_1 \neq R) = 1$ and $p_2(X_1 \neq R) = 2/3$, so that $p_2(X_2 = R) = 2/3$.
 
 In this derivation, we did not make explicit the dependence on the choice of the host. We leave this as an exercise.
 
@@ -80,7 +80,7 @@ Suppose now you first pick door $X_1$, then the host picks door $H$, and next yo
 Well, the condition of the show is that the host picks a different door than the first one chosen by the player, that that door is not the right one, and that the second door picked by the player is not the door chosen by the host. Under this rule, the player is free to stick we the first door, i.e. $X_2 = X_1$, or choose a different one, i.e. $X_2 \neq X_1$. In order to simplify the notation, we write the probability conditioned to the rules of the game as
 
 ```math
-    \tilde p(E)) = p(E | X_2 \neq H, H \neq X_1, H \neq R),
+    \tilde p(E) = p(E | X_2 \neq H, H \neq X_1, H \neq R),
 ```
 
 for any possible event $E$. Using Bayes' rule,
@@ -117,48 +117,48 @@ In this case, the player has, initially, one-third chance of choosing the right 
     p(X_1 = R) = \frac{1}{3}.
 ```
 
-This is the player's *prior.* After that, the host reveals a door, showing it does not have a car, which we state as $H=W$. Now we want to update our *prior* to have a *posterior* probability
+This is the player's *prior.* After that, the host reveals a door, showing it does not have a car, which we state as $H \neq R$. Now we want to update our *prior* to have a *posterior* probability
 
 ```math
-    p(X_1 = R | H = W)
+    p(X_1 = R | H \neq R)
 ```
 
 According to Bayes' rule,
 
 ```math
-    p(X_1 = R | H = W) = \frac{p(H = W | X_1 = R) p(X_1 = R)}{p(H = W)}.
+    p(X_1 = R | H \neq R) = \frac{p(H \neq R | X_1 = R) p(X_1 = R)}{p(H \neq R)}.
 ```
 
-Well, the host always picks the door without the car, so both $p(H = W | X_1 = R)$ and $p(H = W)$ are equal to $1$. Meanwhile, your prior is $p(X_1 = R) = 1/3$. Thus,
+Well, the host always picks the door without the car, so both $p(H \neq R | X_1 = R)$ and $p(H \neq R)$ are equal to $1$. Meanwhile, your prior is $p(X_1 = R) = 1/3$. Thus,
 
 ```math
-    p(X_1 = R | H = W) = \frac{1 \times 1/3}{1} = \frac{1}{3}.
+    p(X_1 = R | H \neq R) = \frac{1 \times 1/3}{1} = \frac{1}{3}.
 ```
 
 This means your chances of having chosen the right door at first do not change after the evidence. On the other hand, after the host reveals their choice of door, you only have two alternatives: stick with $X_1$ or change to the only remaining door. This means
 
 ```math
-    p(X_1 = R | H = W) + p(X_1 = W | H = W) = 1,
+    p(X_1 = R | H \neq R) + p(X_1 \neq R | H \neq R) = 1,
 ```
 
 i.e.
 
 ```math
-    p(X_1 = W | H = W) = 1 - \frac{1}{3} = \frac{2}{3}.
+    p(X_1 \neq R | H \neq R) = 1 - \frac{1}{3} = \frac{2}{3}.
 ```
 
 #### Updating the prior for $X_2 = R$.
 
-A different way of solving this is to update directly the prior probability of selecting the right door $X_2 = R$, when switching your choice. Without the host opening a door, your chances are still one-third. This conditioned to the rules of the game, $H \neq X_1$, $H = W$, and of the strategy $X_2 \neq X_1$. In this case, despite the fact that the host chooses the door without the car, the prior does not use this knowledge and the player does not know which door was chosen by the host and, at first, can choose either one of the remaining two, with still a one-third chance of getting it right:
+A different way of solving this is to update directly the prior probability of selecting the right door $X_2 = R$, when switching your choice. Without the host opening a door, your chances are still one-third. This conditioned to the rules of the game, $H \neq X_1$, $H \neq R$, and of the strategy $X_2 \neq X_1$. In this case, despite the fact that the host chooses the door without the car, the prior does not use this knowledge and the player does not know which door was chosen by the host and, at first, can choose either one of the remaining two, with still a one-third chance of getting it right:
 
 ```math
-    p(X_2 = R | X_2 \neq X_1, H \neq X_1, H = W) = \frac{1}{3}.
+    p(X_2 = R | X_2 \neq X_1, H \neq X_1, H \neq R) = \frac{1}{3}.
 ```
 
-In order to simplify the notation, denote the probability conditioned to the rules of the game and the strategy as
+As before, in order to simplify the notation, we consider the probability conditioned to the rules of the game and the strategy but without including yet $X_2 \neq H$ since we will start with a prior that lacks this knowledge. Hence, we consider the conditional probability
 
 ```math
-    \tilde p(E) = p(E | X_2 \neq X_1, H \neq X_1, H = W)
+    \tilde p(E) = p(E | X_2 \neq X_1, H \neq X_1, H \neq R)
 ```
 
 Thus, the prior reads
