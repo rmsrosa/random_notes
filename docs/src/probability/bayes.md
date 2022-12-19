@@ -47,6 +47,101 @@ Using this decomposition, we can write the Bayes' formula as
         p(A|B) = \frac{p(B|A)p(A)}{p(B|A)p(A) + p(B|\neg A)p(\neg A)}.
     ```
 
+## Screening test
+
+There are many applications of Bayes' Theorem in Biomedicine. Let's say, for example, a certain test for a given endemic disease (or illegal drug use, etc.) has a 4% chance of false negative and 0.1% chance of false positive, and suppose that the disease occurs in 1% of the population.
+
+If a certain person tests positive, what are their chances of really carrying the disease? This means we want to know the conditional probability of having the disease, given that it tested positive. Let's use the following notation for the relevant events:
+
+*  $D$ denotes the event of having the disease;
+*  $\neg D$ denotes the event of not having the disease;
+*  $P$ denotes the event of testing positive;
+*  $N$ denotes the event of testing negative.
+
+The chances of a person who tested positive to have the disease can be expressed as the conditional probability $p(D|P)$. Using Bayes' theorem, this can be expressed as
+
+```math
+    p(D|P) = \frac{p(P|D)p(D)}{p(P)}.
+```
+
+According to the given information, the probability $p(P|D)$ of testing positive while having the disease is 96%, since the false negatives $p(N|D)$ amount to 4%. The probability $p(D)$ of having the disease among the general population is 1%. Finally, the probability of testing positive can be obtained from the law of total probability:
+
+```math
+    p(P) = p(P|D)p(D) + p(P|\neg D)p(\neg D) = 96\% \times 1\% + 0.1\% \times 99\% = 1.059\%.
+```
+
+Thus, according to Bayes' Theorem,
+
+```math
+    p(D|P) = \frac{p(P|D)p(D)}{p(P)} = \frac{96\% \times 1\%}{1.059\%} \approx 90.6\%.
+```
+
+Hence, the chances a person who tested positive has indeed this disease are of about 90%, which is reasonably high.
+
+If, however, the false negatives were of the order of 5% and the false positives were of the order of 1%, then the chances $p(D|P)$ of a person who tested positive to indeed have the disease would be only of the order of 49%! Pretty low, right? Not quite reliable. [PSA tests](https://www.cancer.gov/types/prostate/psa-fact-sheet) are one example where this conditional probability is low, of the order of 25%.
+
+## Bayesian inference on defect item
+
+Suppose we have a collection of four six-faced dices, with two normal ones with faces numbered one to six, but one with two faces numbered five and none numbered six and one with three faces numbered four and none numbered five nor six. Let's call them dices types $D_{6}$, $D_{5}$ and $D_{4}$, respectively. A friend picks one of the dices at random and throws it repeatedly to find the numbers 3, 1, 4, 5, 1, 5, 2, 5, reading them aloud. What is the most likely type of dice your friend picked?
+
+Your prior is that the normal dice is selected with probability 1/2,
+
+```math
+    p(D_{6}) = \frac{1}{2},
+```
+
+while the other two, with probability 1/4:
+
+```math
+    p(D_{5}) = p(D_{4}) = \frac{1}{4}.
+```
+
+Now, after learning about the *evidence* $E = (3, 1, 4, 5, 1, 5, 2, 5)$ of the numbers thrown by your friend, you update your *prior* with this evidence to find the *posteriors*
+
+```math
+    p(D_i | E) = \frac{p(E|D_i)p(D_i)}{p(E)}.
+```
+
+For each dice, the likelyhood $p(E|D_i)$ is
+
+```math
+    p(E|D_i) = p(3|D_i)p(1|D_i)p(4|D_i)p(5|D_i)p(1|D_i)p(5|D_i)p(2|D_i)p(5|D_i)
+```
+
+Since $p(5|D_4) = 0$, $p(5|D_5) = 1/3$ and all remaining odds are $1/6$, we find
+
+```math
+    \begin{align*}
+        p(E|D_4) & = 0, \\
+        p(E|D_5) & = \left(\frac{1}{6}\right)^5\left(\frac{1}{3}\right)^3 = 8 \left(\frac{1}{6}\right)^8, \\
+        p(E|D_6) & = \left(\frac{1}{6}\right)^8.
+    \end{align*}
+```
+
+The probability of seeing this evidence is given by the law of total probability
+
+```math
+    p(E) = p(E|D_4)p(D_4) + p(E|D_5)p(D_5) + p(E|D_6)p(D_6) = 0 \times \frac{1}{4} + 8 \left(\frac{1}{6}\right)^8\frac{1}{4} + \left(\frac{1}{6}\right)^8\frac{1}{2}.
+```
+
+Hence,
+
+```math
+    p(E) = \frac{5}{2} \left(\frac{1}{6}\right)^8.
+```
+
+Therefore, the posteriors are
+
+```math
+    \begin{align*}
+        p(D_4|E) & = 0, \\
+        p(D_5|E) & = \frac{8 \times 1/4}{5/2} = 4/5, \\
+        p(D_6|E) & = \frac{1 \times 1/2}{5/2} = 1/5.
+    \end{align*}
+```
+
+Therefore, it is four times more likely that your friend picked the defective $D_5$-type dice than the normal dice, and, of course, the $D_4$-type dice was surely not picked.
+
 ## Monty Hall problem
 
 The [Monty Hall problem](https://en.wikipedia.org/wiki/Monty_Hall_problem) is a classic probability puzzle. In a television show, a contender has to choose between three doors, with only one of them giving you a reward. You choose one at random and you have 1/3 chance of choosing the right one. But after you choose this one, the host of the show reveals one of the doors which do not have any reward and asks if you want to choose a different door or keep the same. It turns out that if you switch to the remaining door, your chances rise to 2/3.
@@ -180,37 +275,3 @@ The *likelihood* $\tilde p(X_2 \neq H | X_2 = R) = 1$ because surely $X_2\neq H$
 ```math
     \tilde p(X_2 = R | X_2 \neq H) = \frac{1 \times 1/3}{1/2} = \frac{2}{3}.
 ```
-
-## Screening test
-
-There are many applications of Bayes' Theorem in Biomedicine. Let's say, for example, a certain test for a given endemic disease (or illegal drug use, etc.) has a 4% chance of false negative and 0.1% chance of false positive, and suppose that the disease occurs in 1% of the population.
-
-If a certain person tests positive, what are their chances of really carrying the disease? This means we want to know the conditional probability of having the disease, given that it tested positive. Let's use the following notation for the relevant events:
-
-*  $D$ denotes the event of having the disease;
-*  $\neg D$ denotes the event of not having the disease;
-*  $P$ denotes the event of testing positive;
-*  $N$ denotes the event of testing negative.
-
-The chances of a person who tested positive to have the disease can be expressed as the conditional probability $p(D|P)$. Using Bayes' theorem, this can be expressed as
-
-```math
-    p(D|P) = \frac{p(P|D)p(D)}{p(P)}.
-```
-
-According to the given information, the probability $p(P|D)$ of testing positive while having the disease is 96%, since the false negatives $p(N|D)$ amount to 4%. The probability $p(D)$ of having the disease among the general population is 1%. Finally, the probability of testing positive can be obtained from the law of total probability:
-
-```math
-    p(P) = p(P|D)p(D) + p(P|\neg D)p(\neg D) = 96\% \times 1\% + 0.1\% \times 99\% = 1.059\%.
-```
-
-Thus, according to Bayes' Theorem,
-
-```math
-    p(D|P) = \frac{p(P|D)p(D)}{p(P)} = \frac{96\% \times 1\%}{1.059\%} \approx 90.6\%.
-```
-
-Hence, the chances a person who tested positive has indeed this disease are of about 90%, which is reasonably high.
-
-If, however, the false negatives were of the order of 5% and the false positives were of the order of 1%, then the chances $p(D|P)$ of a person who tested positive to indeed have the disease would be only of the order of 49%! Pretty low, right? Not quite reliable. [PSA tests](https://www.cancer.gov/types/prostate/psa-fact-sheet) are one example where this conditional probability is low, of the order of 25%.
-
