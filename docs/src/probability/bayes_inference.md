@@ -52,4 +52,4 @@ Hence, updating the prior in this case simply amounts to adding the number of he
 
 ## Conjugate distributions
 
-This property that multipling a Bernoulli distribution by a Beta prior yields an updated Beta posterior is an example of *conjugate distributions,* that greatly facilitates the updating process. There are several other conjugate prior distributions, but, in general, updating a prior is a much harder process and requires some fancy computational techniques.
+This property that multipling a Bernoulli distribution by a Beta prior yields a Beta posterior is an example of *conjugate distributions.* Conjugate distributions greatly facilitate the updating process in Bayesian statistics. There are a number of other conjugate prior distributions, but, in general, updating a prior is a much harder process and requires some fancy computational techniques.
