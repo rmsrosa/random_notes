@@ -6,6 +6,7 @@ makedocs(
         "Random Notes" => "index.md",
         "Probability" => [
             "Bayes Theorem" => "probability/bayes.md",
+            "Bayesian inference" => "probability/bayes_inference.md",
             "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
             "Many Ways to Linear Regression" => "probability/regression.md"
         ],
