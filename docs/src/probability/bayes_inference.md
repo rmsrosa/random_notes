@@ -36,19 +36,131 @@ for $\alpha, \beta > 0$. Recall the probability distribution function for $\Thet
 
 where $\Gamma = \Gamma(z)$ is the [gamma function](https://en.wikipedia.org/wiki/Gamma_function).
 
-Now, suppose we toss the coin a number times and it lands heads $k$ times and tails $m$ times. So this is our evidence $E$. The random variable $X$ is discrete, while $\Theta$ is continuous. The posterior becomes
+Now, suppose we toss the coin a number of times and it lands heads $k$ times and tails $m$ times. So this is our evidence $E$. The random variable $X$ is discrete, while $\Theta$ is continuous. The posterior becomes
 
 ```math
     f_\Theta(\theta | E) = \frac{p(E | \theta) f_\Theta(\theta)}{p(E)}.
 ```
 
-Since $E$ is heads $k$ times and tails $m$ times, we have $p(E | \theta) = \theta^k (1 - \theta)^{m}$. Computing $(E)$ is not a trivial task but we will see we do not need to compute it in this case. Indeed, up to a constant, we have
+Since $E$ is heads $k$ times and tails $m$ times, we have $p(E | \theta) \propto \theta^k (1 - \theta)^{m}$. Computing $p(E)$ is usually not a trivial task but in this case can be computed via
 
 ```math
-    p(\theta | E) \propto \theta^k (1 - \theta)^{n-k} \theta^{\alpha - 1}(1 - \theta)^{\beta - 1} = \theta^{k + \alpha - 1}(1 - \theta)^{m + \beta - 1} \sim \mathrm{Beta}(\alpha + k, \beta + m).
+    \begin{align*}
+        p(E) & = \int_0^1 p(E|\theta)f_\Theta(\theta)\;\mathrm{d}\theta = \left(\begin{matrix} k + m \\ k \end{matrix} \right)\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\int_0^1 \theta^k (1 - \theta)^m \theta^{\alpha -1}(1-\theta)^{\beta - 1} \;\mathrm{d}\theta \\
+        & = \left(\begin{matrix} k + m \\ k \end{matrix} \right)\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}\frac{\Gamma(\alpha + k)\Gamma(\beta + m)}{\Gamma(\alpha + k + \beta + m)}.
+    \end{align*}
+```
+
+But we do not need to compute it in this case. Indeed, up to a constant, we have
+
+```math
+    p(\theta | E) \propto \theta^k (1 - \theta)^m \theta^{\alpha - 1}(1 - \theta)^{\beta - 1} = \theta^{k + \alpha - 1}(1 - \theta)^{m + \beta - 1} \sim \mathrm{Beta}(\alpha + k, \beta + m).
 ```
 
 Hence, updating the prior in this case simply amounts to adding the number of heads and the number of tails to the parameters of the beta distribution.
+
+As more and more coins are tossed, we get the expected value of the posterior converging to the actual bias of the coin, with the credible interval narrowing down the uncertainty.
+
+The code below (adapted from [Introduction to Turing](https://turing.ml/v0.23/tutorials/00-introduction/#introduction-to-turing)) exemplifies the increased belief we get with more and more data collected.
+
+We first generate the data drawing from a Bernoulli distribution using the *true* bias.
+
+```@example biasedcoin
+using Distributions, StatsPlots
+using Random # hide
+Random.seed!(123) # set the seed for reproducibility # hide
+
+p_true = 0.6
+N = 2_000
+data = rand(Bernoulli(p_true), N)
+nothing
+```
+
+Next we define an uniformative prior and create a function to update the prior with a given set of data.
+
+```@example biasedcoin
+prior = Beta(1, 1)
+
+function update_prior(prior::Beta, data::AbstractVector{Bool})
+    heads = sum(data)
+    tails = length(data) - heads
+
+    posterior = Beta(prior.α + heads, prior.β + tails)
+    return posterior
+end
+nothing # hide
+```
+
+Now we visualize the effect of the size of the data on the posterior.
+
+```@example biasedcoin
+plt = []
+
+for n in (0, 10, 100, N)
+    push!(
+        plt,
+        plot(
+            update_prior(prior, view(data, 1:n)),
+            title = n == 0 ? "Uninformative prior" : "Posterior with $n observations",
+            titlefont = 10, # hide
+            legend=nothing, # hide
+            xlim=(0, 1), # hide
+            fill=0, # hide
+            α=0.3, # hide
+            w=3, # hide
+        )
+    )
+end
+
+plot(plt..., size=(700, 400)) # hide
+```
+
+To complement that, we show two animations with the posterior being updated as more data is used.
+
+```@setup biasedcoin
+anim = @animate for n in 0:10
+    plot(
+        update_prior(prior, view(data, 1:n)),
+        size=(500, 250),
+        title="Updated belief after $n observations",
+        xlabel="probability of heads",
+        ylabel="",
+        legend=nothing,
+        xlim=(0, 1),
+        fill=0,
+        α=0.3,
+        w=3,
+    )
+    vline!([p_true])
+end
+
+```
+
+```@example biasedcoin
+gif(anim, fps = 1) # hide
+```
+
+```@setup biasedcoin
+anim = @animate for n in 0:10:N
+    plot(
+        update_prior(prior, view(data, 1:n)),
+        size=(500, 250),
+        title="Updated belief after $n observations",
+        xlabel="probability of heads",
+        ylabel="",
+        legend=nothing,
+        xlim=(0, 1),
+        fill=0,
+        α=0.3,
+        w=3,
+    )
+    vline!([p_true])
+end
+```
+
+```@example biasedcoin
+gif(anim, fps = 24) # hide
+```
 
 ## Conjugate distributions
 
