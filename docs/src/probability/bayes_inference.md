@@ -12,7 +12,9 @@ In loose terms, suppose a compound distribution model has a parameter $\theta$, 
 
 After updating, the *posteriors* may indicate better the most likely values for the parameters.
 
-The [Bayesian inference on defect item](http://localhost:8000/probability/bayes.html#Bayesian-inference-on-defect-item) is an example where each $D_i$, $i = 4, 5, 6$, represent a probable *model* for the chosen dice, with the posteriors $p(D_i|E)$ revealing the most likely dice picked in the beginning of the problem. This is an example of a finite number of choices for the parameter. More often, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
+## Bayesian inference on defect item
+
+The [Bayesian inference on defect item](http://localhost:8000/probability/bayes.html#Bayesian-inference-on-defect-item) is an example where each $D_i$, $i = 4, 5, 6$, represent a probable *model* for the chosen die, with the posteriors $p(D_i|E)$ revealing the most likely die picked in the beginning of the problem. This is an example of a finite number of choices for the parameter. More often, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
 
 ## A biased coin
 
