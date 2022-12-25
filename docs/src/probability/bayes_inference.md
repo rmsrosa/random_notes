@@ -68,12 +68,12 @@ We first generate the data drawing from a Bernoulli distribution using the *true
 ```@example biasedcoin
 using Distributions, StatsPlots
 using Random # hide
-Random.seed!(123) # set the seed for reproducibility # hide
+Random.seed!(321) # set the seed for reproducibility # hide
 
 p_true = 0.6
 N = 2_000
 data = rand(Bernoulli(p_true), N)
-nothing
+nothing # hide
 ```
 
 Next we define an uniformative prior and create a function to update the prior with a given set of data.
@@ -160,6 +160,29 @@ end
 
 ```@example biasedcoin
 gif(anim, fps = 24) # hide
+```
+
+Here is a static view of the evolution of the posterior mean and 95% credible interval.
+
+```@example biasedcoin
+posterior_means = [mean(update_prior(prior, data[1:n])) for n in 0:N] # hide
+posterior_quantiles = [[quantile(update_prior(prior, data[1:n]), 0.025) for n in 0:N] [quantile(update_prior(prior, data[1:n]), 0.975) for n in 0:N]] # hide
+
+plot(title = "Evolution of the posterior mean and credible interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
+plot!(posterior_quantiles[:,1], fillrange=posterior_quantiles[:,2], alpha=0.0, fillalpha=0.3, label="95% credible interval", color=1) # hide
+hline!([p_true], label="true p = $p_true", color=2) # hide
+plot!(posterior_means, label="posterior mean", color=1) # hide
+```
+
+For the sake of comparison, here is the evolution of the sample mean and 95% confidence intervals, according to the frequentist approach.
+
+```@example biasedcoin
+sample_means = [mean(data[1:n]) for n in 2:N] # hide
+std_error = [sqrt(var(data[1:n])/n) for n in 2:N] # hide
+
+plot(title = "Evolution of the sample mean and confidence interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
+plot!(sample_means, ribbon = 2*std_error, fillalpha=0.3, label="sample mean") # hide
+hline!([p_true], label="true p = $p_true") # hide
 ```
 
 ## Conjugate distributions
