@@ -185,6 +185,30 @@ plot!(sample_means, ribbon = 2*std_error, fillalpha=0.3, label="sample mean") # 
 hline!([p_true], label="true p = $p_true") # hide
 ```
 
+The data above has been seeded for reproducibility reasons. For the sake of illustration, here is another set of data, where the 95% intervals fall sometimes a little bit short.
+
+```@example biasedcoin
+Random.seed!(123) # set the seed for reproducibility # hide
+data = rand(Bernoulli(p_true), N) # hide
+
+posterior_means = [mean(update_prior(prior, data[1:n])) for n in 0:N] # hide
+posterior_quantiles = [[quantile(update_prior(prior, data[1:n]), 0.025) for n in 0:N] [quantile(update_prior(prior, data[1:n]), 0.975) for n in 0:N]] # hide
+
+plot(title = "Evolution of the posterior mean and credible interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
+plot!(posterior_quantiles[:,1], fillrange=posterior_quantiles[:,2], alpha=0.0, fillalpha=0.3, label="95% credible interval", color=1) # hide
+hline!([p_true], label="true p = $p_true", color=2) # hide
+plot!(posterior_means, label="posterior mean", color=1) # hide
+```
+
+```@example biasedcoin
+sample_means = [mean(data[1:n]) for n in 2:N] # hide
+std_error = [sqrt(var(data[1:n])/n) for n in 2:N] # hide
+
+plot(title = "Evolution of the sample mean and confidence interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
+plot!(sample_means, ribbon = 2*std_error, fillalpha=0.3, label="sample mean") # hide
+hline!([p_true], label="true p = $p_true") # hide
+```
+
 ## Conjugate distributions
 
 This property that multipling a Bernoulli distribution by a Beta prior yields a Beta posterior is an example of *conjugate distributions.* Conjugate distributions greatly facilitate the updating process in Bayesian statistics. There are a number of other conjugate prior distributions, but, in general, updating a prior is a much harder process and requires some fancy computational techniques.
