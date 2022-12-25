@@ -82,9 +82,9 @@ If, however, the false negatives were of the order of 5% and the false positives
 
 ## Bayesian inference on defect item
 
-Suppose we have a collection of four six-faced dices, with two normal ones with faces numbered one to six, but one with two faces numbered five and none numbered six and one with three faces numbered four and none numbered five nor six. Let's call them dices types $D_{6}$, $D_{5}$ and $D_{4}$, respectively. A friend picks one of the dices at random and throws it repeatedly to find the numbers 3, 1, 4, 5, 1, 5, 2, 5, reading them aloud. What is the most likely type of dice your friend picked?
+Suppose we have a collection of four six-faced dice, with two normal ones with faces numbered one to six, but one with two faces numbered five and none numbered six and one with three faces numbered four and none numbered five nor six. Let's call them dice types $D_{6}$, $D_{5}$ and $D_{4}$, respectively. A friend picks one of the dice at random and throws it repeatedly to find the numbers 3, 1, 4, 5, 1, 5, 2, 5, reading them aloud. What is the most likely type of die your friend picked?
 
-Your prior is that the normal dice is selected with probability 1/2,
+Your prior is that a normal die is selected with probability 1/2,
 
 ```math
     p(D_{6}) = \frac{1}{2},
@@ -102,7 +102,7 @@ Now, after learning about the *evidence* $E = (3, 1, 4, 5, 1, 5, 2, 5)$ of the n
     p(D_i | E) = \frac{p(E|D_i)p(D_i)}{p(E)}.
 ```
 
-For each dice, the likelyhood $p(E|D_i)$ is
+For each die, the likelyhood $p(E|D_i)$ is
 
 ```math
     p(E|D_i) = p(3|D_i)p(1|D_i)p(4|D_i)p(5|D_i)p(1|D_i)p(5|D_i)p(2|D_i)p(5|D_i)
@@ -140,7 +140,7 @@ Therefore, the posteriors are
     \end{align*}
 ```
 
-Therefore, it is four times more likely that your friend picked the defective $D_5$-type dice than the normal dice, and, of course, the $D_4$-type dice was surely not picked.
+Therefore, it is four times more likely that your friend picked the defective $D_5$-type die than the normal die, and, of course, the $D_4$-type die was surely not picked.
 
 ## Monty Hall problem
 
