@@ -1,0 +1,9 @@
+## Probabilistic programming
+
+It is tedious and many times impossible to do inference by hand. Fortunately, many steps can be automated and calculated with a computer, as in many other subjects. In the realm of probability, this is called *probabilistic programming.* We can use the computer, in any suitable language, to help us build Bayesian models, draw samples from them, do inference with them, and so on.
+
+For teaching purposes, it is important to make the code as explicit and clear as possible. But on the field, in actual applications, a more general and extensible framework is useful. For that, there exist a number of packages for probabilistic programming in several languages. In Julia, you can easily access classical tools and packages such as [STAN](https://mc-stan.org), via [Stan.jl](https://mc-stan.org/users/interfaces/julia-stan), and [pyMC](https://pymcmc.readthedocs.io/en/latest/), via [JuliaPy/PyCall.jl](https://github.com/JuliaPy/PyCall.jl) or [cjdoris/PythonCall.jl](https://cjdoris.github.io/PythonCall.jl/stable/).
+
+But if you want to leverage all the power of Julia, a proper julia-native probabilistic programming package is the best choice, such as [Turing.jl](https://turing.ml/dev/), [Soss.jl](https://cscherrer.github.io/Soss.jl/stable/), [Gen.jl](https://www.gen.dev/docs/stable/), and others. See the thread [Current state of Julia Probabilistic Programming Languages and functionalities](https://discourse.julialang.org/t/current-state-of-julia-probabilistic-programming-languages-and-functionalities/78711) on Discourse for a discussion of the available packages.
+
+Here, we will mainly use [Turing.jl](https://turing.ml/dev/). It is easy to combine Turing.jl with other packages, such as those from [SciML](https://sciml.ai), to do Bayesing inference on models involving all sorts of differential equations.
