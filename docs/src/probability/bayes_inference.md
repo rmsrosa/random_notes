@@ -14,7 +14,88 @@ After updating, the *posteriors* may indicate better the most likely values for 
 
 ## Bayesian inference on defect item
 
-The [Bayesian inference on defect item](http://localhost:8000/probability/bayes.html#Bayesian-inference-on-defect-item) is an example where each $D_i$, $i = 4, 5, 6$, represent a probable *model* for the chosen die, with the posteriors $p(D_i|E)$ revealing the most likely die picked in the beginning of the problem. This is an example of a finite number of choices for the parameter. More often, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
+The [Bayesian inference on defect item](http://localhost:8000/probability/bayes.html#Bayesian-inference-on-defect-item) is an example of Bayesian inference. One wants to infer which die was picked by their friend, based on the results of throwing the die a few times. In this case, we have a compound distributions, starting with a categorial distribution with the three categories $D_4$, $D_5$, $D_6$, representing each type of die, with probabilities $1/4$, $1/4$, and $1/2$, respectively, and then, for each category $D_i$, we have the probabilities $p(j|D_i)$ of obtaining each number $j=1, \ldots, 6$, with each die type $D_i$, $i = 4, 5, 6$.
+
+After a number of throws resulting in a sequence $E = (3, 1, 4, 5, 1, 5, 2, 5)$ of events, we want to know the *posterior* $p(D_i|E)$, revealing the most likely die picked in the beginning of the problem. This is an example of a finite number of choices for the parameter, namely $D_5$, $D_5$, $D_6$. More often, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
+
+The following animation illustrates the evolution of our belief on the picked die as the die is thrown, along the sequence of events $E$.
+
+```@setup defectdie
+using Distributions, StatsPlots
+using Random # hide
+Random.seed!(123) # set the seed for reproducibility # hide
+
+E = (3, 1, 4, 5, 1, 5, 2, 5)
+
+# prior p(i) = p(D_i)
+function p(i::Int)
+    p = 0/4
+    (i == 4 || i == 5 ) && (p = 1/4)
+    i == 6 && (p = 2/4)
+    return p
+end
+
+# conditional probabilities p(n, i) = p(n | D_i) of each number n for a given die D_i
+function p(n::Int, i::Int)
+    q = 0/6
+    i == 4 && (q = 1 ≤ n ≤ 3 ? 1/6 : n == 4 ? 3/6 : 0/6)
+    i == 5 && (q = 1 ≤ n ≤ 4 ? 1/6 : n == 5 ? 2/6 : 0/6)
+    i == 6 && 1 ≤ n ≤ 6 && (q = 1/6)
+    return q
+end
+
+# conditional probabilities p(E, i) = p(E | D_i) of sequence E of events for a given die D_i
+function p(E::NTuple{N, Int}, i::Int) where N
+    q = prod(p(e, i) for e in E)
+    return q
+end
+
+# marginal probability of event p(E) = sum_i p(E | D_i)p(D_i)
+function p(E::NTuple{N, Int}) where N
+    q = sum(p(E, i) * p(i) for i in 4:6)
+    return q
+end
+
+prior = [1/4, 1/4, 1/2]
+
+posteriors = [p(E[1:n], i) * p(i) / p(E[1:n]) for i in 4:6, n in 1:length(E)]
+```
+
+```@setup defectdie
+anim = @animate for n in 0:length(E)
+    if n == 0
+        bar(
+            4:6,
+            prior,
+            size=(600, 400),
+            title="Updated belief on each die after $n observations",
+            titlefont = 10,
+            xlabel="die type",
+            xticks=4:6,
+            ylabel="probability",
+            legend=nothing,
+            ylim=(0.0, 1.0)
+        )
+    else
+        bar(
+            4:6,
+            posteriors[:, n],
+            size=(600, 400),
+            title="Updated belief on each die after $n observations",
+            titlefont = 10,
+            xlabel="die type",
+            xticks=4:6,
+            ylabel="probability",
+            legend=nothing,
+            ylim=(0.0, 1.0)
+        )
+    end
+end
+```
+
+```@example defectdie
+gif(anim, fps = 0.5) # hide
+```
 
 ## A biased coin
 
