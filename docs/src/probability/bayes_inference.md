@@ -294,4 +294,6 @@ hline!([p_true], label="true p = $p_true") # hide
 
 ## Conjugate distributions
 
-This property that multipling a Bernoulli distribution by a Beta prior yields a Beta posterior is an example of *conjugate distributions.* Conjugate distributions greatly facilitate the updating process in Bayesian statistics. There are a number of other conjugate prior distributions, but, in general, updating a prior is a much harder process and requires some fancy computational techniques.
+This property that multipling a Bernoulli distribution by a Beta prior yields a Beta posterior is an example of *conjugate distributions.* Conjugate distributions greatly facilitate the updating process in Bayesian statistics. There are a number of other conjugate prior distributions, as can be seen on this [table of conjugate distributions](https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions).
+
+But, in general, without conjugate distributions, common in "real-world" problems, updating a prior is a much harder process and requires some fancy computational techniques.
