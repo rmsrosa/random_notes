@@ -1,4 +1,4 @@
-## Probabilistic programming
+# Probabilistic programming
 
 It is tedious and many times impossible to do inference by hand. Fortunately, many steps can be automated and calculated with a computer, as in many other subjects. In the realm of probability, this is called *probabilistic programming.* We can use the computer, in any suitable language, to help us build Bayesian models, draw samples from them, do inference with them, and so on.
 

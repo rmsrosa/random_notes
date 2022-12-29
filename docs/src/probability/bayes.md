@@ -1,8 +1,8 @@
-## Bayes theorem and applications
+# Bayes theorem and applications
 
 In this section, we state Bayes' theorem and discuss some of its applications.
 
-### Bayes' Theorem
+## Bayes' Theorem
 
 **Bayes' Theorem** concerns the probability of a given event, conditioned to another event, and can be stated as follows.
 

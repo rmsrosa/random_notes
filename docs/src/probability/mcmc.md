@@ -1,2 +1,2 @@
-## Markov Chain Monte Carlo (MCMC)
+# Markov Chain Monte Carlo (MCMC)
 

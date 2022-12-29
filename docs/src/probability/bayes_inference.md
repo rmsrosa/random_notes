@@ -1,4 +1,4 @@
-## Bayesian inference
+# Bayesian inference
 
 In many situations, we expect some random variable to follow a given distribution but it is not certain what parameters actually define the distribution. For instance, we may have a coin that might be biased but we are unsure about how biased it is. Or we may expect some feature of a population to follow a normal distribution but it is not clear what are its mean and/or standard deviation. In those cases, it is useful to treat those parameters as random variables themselves, leading to what is known as a *compound distribution.*
 
