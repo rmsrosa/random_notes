@@ -4,19 +4,19 @@ In many situations, we expect some random variable to follow a given distributio
 
 Then, given a certain feature and a model, we may attempt to fit the model to the available data, which is refereed to a *statistical inference* problem. We are particularly interested here in *Bayesian inference,* which amounts to using Bayes' formula in the inference process, by *updating a prior* knowledge of the distribution according to the *evidence* given by the data.
 
-In loose terms, suppose a compound distribution model has a parameter $\theta$, and we initially believe in a certain *prior* distribution $p(\theta)$ for this parameter. We then observe some data, or evidence, $E$ and *update* our belief according to Bayes' formula,
+In loose terms, suppose a compound distribution model has a parameter $\theta$, and we initially believe in a certain *prior* distribution $p(\theta)$ for this parameter. We then observe some data, or evidence, $E$, and *update* our belief according to Bayes' formula,
 
 ```math
     p(\theta | E) = \frac{p(E | \theta) p(\theta)}{p(E)}.
 ```
 
-After updating, the *posteriors* may indicate better the most likely values for the parameters.
+After updating, the *posterior* $p(\theta | E)$ may indicate better the most likely values for the parameter $\theta$.
 
 ## Bayesian inference on defect item
 
 The [Bayesian inference on defect item](http://localhost:8000/probability/bayes.html#Bayesian-inference-on-defect-item) is an example of Bayesian inference. One wants to infer which die was picked by their friend, based on the results of throwing the die a few times. In this case, we have a compound distributions, starting with a categorial distribution with the three categories $D_4$, $D_5$, $D_6$, representing each type of die, with probabilities $1/4$, $1/4$, and $1/2$, respectively, and then, for each category $D_i$, we have the probabilities $p(j|D_i)$ of obtaining each number $j=1, \ldots, 6$, with each die type $D_i$, $i = 4, 5, 6$.
 
-After a number of throws resulting in a sequence $E = (3, 1, 4, 5, 1, 5, 2, 5)$ of events, we want to know the *posterior* $p(D_i|E)$, revealing the most likely die picked in the beginning of the problem. This is an example of a finite number of choices for the parameter, namely $D_5$, $D_5$, $D_6$. More often, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
+After a number of throws resulting in a sequence $E = (3, 1, 4, 5, 1, 5, 2, 5)$ of events, we want to know the *posterior* $p(D_i|E)$, revealing the most likely die picked in the beginning of the problem.
 
 The following animation illustrates the evolution of our belief on the picked die as the die is thrown, along the sequence of events $E$.
 
@@ -99,7 +99,9 @@ gif(anim, fps = 0.5) # hide
 
 ## A biased coin
 
-Let's suppose we are told a coin is biased but we don't know its bias and don't even know whether it is biased towards heads or tails. We let $X$ be the random variable with the result of tossing the coin, which follows a Bernoulli distribution with say probability $\theta$ of assuming the value 1, representing heads, and $1-\theta$ of assuming the value 0, representing tails. Thus,
+The previous example illustrates the case of a finite number of choices for the parameter, namely $D_5$, $D_5$, $D_6$. More often than not, the parameter belongs to a continuum, in either a finite- or infinite-dimensional space.
+
+Indeed, let's suppose we are told a coin is biased but we don't know its bias and don't even know whether it is biased towards heads or tails. We let $X$ be the random variable with the result of tossing the coin, which follows a Bernoulli distribution with say probability $\theta$ of assuming the value 1, representing heads, and $1-\theta$ of assuming the value 0, representing tails. Thus,
 
 ```math
     X \sim \mathrm{Bernoulli}(\theta).
