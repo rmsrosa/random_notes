@@ -257,7 +257,7 @@ hline!([p_true], label="true p = $p_true", color=2) # hide
 plot!(posterior_means, label="posterior mean", color=1) # hide
 ```
 
-For the sake of comparison, here is the evolution of the sample mean and 95% confidence intervals, according to the frequentist approach.
+For the sake of comparison, here is the evolution of the sample mean and the associated 95% confidence intervals, according to the frequentist approach.
 
 ```@example biasedcoin
 sample_means = [mean(data[1:n]) for n in 2:N] # hide
