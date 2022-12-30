@@ -11,6 +11,7 @@ makedocs(
             "Probabilistic programming" => "probability/probprog.md",
             "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
             "Many Ways to Linear Regression" => "probability/linear_regression.md",
+            "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
             "Modeling mortality tables" => "probability/mortality_tables.md"
         ],
         "Sensitivity analysis" => [
