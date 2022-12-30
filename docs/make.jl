@@ -38,3 +38,7 @@ makedocs(
         edit_link = "main",
     ),
 )
+
+deploydocs(
+    repo = "github.com/rmsrosa/random_notes.jl.git",
+)
