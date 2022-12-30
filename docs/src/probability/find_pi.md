@@ -83,7 +83,6 @@ for n in (div(N, 1000), div(N, 100), div(N, 10), N)
     plot!(plt, pp, pdf.(Normal(q_f[n], s_f[n]), pp), label="n=$n", fill=true)
 end
 vline!(plt, [π/4], color=:black, label="π/4")
-display(plt)
 ```
 
 ## The Bayesian approach
@@ -100,8 +99,6 @@ plt = plot(pp, pdf.(prior_distribution, pp), label=nothing, title="Density of th
 vline!(plt, [mean(prior_distribution)], label="mean $(round(mean(prior_distribution), sigdigits=4))")
 
 vline!(plt, mean(prior_distribution) .+ [-std(prior_distribution), +std(prior_distribution)], label="mean +/- std: $(round(mean(prior_distribution), sigdigits=4)) +/- $(round(std(prior_distribution), sigdigits=5))")
-
-display(plt)
 ```
 
 Just for the sake of illustration, we draw some sample from the prior
