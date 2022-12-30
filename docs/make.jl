@@ -8,8 +8,12 @@ makedocs(
             "Bayes Theorem" => "probability/bayes.md",
             "Bayesian inference" => "probability/bayes_inference.md",
             "Bernstein–von Mises theorem" => "probability/bernstein_vonmises.md",
-            "Probabilistic programming" => "probability/probprog.md",
-            "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
+            "Probabilistic programming" => [
+                "Overview" => "probability/probprog.md",
+                "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
+                "Gibbs sampling" => "probability/gibbs.md",
+                "Hamiltonian Monde Carlo (HMC)" => "probability/hmc.md"
+            ],
             "Many Ways to Linear Regression" => "probability/linear_regression.md",
             "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
             "Modeling mortality tables" => "probability/mortality_tables.md"
