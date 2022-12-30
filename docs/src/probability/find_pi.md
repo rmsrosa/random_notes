@@ -60,7 +60,7 @@ s_f = [1.0; [√(var(view(x_f, 1:n), mean=q_f[n])/n) for n in 2:N]]
 The sample means approximate the value of $\pi/4$, so we multiply it by $4$ to have an estimate of $\pi$. Accordingly, we multipy the standard error by $4$. The 95% confidence interval is estimated by twice the standard error around the mean. This is illustrated in the following plots. Of course, for small samples, we should use the t-Student distribution, but we concentrate on not-so-small samples and just use the normal distribution, relying on the Central Limit Theorem.
 
 ```@example find_pi
-plot(10:N, 4q_f[10:N], ribbon = 8s_f[10:N], "estimate")
+plot(10:N, 4q_f[10:N], ribbon = 8s_f[10:N], label="estimate")
 hline!(10:N, [π], label="true value")
 ```
 
