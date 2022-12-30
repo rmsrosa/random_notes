@@ -29,6 +29,23 @@ end
 ```
 
 ```@example mortality
+@model function gompertz_makeham(x, q)
+    A ~ Beta()
+    B ~ Beta()
+    C ~ Beta()
+    σ² ~ InverseGamma()
+    σ = sqrt(σ²)
+
+    for i in eachindex(x)
+        η = A + B * C ^ (x[i])
+
+        y = η / (1 + η) 
+        q[i] ~ Normal(y, σ)
+    end
+end
+```
+
+```@example mortality
 x = collect(0:100)
 q = [
     0.003522
@@ -138,17 +155,18 @@ scatter(x, q, yscale=:log10, legend=:topleft)
 
 ```@example mortality
 model = heligman_pollard(x, q)
+model = gompertz_makeham(x, q)
 ```
 
 ```@example mortality
-# chain = sample(model, HMC(0.05, 10), 2_000)
+chain = sample(model, HMC(0.05, 10), 10_000)
 # chain = sample(model, NUTS(0.65), 20_000)
 ```
 
 ```@example mortality
-# plot(chain)
+plot(chain)
 ```
 
 ```@example mortality
-# chain.A, chain.B, chain.C
+# mean(chain.A), mean(chain.B), mean(chain.C)
 ```

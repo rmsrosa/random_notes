@@ -114,7 +114,7 @@ Let's use the Hamiltonian Monte Carlo method to infer the parameters of the mode
 ```@example linear_reg
 model = regfit(x, y)
 
-chain = sample(model, HMC(0.05, 10), 10_000)
+chain = sample(model, HMC(0.05, 10), 4_000)
 
 plot(chain)
 ```
