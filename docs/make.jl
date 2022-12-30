@@ -10,7 +10,8 @@ makedocs(
             "Bernstein–von Mises theorem" => "probability/bernstein_vonmises.md",
             "Probabilistic programming" => "probability/probprog.md",
             "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
-            "Many Ways to Linear Regression" => "probability/regression.md"
+            "Many Ways to Linear Regression" => "probability/linear_regression.md",
+            "Modeling mortality tables" => "probability/mortality_tables.md"
         ],
         "Sensitivity analysis" => [
             "Overview" => "sensitivity/overview.md"
