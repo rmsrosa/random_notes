@@ -17,8 +17,8 @@ makedocs(
                 "Hamiltonian Monte Carlo (HMC)" => "probability/hmc.md"
             ],
             "Examples" => [
-                "Many Ways to Linear Regression" => "probability/linear_regression.md",
                 "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
+                "Many Ways to Linear Regression" => "probability/linear_regression.md",
                 "Modeling mortality tables" => "probability/mortality_tables.md"
             ]
         ],
