@@ -39,6 +39,10 @@ makedocs(
     ),
 )
 
-deploydocs(
-    repo = "github.com/rmsrosa/random_notes.jl.git",
-)
+if get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
+    deploydocs(
+        repo = "github.com/rmsrosa/random_notes.jl.git",
+        devbranch = "main",
+        forcepush = true,
+    )
+end
