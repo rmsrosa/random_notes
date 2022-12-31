@@ -80,7 +80,7 @@ pp = 0.0:0.001:1.0
 plt = plot(title="Evolution of our belief in the value of π\nwith respect to the sample size n", titlefont=10, xlims=(0.5, 1.0))
     
 for n in (div(N, 1000), div(N, 100), div(N, 10), N)
-    plot!(plt, pp, pdf.(Normal(q_f[n], s_f[n]), pp), label="n=$n", fill=true)
+    plot!(plt, pp, pdf.(Normal(q_f[n], s_f[n]), pp), label="n=$n", fill=true, alpha=0.5)
 end
 vline!(plt, [π/4], color=:black, label="π/4")
 ```
@@ -94,7 +94,7 @@ So we choose as prior the distribution $Beta(\alpha, \beta)$ with something like
 ```@example find_pi
 prior_distribution = Beta(24,8)
 
-plt = plot(pp, pdf.(prior_distribution, pp), label=nothing, title="Density of the (prior) distribution $prior_distribution\nmean = $(round(mean(prior_distribution), sigdigits=4)); standard deviation = $(round(std(prior_distribution), sigdigits=5))", titlefont=10, fill=true, legend=:topleft)
+plt = plot(pp, pdf.(prior_distribution, pp), label=nothing, title="Density of the (prior) distribution $prior_distribution\nmean = $(round(mean(prior_distribution), sigdigits=4)); standard deviation = $(round(std(prior_distribution), sigdigits=5))", titlefont=10, fill=true, alpha=0.5, legend=:topleft)
 
 vline!(plt, [mean(prior_distribution)], label="mean $(round(mean(prior_distribution), sigdigits=4))")
 
