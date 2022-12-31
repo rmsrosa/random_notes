@@ -253,10 +253,15 @@ Here is a static view of the evolution of the posterior mean and 95% credible in
 posterior_means = [mean(update_prior(prior, data[1:n])) for n in 0:N] # hide
 posterior_quantiles = [[quantile(update_prior(prior, data[1:n]), 0.025) for n in 0:N] [quantile(update_prior(prior, data[1:n]), 0.975) for n in 0:N]] # hide
 
-plot(title = "Evolution of the posterior mean and credible interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
-plot!(posterior_quantiles[:,1], fillrange=posterior_quantiles[:,2], alpha=0.0, fillalpha=0.3, label="95% credible interval", color=1) # hide
-hline!([p_true], label="true p = $p_true", color=2) # hide
-plot!(posterior_means, label="posterior mean", color=1) # hide
+plt = plot(title = "Evolution of the posterior mean and credible interval", titlefont=10, xaxis="number of observations", yaxis="p") # hide
+plot!(plt, posterior_quantiles[:,1], fillrange=posterior_quantiles[:,2], alpha=0.0, fillalpha=0.3, label="95% credible interval", color=1) # hide
+hline!(plt, [p_true], label="true p = $p_true", color=2) # hide
+plot!(plt, posterior_means, label="posterior mean", color=1) # hide
+```
+
+```@setup biasedcoin
+plot!(plt, showaxis=false, legend=nothing, grid=false, title="", xlabel="", ylabel="", background_color=:transparent)
+savefig(plt, "evolution_biased_coin_plain.svg")
 ```
 
 For the sake of comparison, here is the evolution of the sample mean and the associated 95% confidence intervals, according to the frequentist approach.
