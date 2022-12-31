@@ -168,5 +168,5 @@ plot(chain)
 ```
 
 ```@example mortality
-# mean(chain.A), mean(chain.B), mean(chain.C)
+plot(x, mean(chain[[:A]].value) .+ mean(chain[[:B]].value) * mean(chain[[:C]].value) .^ x, yscale=:log10)
 ```
