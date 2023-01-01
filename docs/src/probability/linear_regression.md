@@ -165,3 +165,16 @@ scatter!(plt, xx, yy_perturbed, label="perturbed sample", color=1)
 ```
 
 Now we use again the values computed along the chain to find the credible interval at each point $x$.
+
+```@example linear_reg
+quantiles = reduce(hcat, quantile([c + m * x for (c, m) in eachrow(view(chain.value.data, :, 2:3, 1))], [0.05, 0.95]) for x in xx)
+```
+
+With the computed quantiles, we are ready to plot the Bayesian fit with the credible interval.
+
+```@example linear_reg
+plt = plot(title="Synthetic data and Turing fit with 95% credible interval", titlefont=10, ylims=(0.0, 1.1 * (intercept + slope)))
+plot!(plt, xx, yy_bayes, ribbon=(view(quantiles, 1, :) .- yy_bayes, yy_bayes .- view(quantiles, 2, :)), label="Bayesian fitted line", color=2)
+scatter!(plt, xx, yy_perturbed, label="perturbed sample", color=1)
+plot!(plt, xx, yy, label="unperturbed line", color=1)
+```
