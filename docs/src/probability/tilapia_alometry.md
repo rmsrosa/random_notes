@@ -125,7 +125,7 @@ quantiles = reduce(
         [
             A * x^B for (A, B) in eachrow(view(chain.value.data, :, 1:2, 1))
         ],
-        [0.05, 0.95]
+        [0.025, 0.975]
         )
     for x in xxx
 )
