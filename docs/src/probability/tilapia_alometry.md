@@ -16,12 +16,14 @@ We use [Turing.jl](https://turing.ml/) with the compound model
 
 ```math
     \begin{align*}
-        A & \sim \mathrm{InverseGamma}(2, 1) \\
-        B & \sim \mathrm{InverseGamma}(2, 1) \\
+        A & \sim \mathrm{InverseGamma}(\alpha_A, \beta_A) \\
+        B & \sim \mathrm{InverseGamma}(\alpha_B, \beta_B) \\
         \sigma^2 & \sim \mathrm{InverseGamma}(2, 1) \\
         y & \sim \mathrm{Normal}(A x^B, \sigma^2)
     \end{align*}
 ```
+
+with suitable hyperparameters $(\alpha_A, \beta_A)$ and $(\alpha_B, \beta_B)$ to be chosen shortly.
 
 We start by loading the necessary packages:
 
@@ -38,12 +40,12 @@ yy = [28.6, 88.6, 177.6, 313.8, 423.7, 774.4]
 scatter(xx, yy, xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
 ```
 
-We define the Turing.jl model
+We define the Turing.jl model with parameters $A$ and $B$ as Inverse Gamma functions with hyperparameters `Ah = (Ah.α, Ah.β)` and `Bh=(Bh.α, Bh.β)`.
 
 ```@example tilapia
-@model function alometry(x, q)
-    A ~ InverseGamma(40, 1)
-    B ~ InverseGamma(1, 6)
+@model function alometry(x, q; Ah, Bh)
+    A ~ InverseGamma(Ah.α, Ah.β)
+    B ~ InverseGamma(Bh.α, Bh.β)
     σ² ~ InverseGamma(2, 1)
     σ = sqrt(σ²)
 
@@ -52,14 +54,50 @@ We define the Turing.jl model
         q[i] ~ Normal(y, σ)
     end
 end
-
-model = alometry(xx, yy)
 ```
 
-Then we fit it
+As in any nonlinear optimization problem, the starting point is crucial. Here, the starting point is our prior. The following prior does not work properly, as we can see.
 
 ```@example tilapia
-# chain = sample(model, HMC(0.05, 10), 4_000)
+model = alometry(xx, yy; Ah=(α=1,β=1), Bh=(α=1,β=1))
+chain = sample(model, NUTS(0.65), 1_000)
+```
+
+```@example tilapia
+plt = scatter(xx, yy, xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
+xxx = range(first(xx), last(xx), length=200)
+yyy = mean(chain, :A) * xxx .^ mean(chain, :B)
+plot!(plt, xxx, yyy)
+```
+
+If we start with a more informative prior, we get a suitable result. If we pick two data points $(x_1, y_1)$ and $(x_2, y_2)$, assuming $y \approx Ax^B$, we have $y_2/y_1 = (x_2/x_1)^B$, so that
+
+```math
+    B = \frac{\ln(y_2/y_1)}{\ln(x_2/x_1)}.
+```
+
+If we choose the second and third points, we get
+
+```@example tilapia
+    B = log(yy[3]/yy[2])/log(xx[3]/xx[2])
+```
+
+From that, we can also estimate $A$ from $A = y/x^B$, so that, choosing the second point
+
+```@example tilapia
+    A = yy[2]/xx[2]^B
+```
+
+With that in mind, we choose the hyperparameters for the prior as $(\alpha_A, \beta_A) = (57, 1)$, with mean $1/(57+1) \approx 0.017$, and $(\alpha_B, \beta_B) = (1, 6)$, with mean $6/(1+1) = 3.0$.
+
+```@example tilapia
+model = alometry(xx, yy; Ah=(α=57,β=1), Bh=(α=1,β=6))
+```
+
+With this prior, we attempt again to fit the model.
+
+```@example tilapia
+# chain = sample(model, HMC(0.05, 10), 4_000) # HMC seems quite unstable here
 chain = sample(model, NUTS(0.65), MCMCSerial(), 1000, 3; progress=false)
 ```
 
@@ -78,7 +116,7 @@ yyy = mean(chain, :A) * xxx .^ mean(chain, :B)
 plot!(plt, xxx, yyy)
 ```
 
-Now we compute the 95% credible interval
+This seems successful. Now we compute the 95% credible interval
 
 ```@example tilapia
 quantiles = reduce(
