@@ -174,7 +174,7 @@ With the computed quantiles, we are ready to plot the Bayesian fit with the cred
 
 ```@example linear_reg
 plt = plot(title="Synthetic data and Turing fit with 95% credible interval", titlefont=10, ylims=(0.0, 1.1 * (intercept + slope)))
-plot!(plt, xx, yy_bayes, ribbon=(view(quantiles, 1, :) .- yy_bayes, yy_bayes .- view(quantiles, 2, :)), label="Bayesian fitted line", color=2)
+plot!(plt, xx, yy_bayes, ribbon=(yy_bayes .- view(quantiles, 1, :), view(quantiles, 2, :) .- yy_bayes), label="Bayesian fitted line", color=2)
 scatter!(plt, xx, yy_perturbed, label="perturbed sample", color=1)
 plot!(plt, xx, yy, label="unperturbed line", color=1)
 ```

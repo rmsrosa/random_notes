@@ -65,7 +65,7 @@ chain = sample(model, NUTS(0.65), 1_000)
 
 ```@example tilapia
 plt = scatter(xx, yy, xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
-xxx = range(first(xx), last(xx), length=200)
+xxx = range(0.9*first(xx), 1.1*last(xx), length=200)
 yyy = mean(chain, :A) * xxx .^ mean(chain, :B)
 plot!(plt, xxx, yyy)
 ```
@@ -111,7 +111,7 @@ Taking the mean of the parameters $A$ and $B$ we plot the fitted curve.
 
 ```@example tilapia
 plt = scatter(xx, yy, xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
-xxx = range(first(xx), last(xx), length=200)
+xxx = range(0.9*first(xx), 1.1*last(xx), length=200)
 yyy = mean(chain, :A) * xxx .^ mean(chain, :B)
 plot!(plt, xxx, yyy)
 ```
@@ -135,6 +135,18 @@ and plot it along the data:
 
 ```@example tilapia
 plt = plot(xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
-plot!(plt, xxx, yyy, ribbon=(view(quantiles, 1, :) .- yyy, yyy .- view(quantiles, 2, :)), label="Bayesian fitted line", color=2)
+plot!(plt, xxx, yyy, ribbon=(yyy .- view(quantiles, 1, :), view(quantiles, 2, :) .- yyy), label="Bayesian fitted line", color=2)
+scatter!(plt, xx, yy, color=1)
+```
+
+
+We end this section plotting an ensemble of lines generated with the chain.
+
+```@example tilapia
+plt = plot(xlabel="Body length (cm)", ylabel="Body weight (g)", xlims=(0.0, 35.0), ylims=(0.0, 1000.0), title="Length-weight relationship of growing-finishing cage-farmed Nile tilapia", titlefont=10, legend=nothing)
+plot!(plt, xxx, yyy, label="Bayesian fitted line", color=2)
+for (a, b) in eachrow(view(chain.value.data, :, 1:2, 1))
+    plot!(plt, xxx, a .* xxx .^b, alpha=0.01, color=2, label=false)
+end
 scatter!(plt, xx, yy, color=1)
 ```
