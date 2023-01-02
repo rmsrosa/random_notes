@@ -19,6 +19,7 @@ makedocs(
             "Examples" => [
                 "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
                 "Many Ways to Linear Regression" => "probability/linear_regression.md",
+                "Alometry law for the Nile Tilapia" => "probability/tilapia_alometry.md",
                 "Modeling mortality tables" => "probability/mortality_tables.md"
             ]
         ],
