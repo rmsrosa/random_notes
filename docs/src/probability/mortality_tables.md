@@ -159,7 +159,7 @@ model = gompertz_makeham(x, q)
 ```
 
 ```@example mortality
-chain = sample(model, HMC(0.05, 10), 10_000)
+chain = sample(model, HMC(0.05, 10), 40_000)
 # chain = sample(model, NUTS(0.65), 20_000)
 ```
 
@@ -168,5 +168,5 @@ plot(chain)
 ```
 
 ```@example mortality
-plot(x, mean(chain[[:A]].value) .+ mean(chain[[:B]].value) * mean(chain[[:C]].value) .^ x, yscale=:log10)
+plot(x, mean(chain, :A) .+ mean(chain, :B) * mean(chain, :C) .^ x, yscale=:log10)
 ```
