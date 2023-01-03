@@ -351,9 +351,7 @@ plot!(plt, x, m, ribbon=(m .- view(quantiles, 1, :), view(quantiles, 2, :) .- m)
 scatter!(plt, x, mx, label="data")
 ```
 
-Weird. Why is the function with the means of the parameters is outside que quantiles, which is based on the function values of the parameter samples?
-
-Let's check the ensemble.
+Notice how the function with the means of the parameters is outside the quantiles, which is based on the function values of the parameter samples. Let's check the ensemble.
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
@@ -364,7 +362,16 @@ end
 scatter!(plt, x, mx, color=1)
 ```
 
-Still weird.
+Let's look at just a few samples to have a better look at the dependence of the function on the sampled values:
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
+plot!(plt, x, m, label="Bayesian fitted line", color=2)
+for (A, B, C) in eachrow(view(chain_gm.value.data, 1:20, 1:3, 1))
+    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.5, color=3, label=false)
+end
+scatter!(plt, x, mx, color=1)
+```
 
 ## The Heligman-Pollard in Turing.jl
 
