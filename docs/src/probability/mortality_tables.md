@@ -271,7 +271,7 @@ Now we define the compound probability model, assigning Beta distributions to th
 let (A, B, C) = (0.00002, 0.10, 0.001)
     m = A * exp.(B * x) .+ C
     plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
-    plot!(plt, x, m, label="Gomperz-Makeham hand-fit")
+    plot!(plt, x, m, label="Gompertz-Makeham hand-fit")
     scatter!(plt, x, mx, label="data")
 end
 ```
@@ -308,17 +308,63 @@ and fit it:
 chain_gm = sample(model_gm, NUTS(0.65), 5_000)
 ```
 
-Here is the result:
+Here is the result of the MCMC:
 
 ```@example mortality
 plot(chain_gm)
 ```
 
+The mean fit is given by
+
+```@example mortality
+m = [gompertz_makeham(xi, mean(chain_gm, [:A, :B, :C]).nt.mean) for xi in x]
+```
+
+and we plot it
+
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
-plot!(plt, x, x -> gompertz_makeham(x, mean(chain_gm, [:A, :B, :C]).nt.mean), label="Gomperz-Makeham fit")
+plot!(plt, x, x -> gompertz_makeham(x, mean(chain_gm, [:A, :B, :C]).nt.mean), label="Gompertz-Makeham fit")
 scatter!(plt, x, mx, label="data")
 ```
+
+It remains to compute the 95% credible interval,
+
+```@example mortality
+quantiles = reduce(
+    hcat,
+    quantile(
+        [
+            gompertz_makeham(xi, (A, B, C)) for (A, B, C) in eachrow(view(chain_gm.value.data, :, 1:3, 1))
+        ],
+        [0.025, 0.975]
+        )
+    for xi in x
+)
+```
+
+and plot it
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
+plot!(plt, x, m, ribbon=(m .- view(quantiles, 1, :), view(quantiles, 2, :) .- m), label="Gompertz-Makeham fit")
+scatter!(plt, x, mx, label="data")
+```
+
+Weird. Why is the function with the means of the parameters is outside que quantiles, which is based on the function values of the parameter samples?
+
+Let's check the ensemble.
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
+plot!(plt, x, m, label="Bayesian fitted line", color=2)
+for (A, B, C) in eachrow(view(chain_gm.value.data, :, 1:3, 1))
+    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.01, color=2, label=false)
+end
+scatter!(plt, x, mx, color=1)
+```
+
+Still weird.
 
 ## The Heligman-Pollard in Turing.jl
 
