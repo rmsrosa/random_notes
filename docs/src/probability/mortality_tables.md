@@ -26,11 +26,9 @@ The Gompertz-Makeham model approximates reasonably well the force of mortality, 
     \mu_x = A^{(x + B)^C} + D e^{-E \ln(x/F)^2} + \frac{GH^x}{1 + KGH^x},
 ```
 
-for suitable coefficients $A, B, C, D, E, F, G, H, K$[^K].
+for suitable coefficients $A, B, C, D, E, F, G, H, K$. It is common to see the Heligman-Pollard models with $K=0$, which is the main model suggested by the authors, but in the same paper they also discuss two extensions of the model, one of them being the one above.
 
-[^K]: Wait, all Heligman-Pollard models I see don't have the denominator above, i.e. have $K=0$.
-
-We can clearly distinguish three terms in the model, with the first term, with parameters $A, B, C$, modeling the steep exponential decline in mortality in the early childhood years, following a relatively high degree of mortality in the newborn; the second term, with parameters $D, E, F$, representing the log-normal growth in mortality in the middle ages; and the last term, with parameters $G, H, K$, with the exponential growth at older ages. Notice the last term follows the original Gompertz law (without the Makeham term).
+We can clearly distinguish three terms in the model, with the first term, with parameters $A, B, C$, modeling the steep exponential decline in mortality in the early childhood years due in part to a relatively high degree of mortality in the newborn; the second term, with parameters $D, E, F$, representing the log-normal bump in mortality in the youth ages; and the last term, with parameters $G, H, K$, with the exponential growth at middle to older ages. Notice the last term follows the original Gompertz law (without the additional term due to Makeham).
 
 ## A mortality table
 
@@ -146,108 +144,6 @@ qx = [
     0.27295
     0.28915
 ]
-# population
-lx = [
-    99_277
-    99_222
-    99_187
-    99_158
-    99_135
-    99_114
-    99_094
-    99_076
-    99_059
-    99_044
-    99_030
-    99_016
-    98_997
-    98_970
-    98_929
-    98_875
-    98_807
-    98_730
-    98_646
-    98_559
-    98_467
-    98_371
-    98_271
-    98_172
-    98_073
-    97_975
-    97_878
-    97_780
-    97_679
-    97_574
-    97_462
-    97_346
-    97_224
-    97_094
-    96_958
-    96_814
-    96_662
-    96_501
-    96_329
-    96_144
-    95_946
-    95_733
-    95_504
-    95_259
-    94_994
-    94_709
-    94_401
-    94_069
-    93_711
-    93_326
-    92_912
-    92_464
-    91_979
-    91_454
-    90_884
-    90_262
-    89_580
-    88_834
-    88_020
-    87_136
-    86_176
-    85_135
-    84_011
-    82_802
-    81_510
-    80_142
-    78_697
-    77_164
-    75_523
-    73_757
-    71_866
-    69_854
-    67_728
-    65_495
-    63_162
-    60_734
-    58_216
-    55_600
-    52_873
-    50_026
-    47_055
-    43_971
-    40_787
-    37_528
-    34_221
-    30_918
-    27_654
-    24_463
-    21_377
-    18_426
-    15_647
-    13_076
-    10_747
-    8_678
-    6_876
-    5_339
-    4_058
-    3_017
-    2_193
-]
 # mx = - log.(1.0 .- qx) # force of mortality # roughly the same as below
 mx = qx ./ (1.0 .- qx) # force of mortality
 scatter(x, qx, yscale=:log10, legend=:topleft, label="qx")
@@ -288,7 +184,6 @@ With these values, we define the prior Beta distributions for the compound proba
     p = (A, B, C)
 
     for i in eachindex(x)
-        # y = A * exp(B * x[i]) + C
         y = gompertz_makeham(x[i], p)
         m[i] ~ Normal(y, σ)
     end
@@ -314,24 +209,30 @@ Here is the result of the MCMC:
 plot(chain_gm)
 ```
 
+We can see the mean values of the parameters as follows
+
+```@example mortality
+mean(chain_gm)
+```
+
 The mean fit is given by
 
 ```@example mortality
-m = [gompertz_makeham(xi, mean(chain_gm, [:A, :B, :C]).nt.mean) for xi in x]
+m_gm = [gompertz_makeham(xi, mean(chain_gm, [:A, :B, :C]).nt.mean) for xi in x]
 ```
 
 and we plot it
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
-plot!(plt, x, x -> gompertz_makeham(x, mean(chain_gm, [:A, :B, :C]).nt.mean), label="Gompertz-Makeham fit")
+plot!(plt, x, m_gm, label="Gompertz-Makeham fit")
 scatter!(plt, x, mx, label="data")
 ```
 
 It remains to compute the 95% credible interval,
 
 ```@example mortality
-quantiles = reduce(
+quantiles_gm = reduce(
     hcat,
     quantile(
         [
@@ -347,7 +248,7 @@ and plot it
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
-plot!(plt, x, m, ribbon=(m .- view(quantiles, 1, :), view(quantiles, 2, :) .- m), label="Gompertz-Makeham fit")
+plot!(plt, x, m_gm, ribbon=(m_gm .- view(quantiles_gm, 1, :), view(quantiles_gm, 2, :) .- m_gm), label="Gompertz-Makeham fit")
 scatter!(plt, x, mx, label="data")
 ```
 
@@ -355,9 +256,171 @@ Notice how the function with the means of the parameters is outside the quantile
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
-plot!(plt, x, m, label="Bayesian fitted line", color=2)
+plot!(plt, x, m_gm, label="Bayesian fitted line", color=2)
 for (A, B, C) in eachrow(view(chain_gm.value.data, :, 1:3, 1))
     plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.01, color=2, label=false)
+end
+scatter!(plt, x, mx, color=1)
+```
+
+Let's look at just a few samples to have a better look at the dependence of the function on the sampled values:[^off]
+
+[^off]: How often do you see $x \mapsto f_{\mathrm{mean}(p)}(x)$ fall off the credible interval of the family $x \mapsto \{f_p(x)\}_p$, where $p$ is the set of parameters?
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
+plot!(plt, x, m_gm, label="Bayesian fitted line", color=2)
+for (A, B, C) in eachrow(view(chain_gm.value.data, 1:50:500, 1:3, 1))
+    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.4, color=3, label=false)
+end
+scatter!(plt, x, mx, color=1)
+```
+
+## The Heligman-Pollard in Turing.jl
+
+Now we consider the Heligman-Pollard model.[^Fnormal]
+
+[^Fnormal]: How come they have $F \sim \mathrm{Normal}(\mu_F, \sigma_F^2)$ since they will take the log of it? Can't let negative values in. I changed it to a Beta distribution.
+
+First we start by defining the function that characterizes the model:
+
+```@example mortality
+function heligman_pollard(x, p)
+    A, B, C, D, E, F, G, H, K = p
+    m = A^((x + B)^C) + D * exp(-E * log(x / F)^2) + (G * H^x) / (1 + K * G * H^x)
+    return m
+end
+```
+
+Now we define the compound probability model. As mentioned before, the initial prior is very important. We start with numbers of the order of those given in the original article by Heligman and Pollard. They considered a number of examples, but, as a starting point, we borrow only the data from the 1970-1972 period, separated by gender:
+
+| Parameter | Males 1970-72 | Females 1970-1972 |
+| --- | --- | --- |
+| A | 0.00160 | 0.00142 |
+| B | 0.00112 | 0.0350 |
+| C | 0.1112 | 0.1345 |
+| D | 0.00163 | 0.00038 |
+| E | 16.71 | 21.86 |
+| F | 20.03 | 18.27 |
+| G | 0.0000502 | 0.0000507 |
+| H | 1.1074 | 1.0937 |
+| K | 2.416 | -2.800 |
+
+The difference in the sign of $K$ between the male and female populations is justified by the difference in mortality for the elderly, although the data showed in the article both look more like in the description of the male mortality. Let's see how an approximation of that looks like, keeping a positive sign for $K$ because of this observation.
+
+```@example mortality
+let (A, B, C, D, E, F, G, H, K) = (0.0015, 0.018, 0.012, 0.001, 19.0, 19.0, 0.00005, 1.1, 1.0)
+    m = [heligman_pollard(xi, (A, B, C, D, E, F, G, H, K)) for xi in x]
+    plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
+    plot!(plt, x, m, label="Heligman-Pollard hand-fit")
+    scatter!(plt, x, mx, label="data")
+end
+```
+
+Ok, that seems like a reasonable starting point. So we choose the following priors for each parameter:
+
+| Parameter | prior | mean |
+| --- | --- | --- |
+| A | Beta(1, 660) | 0.00151 |
+| B | Beta(1, 50) | 0.0196 |
+| C | Beta(1, 7) | 0.125 |
+| D | Beta(1, 999) | 0.001 |
+| E | Gamma(19, 1) | 19.0 |
+| F | Gamma(19, 1) | 19.0 |
+| G | Beta(1, 19999) | 0.00005 |
+| H | Gamma(1, 1) | 1.0 |
+| K | Gamma(1, 1) | 1.0 |
+
+```@example mortality
+@model function heligman_pollard_model(x, m)
+    A ~ Beta(1, 660)
+    B ~ Beta(1, 50)
+    C ~ Beta(1, 7)
+    D ~ Beta(1, 999)
+    E ~ Gamma(19, 1)
+    F ~ Gamma(19, 1)
+    G ~ Beta(1, 19999)
+    H ~ Gamma(1, 1)
+    K ~ Gamma(1, 1)
+    σ² ~ InverseGamma()
+    σ = sqrt(σ²)
+
+    for i in eachindex(x)
+        y = A ^ ((x[i] + B) ^ C) + D * exp( - E * (log(x[i]) - log(F)) ^ 2) + G * H ^ (x[i]) # / (1 + K * G * H ^ (x[i]) )
+        m[i] ~ Normal(y, σ)
+    end
+end
+```
+
+Now we instantiate the Heligman-Pollard Turing model
+
+```@example mortality
+model_hp = heligman_pollard_model(x, mx)
+```
+
+and fit it:
+
+```@example mortality
+# chain_hp = sample(model_hp, HMC(0.05, 10), 40_000)
+chain_hp = sample(model_hp, NUTS(0.85), 50_000)
+```
+
+Here is the result of the MCMC:
+
+```@example mortality
+plot(chain_hp)
+```
+
+We can see the mean values of the parameters as follows
+
+```@example mortality
+mean(chain_hp)
+```
+
+The mean fit is given by
+
+```@example mortality
+m_hp = [heligman_pollard(xi, mean(chain_hp, [:A, :B, :C, :D, :E, :F, :G, :H, :K]).nt.mean) for xi in x]
+```
+
+and we plot it
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
+plot!(plt, x, m_hp, label="Heligman-Pollard fit")
+scatter!(plt, x, mx, label="data")
+```
+
+It remains to compute the 95% credible interval,
+
+```@example mortality
+quantiles_hp = reduce(
+    hcat,
+    quantile(
+        [
+            heligman_pollard(xi, p) for p in eachrow(view(chain_hp.value.data, :, 1:9, 1))
+        ],
+        [0.025, 0.975]
+        )
+    for xi in x
+)
+```
+
+and plot it
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
+plot!(plt, x, m_hp, ribbon=(m_hp .- view(quantiles_hp, 1, :), view(quantiles_hp, 2, :) .- m_hp), label="Heligman-Pollard fit")
+scatter!(plt, x, mx, label="data")
+```
+
+Notice how the function with the means of the parameters is again outside the quantiles, which is based on the function values of the parameter samples. Let's check the ensemble with the first one thousand parameters values:
+
+```@example mortality
+plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
+plot!(plt, x, m_hp, label="Bayesian fitted line", color=2)
+for p in eachrow(view(chain_hp.value.data, 1:1_000, 1:9, 1))
+    plot!(plt, x, x -> heligman_pollard(x, p), alpha=0.01, color=2, label=false)
 end
 scatter!(plt, x, mx, color=1)
 ```
@@ -366,37 +429,9 @@ Let's look at just a few samples to have a better look at the dependence of the 
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
-plot!(plt, x, m, label="Bayesian fitted line", color=2)
-for (A, B, C) in eachrow(view(chain_gm.value.data, 1:20, 1:3, 1))
-    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.5, color=3, label=false)
+plot!(plt, x, m_hp, label="Bayesian fitted line", color=2)
+for p in eachrow(view(chain_hp.value.data, 1:50:500, 1:9, 1))
+    plot!(plt, x, x -> heligman_pollard(x, p), alpha=0.4, color=3, label=false)
 end
 scatter!(plt, x, mx, color=1)
-```
-
-## The Heligman-Pollard in Turing.jl
-
-Here we define the Heligman-Pollard model.[^Fnormal]
-
-[^Fnormal]:
-    > How come they have $F \sim \mathrm{Normal}(\mu_F, \sigma_F^2)$ since they will take the log of it? Can't let negative values in. I changed it to a Beta distribution.
-
-```@example mortality
-@model function heligman_pollard(x, q)
-    A ~ Beta()
-    B ~ Beta()
-    C ~ Beta()
-    D ~ Beta()
-    E ~ Gamma()
-    F ~ Gamma()
-    G ~ Beta()
-    H ~ Gamma()
-    σ² ~ InverseGamma()
-    σ = sqrt(σ²)
-
-    for i in eachindex(x)
-        m = A ^ ((x[i] + B) ^ C) + D * exp( - E * (log(x[i]) - log(F)) ^ 2) + G * H ^ (x[i]) # / (1 + K * G * H ^ (x[i]) )
-        y = m / (1 + m) 
-        q[i] ~ Normal(y, σ)
-    end
-end
 ```
