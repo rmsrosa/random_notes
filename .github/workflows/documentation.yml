@@ -8,6 +8,9 @@ on:
     tags: '*'
   pull_request:
 
+env:
+  GKSwstype: "100"
+
 jobs:
   docs-build:
     runs-on: ubuntu-latest
