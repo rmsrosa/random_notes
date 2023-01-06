@@ -361,8 +361,10 @@ model_hp = heligman_pollard_model(x, mx)
 and fit it:
 
 ```@example mortality
-# chain_hp = sample(model_hp, HMC(0.05, 10), 40_000)
-chain_hp = sample(model_hp, NUTS(0.85), 50_000)
+# chain_hp = sample(model_hp, HMC(0.05, 10), 4_000) # Pure HMC didn't converge
+# chain_hp = sample(model_hp, MH(), 5_000) # Metropolis-Hasting didn't converge
+# chain_hp = sample(model_hp, Gibbs(MH(:A, :B, :C), MH(:D, :E, :F), HMC(0.65, 5, :G, :H, :K)), 5_000) # I am afraid I am not getting this right
+chain_hp = sample(model_hp, NUTS(0.85), 5_000)
 ```
 
 Here is the result of the MCMC:
