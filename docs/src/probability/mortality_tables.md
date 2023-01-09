@@ -278,9 +278,7 @@ scatter!(plt, x, mx, color=1)
 
 ## The Heligman-Pollard in Turing.jl
 
-Now we consider the Heligman-Pollard model.[^Fnormal]
-
-[^Fnormal]: How come they have $F \sim \mathrm{Normal}(\mu_F, \sigma_F^2)$ since they will take the log of it? Can't let negative values in. I changed it to a Beta distribution.
+Now we consider the Heligman-Pollard model.
 
 First we start by defining the function that characterizes the model:
 
