@@ -172,13 +172,13 @@ let (A, B, C) = (0.00002, 0.10, 0.001)
 end
 ```
 
-With these values, we define the prior Beta distributions for the compound probability model
+With these values, we define the prior Beta distributions for the compound probability model with parameters that yield a mean near those values.
 
 ```@example mortality
 @model function gompertz_makeham_model(x, m)
-    A ~ Beta(1, 50000)
-    B ~ Beta(1, 10)
-    C ~ Beta(1, 1000)
+    A ~ Beta(2, 99998)
+    B ~ Beta(2, 18)
+    C ~ Beta(2, 1998)
     σ² ~ InverseGamma()
     σ = sqrt(σ²)
     p = (A, B, C)
@@ -319,27 +319,40 @@ Ok, that seems like a reasonable starting point. So we choose the following prio
 
 | Parameter | prior | mean |
 | --- | --- | --- |
-| A | Beta(1, 660) | 0.00151 |
-| B | Beta(1, 50) | 0.0196 |
-| C | Beta(1, 7) | 0.125 |
-| D | Beta(1, 999) | 0.001 |
-| E | Gamma(19, 1) | 19.0 |
-| F | Gamma(19, 1) | 19.0 |
-| G | Beta(1, 19999) | 0.00005 |
-| H | Gamma(1, 1) | 1.0 |
-| K | Gamma(1, 1) | 1.0 |
+| A | Beta(15, 9985) | 0.0015 |
+| B | Beta(18, 982) | 0.018 |
+| C | Beta(12, 988) | 0.012 |
+| D | Beta(2, 1998) | 0.001 |
+| E | Gamma(38, 0.5) | 19.0 |
+| F | Gamma(38, 0.5) | 19.0 |
+| G | Beta(5, 99995) | 0.00005 |
+| H | Gamma(2, 0.5) | 1.0 |
+| K | Gamma(2, 0.5) | 1.0 |
+
+But these turned out not to be so good. We either look for better informative priors or use slightly less informative priors. We fiddle a little bit with the parameters to get the following improvement.
+
+```@example mortality
+let (A, B, C, D, E, F, G, H, K) = (0.0003, 0.02, 0.08, 0.0008, 15.0, 20.0, 0.00005, 1.1, 1.0)
+    m = [heligman_pollard(xi, (A, B, C, D, E, F, G, H, K)) for xi in x]
+    plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
+    plot!(plt, x, m, label="Heligman-Pollard hand-fit")
+    scatter!(plt, x, mx, label="data")
+end
+```
+
+Based on that, we choose the following priors:
 
 ```@example mortality
 @model function heligman_pollard_model(x, m)
-    A ~ Beta(1, 660)
-    B ~ Beta(1, 50)
-    C ~ Beta(1, 7)
-    D ~ Beta(1, 999)
-    E ~ Gamma(19, 1)
-    F ~ Gamma(19, 1)
-    G ~ Beta(1, 19999)
-    H ~ Gamma(1, 1)
-    K ~ Gamma(1, 1)
+    A ~ Beta(3, 9997) # Beta(1, 660) # Beta(15, 9985)
+    B ~ Beta(2, 98) # Beta(1, 50) # Beta(18, 982)
+    C ~ Beta(8, 92) # Beta(12, 988)
+    D ~ Beta(8, 9992) # Beta(1, 999) # Beta(2, 1998)
+    E ~ Gamma(30, 0.5) # Gamma(19, 1) # Gamma(38, 0.5)
+    F ~ Gamma(40, 0.5) # Gamma(19, 1) # Gamma(38, 0.5)
+    G ~ Beta(5, 99995) # Beta(1, 19999) # Beta(5, 99995)
+    H ~ Gamma(2.2, 0.5) # Gamma(1, 1) # Gamma(2, 0.5)
+    K ~ Gamma(2.0, 0.5) # Gamma(1, 1) # Gamma(2, 0.5)
     σ² ~ InverseGamma()
     σ = sqrt(σ²)
 
