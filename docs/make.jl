@@ -23,6 +23,9 @@ makedocs(
                 "Modeling mortality tables" => "probability/mortality_tables.md"
             ]
         ],
+        "Generative models" => [
+            "generative/genidea.md"
+        ],
         "Sensitivity analysis" => [
             "Overview" => "sensitivity/overview.md"
         ]
