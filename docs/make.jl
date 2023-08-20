@@ -24,7 +24,8 @@ makedocs(
             ]
         ],
         "Generative models" => [
-            "generative/genidea.md"
+            "generative/geneyes.md",
+            "generative/genface.md"
         ],
         "Sensitivity analysis" => [
             "Overview" => "sensitivity/overview.md"
