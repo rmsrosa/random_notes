@@ -31,7 +31,7 @@ Parameters for an example face:
 nothing
 ```
 
-We actually represent the state vector as a `ComponentVector`, com [jonniedie/ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl):
+We actually represent the state vector as a `ComponentVector`, using [jonniedie/ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl):
 ```@example genface
 u = ComponentVector(
     lefteye = [x_1, y_1, w_1, a_1, b_1],
