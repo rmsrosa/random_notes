@@ -24,4 +24,8 @@
 
 ## Development
 
-`Documenter.jl` renders every page each time it runs, including via LiveServer. Hence, for development, it is interesting to render only the page you are currently working on. Need to recall how to do that.
+`Documenter.jl` renders every page each time it runs, including when using it via LiveServer. That gets a bit heavy and slow. Hence, for development, it is interesting to render only the page you are currently working on, as follows.
+
+1. Set `draft = true,` in `docs/make.jl`
+2. Add a `@meta` block with `Draft = false` somewhat in the beginning of the page you are working on.
+3. Don't forget to revert to `draft = true` in `docs/make.jl` before your final commit.
