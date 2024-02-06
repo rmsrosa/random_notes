@@ -24,7 +24,7 @@ We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/paper
 
 The differentiation for the optimization is with respect to the parameters, while the differentiation of the modeled score function is on the variate, but still this is a great computational challenge and not all AD are fit for that. For this reason, we resort to centered finite differences to approximate the derivative of the modeled score function. We will use automatic differentiation of the modeled score function in a separate note, for illustrative purposes.
 
-This is a one-dimensional example. For higher-dimensional examples, the *sliced-score matching* approach of [Y. Song, S. Garg, J. Shi, S. Ermon, Sliced Score Matching: A Scalable Approach to Density and Score Estimation, Proceedings of The 35th Uncertainty in Artificial Intelligence Conference, PMLR 115:574-584, 2020](https://proceedings.mlr.press/v115/song20a.html) is quite useful (see also the blog discussion [Y. Song, Sliced Score Matching: A Scalable Approach to Density and Score Estimation](http://yang-song.net/blog/2019/ssm/))
+This is a one-dimensional example. For higher-dimensional examples, the *sliced-score matching* approach of [Song, Garg, Shi, and Ermon (2020)](https://proceedings.mlr.press/v115/song20a.html) is quite useful (see also [Song's blog on sliced score matching](http://yang-song.net/blog/2019/ssm/)).
 
 For a python version of a similar pedagogical example, see [Eric J. Ma (2021)](https://ericmjl.github.io/score-models/). There, they use AD on top of AD, via the [google/jax](https://github.com/google/jax) library, which apparently handles this double-AD not so badly.
 
@@ -46,7 +46,7 @@ using Lux # artificial neural networks explicitly parametrized
 using Optimisers
 using Zygote # automatic differentiation
 
-nothing
+nothing # hide
 ```
 
 There are several Julia libraries for artificial neural networks and for automatic differentiation (AD). The most established package for artificial neural networks is the [FluxML/Flux.jl](https://github.com/FluxML/Flux.jl) library, which handles the parameters implicitly. A newer library that handles the parameters explicitly is the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library, which is also taylored to the differential equations [SciML](https://sciml.ai) ecosystem.
@@ -61,7 +61,7 @@ We set the random seed for reproducibility purposes.
 
 ```@example simplescorematching
 rng = Xoshiro(12345)
-nothing
+nothing # hide
 ```
 
 ### Extending the score function from Distributions.jl
@@ -345,7 +345,7 @@ end
 
 ### Optimization method
 
-We use the classical Adam optimiser (see [Adam: A Method for Stochastic Optimization (2015)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8)), which is a stochastic gradient-based optimization method.
+We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8)), which is a stochastic gradient-based optimization method.
 
 ```@example simplescorematching
 opt = Adam(0.03)
@@ -411,7 +411,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_withFD_over_sample, data,
 Now we attempt to train the model, starting with $J(\theta)$.
 ```@example simplescorematching
 @time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_mse, 500)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -449,7 +449,7 @@ plot!(x', target_pdf_pred', label="recoverd")
 Now we attempt to train it with the plain MSE. We do not reuse the state from the previous optimization. We start over at the initial state, for the sake of comparison of the different loss functions.
 ```@example simplescorematching
 @time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_mse_plain, 500)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -489,14 +489,14 @@ That is an almost perfect matching.
 Now we attempt to train it with $\tilde J_{\mathrm{FD}}(\theta)$. Again we start over with the untrained state of the model.
 ```@example simplescorematching
 @time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD, 500)
-nothing
+nothing # hide
 ```
 
 We may try a little longer from this state on.
 ```@example simplescorematching
 @time tstate, losses_more = train(tstate, vjp_rule, data, loss_function_withFD, 500)
 append!(losses, losses_more)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -534,7 +534,7 @@ plot!(x', target_pdf_pred', label="recoverd")
 Finally we attemp to train with the sample data.
 ```@example simplescorematching
 @time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -573,12 +573,12 @@ Let us now pre-train the model with the $J(\theta)$ and see if $\tilde{\tilde{J}
 
 ```@example simplescorematching
 tstate, = train(tstate_org, vjp_rule, data, loss_function_mse, 500)
-nothing
+nothing # hide
 ```
 
 ```@example simplescorematching
 tstate, losses = train(tstate, vjp_rule, data, loss_function_withFD_over_sample, 500)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -623,7 +623,7 @@ data = (x, y, target_pdf, sample)
 
 ```@example simplescorematching
 tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500)
-nothing
+nothing # hide
 ```
 
 Testing out the trained model.
@@ -658,10 +658,9 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 
 ## References
 
-1. [Aapo Hyvärinen, "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6 (2005), 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
-1. [T. Pang, K. Xu, C. Li, Y. Song, S. Ermon, J. Zhu, Efficient Learning of Generative Models via Finite-Difference Score Matching, NeurIPS 2020](https://openreview.net/forum?id=LVRoKppWczk) - see also the [arxiv version](https://arxiv.org/abs/2007.03317)
-1. [Eric J. Ma, A Pedagogical Introduction to Score Models, April 21, 2021](https://ericmjl.github.io/score-models/)
-1. [Implemented python score_matching loss by Eric Ma](https://github.com/ericmjl/score-models/blob/main/score_models/losses/diffusion.py#L7)
-1. [Y. Song, S. Garg, J. Shi, S. Ermon, Sliced Score Matching: A Scalable Approach to Density and Score Estimation, Proceedings of The 35th Uncertainty in Artificial Intelligence Conference, PMLR 115:574-584, 2020](https://proceedings.mlr.press/v115/song20a.html) -- see also the [arxiv version](https://arxiv.org/abs/1905.07088)
-1. [Y. Song, Sliced Score Matching: A Scalable Approach to Density and Score Estimation - blog](http://yang-song.net/blog/2019/ssm/)
-1. [Adam: A Method for Stochastic Optimization (Kingma, Diederik and Ba, Jimmy), In International Conference on Learning Representations (ICLR), 2015.](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8) -- see also the [arxiv version](https://arxiv.org/abs/1412.6980).
+1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
+1. [T. Pang, K. Xu, C. Li, Y. Song, S. Ermon, J. Zhu (2020), Efficient Learning of Generative Models via Finite-Difference Score Matching, NeurIPS](https://openreview.net/forum?id=LVRoKppWczk) - see also the [arxiv version](https://arxiv.org/abs/2007.03317)
+1. [Eric J. Ma, A Pedagogical Introduction to Score Models, webpage, April 21, 2021](https://ericmjl.github.io/score-models/) - with the associated [github repo](https://github.com/ericmjl/score-models/blob/main/score_models/losses/diffusion.py#L7)
+1. [Y. Song, S. Garg, J. Shi, S. Ermon (2020), Sliced Score Matching: A Scalable Approach to Density and Score Estimation, Proceedings of The 35th Uncertainty in Artificial Intelligence Conference, PMLR 115:574-584](https://proceedings.mlr.press/v115/song20a.html) -- see also the [arxiv version](https://arxiv.org/abs/1905.07088)
+1. [Y. Song's blog on "Sliced Score Matching: A Scalable Approach to Density and Score Estimation"](http://yang-song.net/blog/2019/ssm/)
+1. [D. P. Kingma, J. Ba (2015), Adam: A Method for Stochastic Optimization, In International Conference on Learning Representations (ICLR)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8) -- see also the [arxiv version](https://arxiv.org/abs/1412.6980)
