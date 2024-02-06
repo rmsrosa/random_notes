@@ -39,7 +39,7 @@ We use the [Julia programming language](https://julialang.org) with suitable pac
 ### Packages
 
 ```@example simplescorematching
-using Plots
+using StatsPlots
 using Random
 using Distributions
 using Lux # artificial neural networks explicitly parametrized
@@ -210,18 +210,12 @@ In this case, since we need compute $\psi(x_n + \delta; \theta)$ and $\psi(x_n -
 
 Hence, we approximate $\tilde J(\theta)$ by the finite-difference version
 ```math
-    \begin{multline*}
-        \tilde J_{\mathrm{FD}}(\theta) = \int_{\mathbb{R}} p_X(x) \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 \\
-        + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg)\;\mathrm{d}x,
-    \end{multline*}
+    \tilde J_{\mathrm{FD}}(\theta) = \int_{\mathbb{R}} p_X(x) \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg)\;\mathrm{d}x,
 ```
 
 And we approximate ${\tilde J}_{\mathrm{MC}}$ by
 ```math
-    \begin{multline*}
-        {\tilde J}_{\mathrm{MC, FD}} =  \frac{1}{N}\sum_{n=1}^N \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 \\
-        + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg).
-    \end{multline*}
+    {\tilde J}_{\mathrm{MC, FD}} =  \frac{1}{N}\sum_{n=1}^N \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg).
 ```
 
 ### Proof that $J(\theta) = \tilde J(\theta) + C$
