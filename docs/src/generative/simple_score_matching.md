@@ -364,18 +364,22 @@ vjp_rule = Lux.Training.AutoZygote()
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
 ```@example simplescorematching
-function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20)
+function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
+    tstates = [(0, tstate)]
     for epoch in 1:epochs
         grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp,
             loss_function, data, tstate)
-        if rem(epoch, div(epochs, numshowepochs)) == 0
+        if ( epochs ≥ numshowepochs > 0 ) && rem(epoch, div(epochs, numshowepochs)) == 0
             println("Epoch: $(epoch) || Loss: $(loss)")
+        end
+        if ( epochs ≥ numsavestates > 0 ) && rem(epoch, div(epochs, numsavestates)) == 0
+            push!(tstates, (epoch, tstate))
         end
         losses[epoch] = loss
         tstate = Lux.Training.apply_gradients(tstate, grads)
     end
-    return tstate, losses
+    return tstate, losses, tstates
 end
 ```
 
@@ -410,7 +414,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_withFD_over_sample, data,
 
 Now we attempt to train the model, starting with $J(\theta)$.
 ```@example simplescorematching
-@time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_mse, 500)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_mse, 500, 20, 125)
 nothing # hide
 ```
 
@@ -430,7 +434,27 @@ scatter!(x', y', label="data", markersize=2)
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
-And evolution of the losses.
+Just for the fun of it, let us see an animation of the optimization process.
+```@setup simplescorematching
+ymin, ymax = extrema(y)
+epsilon = (ymax - ymin) / 10
+anim = @animate for (epoch, tstate) in tstates
+    y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
+    plot(title="Fitting evolution", titlefont=10)
+
+    plot!(x', y', linewidth=4, label="score function")
+
+    scatter!(x', y', label="data", markersize=2)
+
+    plot!(x', y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+end
+```
+
+```@example simplescorematching
+gif(anim, fps = 20) # hide
+```
+
+We also visualize the evolution of the losses.
 ```@example simplescorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
@@ -448,7 +472,7 @@ plot!(x', target_pdf_pred', label="recoverd")
 
 Now we attempt to train it with the plain MSE. We do not reuse the state from the previous optimization. We start over at the initial state, for the sake of comparison of the different loss functions.
 ```@example simplescorematching
-@time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_mse_plain, 500)
+@time tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_mse_plain, 500)
 nothing # hide
 ```
 
@@ -488,13 +512,13 @@ That is an almost perfect matching.
 
 Now we attempt to train it with $\tilde J_{\mathrm{FD}}(\theta)$. Again we start over with the untrained state of the model.
 ```@example simplescorematching
-@time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD, 500)
+@time tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_withFD, 500)
 nothing # hide
 ```
 
 We may try a little longer from this state on.
 ```@example simplescorematching
-@time tstate, losses_more = train(tstate, vjp_rule, data, loss_function_withFD, 500)
+@time tstate, losses_more, = train(tstate, vjp_rule, data, loss_function_withFD, 500)
 append!(losses, losses_more)
 nothing # hide
 ```
@@ -531,9 +555,9 @@ plot!(x', target_pdf_pred', label="recoverd")
 
 ### Training with ${\tilde J}_{\mathrm{MC, FD}}$
 
-Finally we attemp to train with the sample data.
+Finally we attemp to train with the sample data. This is the real thing, without knowning the supposedly unknown target distribution.
 ```@example simplescorematching
-@time tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500, 20, 125)
 nothing # hide
 ```
 
@@ -553,7 +577,27 @@ scatter!(x', y', label="data", markersize=2)
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
-And evolution of the losses.
+Let us see an animation of the optimization process in this case, as well, since it is the one of interest.
+```@setup simplescorematching
+ymin, ymax = extrema(y)
+epsilon = (ymax - ymin) / 10
+anim = @animate for (epoch, tstate) in tstates
+    y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
+    plot(title="Fitting evolution", titlefont=10)
+
+    plot!(x', y', linewidth=4, label="score function")
+
+    scatter!(x', y', label="data", markersize=2)
+
+    plot!(x', y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+end
+```
+
+```@example simplescorematching
+gif(anim, fps = 20) # hide
+```
+
+Here is the evolution of the losses.
 ```@example simplescorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
@@ -569,7 +613,7 @@ plot!(x', target_pdf_pred', label="recoverd")
 
 ### Pre-training ${\tilde J}_{\mathrm{MC, FD}}$ with $J(\theta)$
 
-Let us now pre-train the model with the $J(\theta)$ and see if $\tilde{\tilde{J}(\theta)}$ gets better.
+Let us now pre-train the model with the $J(\theta)$ and see if ${\tilde J}_{\mathrm{MC, FD}}$ improves.
 
 ```@example simplescorematching
 tstate, = train(tstate_org, vjp_rule, data, loss_function_mse, 500)
@@ -577,7 +621,7 @@ nothing # hide
 ```
 
 ```@example simplescorematching
-tstate, losses = train(tstate, vjp_rule, data, loss_function_withFD_over_sample, 500)
+tstate, losses, = train(tstate, vjp_rule, data, loss_function_withFD_over_sample, 500)
 nothing # hide
 ```
 
@@ -622,7 +666,7 @@ data = (x, y, target_pdf, sample)
 ```
 
 ```@example simplescorematching
-tstate, losses = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500)
+tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_withFD_over_sample, 500)
 nothing # hide
 ```
 
