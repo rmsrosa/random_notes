@@ -1,32 +1,41 @@
 using Documenter
 
-makedocs(
-    sitename = "Random notes",
-    pages = [
-        "Random Notes" => "index.md",
-        "Probability" => [
-            "Bayes Theory" => [
-                "Bayes Theorem" => "probability/bayes.md",
-                "Bayesian inference" => "probability/bayes_inference.md",
-                "Bernstein–von Mises theorem" => "probability/bernstein_vonmises.md"
-            ],
-            "Probabilistic programming" => [
-                "Overview" => "probability/probprog.md",
-                "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
-                "Gibbs sampling" => "probability/gibbs.md",
-                "Hamiltonian Monte Carlo (HMC)" => "probability/hmc.md"
-            ],
-            "Examples" => [
-                "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
-                "Many Ways to Linear Regression" => "probability/linear_regression.md",
-                "Alometry law for the Nile Tilapia" => "probability/tilapia_alometry.md",
-                "Modeling mortality tables" => "probability/mortality_tables.md"
-            ]
+allpages = [
+    "Random Notes" => "index.md",
+    "Probability" => [
+        "Bayes Theory" => [
+            "Bayes Theorem" => "probability/bayes.md",
+            "Bayesian inference" => "probability/bayes_inference.md",
+            "Bernstein–von Mises theorem" => "probability/bernstein_vonmises.md"
         ],
-        "Sensitivity analysis" => [
-            "Overview" => "sensitivity/overview.md"
+        "Probabilistic programming" => [
+            "Overview" => "probability/probprog.md",
+            "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
+            "Gibbs sampling" => "probability/gibbs.md",
+            "Hamiltonian Monte Carlo (HMC)" => "probability/hmc.md"
+        ],
+        "Examples" => [
+            "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
+            "Many Ways to Linear Regression" => "probability/linear_regression.md",
+            "Alometry law for the Nile Tilapia" => "probability/tilapia_alometry.md",
+            "Modeling mortality tables" => "probability/mortality_tables.md"
         ]
     ],
+    "Generative models" => [
+        "Score matching" => [
+        "generative/simple_score_matching.md"
+        ]
+    ],
+    "Sensitivity analysis" => [
+        "Overview" => "sensitivity/overview.md"
+    ]
+]
+
+makedocs(
+    sitename = "Random notes",
+    pages = allpages,
+    pagesonly = true,
+    draft = false,
     authors = "Ricardo Rosa",
     format = Documenter.HTML(;
         assets = [
