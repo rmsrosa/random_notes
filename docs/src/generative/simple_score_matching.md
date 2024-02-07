@@ -1,8 +1,4 @@
-# Score-matching a multi-layer perceptron to a one-dimensional Gaussian mixture model
-
-```@meta
-Draft = false
-```
+# Score-matching a one-dimensional Gaussian mixture model
 
 ## Introduction
 
@@ -66,7 +62,7 @@ nothing # hide
 
 ### Extending the score function from Distributions.jl
 
-The distributions and their PDF are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we do some *pirating* and extend `Distributions.gradlogpdf` to `MixtureModels` as follows.
+The distributions and their PDF are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we do some *pirating* and extend `Distributions.gradlogpdf` to *univariate* `MixtureModels` as follows.
 
 ```@example simplescorematching
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
