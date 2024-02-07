@@ -23,7 +23,8 @@ allpages = [
     ],
     "Generative models" => [
         "Score matching" => [
-        "generative/simple_score_matching.md"
+            "generative/simple_score_matching.md",
+            "generative/2d_score_matching.md"
         ]
     ],
     "Sensitivity analysis" => [
