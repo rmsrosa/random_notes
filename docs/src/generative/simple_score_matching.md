@@ -429,7 +429,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -444,7 +444,7 @@ anim = @animate for (epoch, tstate) in tstates
 
     plot!(x', y', linewidth=4, label="score function")
 
-    scatter!(x', y', label="data", markersize=2)
+    scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
     plot!(x', y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
 end
@@ -462,10 +462,10 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) .* dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
 ```
 
 ### Training with plain MSE
@@ -487,7 +487,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -500,10 +500,10 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) * dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
 ```
 
 That is an almost perfect matching.
@@ -534,7 +534,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -547,10 +547,10 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) * dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
 ```
 
 ### Training with ${\tilde J}_{\mathrm{MC, FD}}$
@@ -572,7 +572,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -587,7 +587,7 @@ anim = @animate for (epoch, tstate) in tstates
 
     plot!(x', y', linewidth=4, label="score function")
 
-    scatter!(x', y', label="data", markersize=2)
+    scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
     plot!(x', y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
 end
@@ -605,10 +605,32 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) * dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
+```
+
+And the evolution of the PDF.
+```@setup simplescorematching
+ymin, ymax = extrema(target_pdf)
+epsilon = (ymax - ymin) / 10
+anim = @animate for (epoch, tstate) in tstates
+    y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
+    paux = exp.(accumulate(+, y_pred) * dx)
+    pdf_pred = paux ./ sum(paux) ./ dx
+    plot(title="Fitting evolution", titlefont=10, legend=:topleft)
+
+    plot!(x', target_pdf', linewidth=4, fill=true, alpha=0.3, label="PDF")
+
+    scatter!(sample', s -> pdf(target_prob, s), label="data", markersize=2)
+
+    plot!(x', pdf_pred', linewidth=2, fill=true, alpha=0.3, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+end
+```
+
+```@example simplescorematching
+gif(anim, fps = 10) # hide
 ```
 
 ### Pre-training ${\tilde J}_{\mathrm{MC, FD}}$ with $J(\theta)$
@@ -636,7 +658,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -644,10 +666,10 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) * dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
 ```
 
 And evolution of the losses.
@@ -681,7 +703,7 @@ plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
 
-scatter!(x', y', label="data", markersize=2)
+scatter!(sample', s -> gradlogpdf(target_prob, s)', label="data", markersize=2)
 
 plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
@@ -689,10 +711,10 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 Recovering the PDF of the distribution from the trained score function.
 ```@example simplescorematching
 paux = exp.(accumulate(+, y_pred) * dx)
-target_pdf_pred = paux ./ sum(paux) ./ dx
+pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
 plot!(x', target_pdf', label="original")
-plot!(x', target_pdf_pred', label="recoverd")
+plot!(x', pdf_pred', label="recoverd")
 ```
 
 And evolution of the losses.
