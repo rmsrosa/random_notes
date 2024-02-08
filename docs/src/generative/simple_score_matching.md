@@ -179,58 +179,58 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the following ideas:
 
-1. to fit the model by minimizing the expected square distance between the model score function $\psi(x; \theta)$ and the score function $\psi_X(x)$ of the random variable $X$,
+1. to fit the model by minimizing the expected square distance between the model score function $\psi(x; {\boldsymbol{\theta}})$ and the score function $\psi_X(x)$ of the random variable $X$,
 ```math
-    J(\theta) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \|\psi(x; \theta) - \psi_X(x)\|^2\;\mathrm{d}x;
+    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \|\psi(x; {\boldsymbol{\theta}}) - \psi_X(x)\|^2\;\mathrm{d}x;
 ```
-2. Use a change of variables in the expectation and write that $J(\theta) = \tilde J(\theta) + C$, where $C$ is constant with respect to the parameters, so we only need to minimize $\tilde J$, given by
+2. Use a change of variables in the expectation and write that $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$, where $C$ is constant with respect to the parameters, so we only need to minimize $\tilde J$, given by
 ```math
-    \tilde J(\theta) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; \theta)^2 + \frac{\partial}{\partial x} \psi(x; \theta) \right)\;\mathrm{d}x,
+    \tilde J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x; {\boldsymbol{\theta}}) \right)\;\mathrm{d}x,
 ```
 which does not involve the unknown score function of $X$. It does, however, involve the gradient of the modeled score function, which is expensive to compute.
 1. In practice, the loss function is estimated via Monte-Carlo, so the unknown $p_X(x)$ is handled implicitly by the sample data $(x_n)_n$, and we minimize
 ```math
-    {\tilde J}_{\mathrm{MC}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\psi(x_n; \theta)^2 + \frac{\partial}{\partial x} \psi(x_n; \theta) \right).
+    {\tilde J}_{\mathrm{MC}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\psi(x_n; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x_n; {\boldsymbol{\theta}}) \right).
 ```
 
 As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, we approximate the derivative of the modeled score function by centered finite differences, i.e.
 ```math
-    \frac{\partial}{\partial x} \psi(x_n; \theta) \approx \frac{\psi(x_n + \delta; \theta) - \psi(x_n - \delta; \theta)}{2\delta},
+    \frac{\partial}{\partial x} \psi(x_n; {\boldsymbol{\theta}}) \approx \frac{\psi(x_n + \delta; {\boldsymbol{\theta}}) - \psi(x_n - \delta; {\boldsymbol{\theta}})}{2\delta},
 ```
 for a suitably small $\delta > 0$.
 
-In this case, since we need compute $\psi(x_n + \delta; \theta)$ and $\psi(x_n - \delta; \theta)$, we avoid computing also $\psi(x_n; \theta)$ and approximate it with the average
+In this case, since we need compute $\psi(x_n + \delta; {\boldsymbol{\theta}})$ and $\psi(x_n - \delta; {\boldsymbol{\theta}})$, we avoid computing also $\psi(x_n; {\boldsymbol{\theta}})$ and approximate it with the average
 ```math
-    \psi(x_n; \theta) \approx \frac{\psi(x_n + \delta; \theta) + \psi(x_n - \delta; \theta)}{2}.
+    \psi(x_n; {\boldsymbol{\theta}}) \approx \frac{\psi(x_n + \delta; {\boldsymbol{\theta}}) + \psi(x_n - \delta; {\boldsymbol{\theta}})}{2}.
 ```
 
-Hence, we approximate $\tilde J(\theta)$ by the finite-difference version
+Hence, we approximate $\tilde J({\boldsymbol{\theta}})$ by the finite-difference version
 ```math
-    \tilde J_{\mathrm{FD}}(\theta) = \int_{\mathbb{R}} p_X(x) \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg)\;\mathrm{d}x,
+    \tilde J_{\mathrm{FD}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; {\boldsymbol{\theta}}) + \psi(x - \delta; {\boldsymbol{\theta}})}{2}\right)^2 + \frac{\psi(x + \delta; {\boldsymbol{\theta}}) - \psi(x - \delta; {\boldsymbol{\theta}})}{2\delta} \Bigg)\;\mathrm{d}x,
 ```
 
 And we approximate ${\tilde J}_{\mathrm{MC}}$ by
 ```math
-    {\tilde J}_{\mathrm{MC, FD}} =  \frac{1}{N}\sum_{n=1}^N \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; \theta) + \psi(x - \delta; \theta)}{2}\right)^2 + \frac{\psi(x + \delta; \theta) - \psi(x - \delta; \theta)}{2\delta} \Bigg).
+    {\tilde J}_{\mathrm{MC, FD}} =  \frac{1}{N}\sum_{n=1}^N \Bigg( \frac{1}{2}\left(\frac{\psi(x + \delta; {\boldsymbol{\theta}}) + \psi(x - \delta; {\boldsymbol{\theta}})}{2}\right)^2 + \frac{\psi(x + \delta; {\boldsymbol{\theta}}) - \psi(x - \delta; {\boldsymbol{\theta}})}{2\delta} \Bigg).
 ```
 
-### Proof that $J(\theta) = \tilde J(\theta) + C$
+### Proof that $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$
 
 Here is the one-dimensional version of the proof from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html).
 
 Since this is a one-dimensional problem, the score function is a scalar and we have
 ```math
-    \|\psi(x; \theta) - \psi_X(x)\|^2 = \psi(x; \theta)^2 - 2\psi(x; \theta) \psi_X(x) + \psi_X(x)^2.
+    \|\psi(x; {\boldsymbol{\theta}}) - \psi_X(x)\|^2 = \psi(x; {\boldsymbol{\theta}})^2 - 2\psi(x; {\boldsymbol{\theta}}) \psi_X(x) + \psi_X(x)^2.
 ```
 Thus
 ```math
-    J(\theta) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \left(\psi(x; \theta)^2 - 2\psi(x; \theta)\psi_X(x)\right)\;\mathrm{d}x + C,
+    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \left(\psi(x; {\boldsymbol{\theta}})^2 - 2\psi(x; {\boldsymbol{\theta}})\psi_X(x)\right)\;\mathrm{d}x + C,
 ```
 where
 ```math
     C = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \psi_X(x)^2\;\mathrm{d}x
 ```
-does not depend on $\theta$.
+does not depend on ${\boldsymbol{\theta}}$.
 
 For the mixed term, we use that the score function is
 ```math
@@ -239,17 +239,17 @@ For the mixed term, we use that the score function is
 Differentiating the logarithm and using integration by parts, we find
 ```math
 \begin{align*}
-    -\int_{\mathbb{R}} p_X(x) \psi(x; \theta)\psi_X(x)\;\mathrm{d}x & = -\int_{\mathbb{R}} p_X(x) \psi(x; \theta)\frac{\mathrm{d}}{\mathrm{d}x}\log(p_X(x))\;\mathrm{d}x \\
-    & = -\int_{\mathbb{R}} p_X(x) \psi(x; \theta)\frac{1}{p_X(x)}\frac{\mathrm{d}}{\mathrm{d}x}p_X(x)\;\mathrm{d}x \\
-    & = -\int_{\mathbb{R}} \psi(x; \theta)\frac{\mathrm{d}}{\mathrm{d}x}p_X(x)\;\mathrm{d}x \\
-    & = \int_{\mathbb{R}} \frac{\partial}{\partial x}\psi(x; \theta)p_X(x)\;\mathrm{d}x.
+    -\int_{\mathbb{R}} p_X(x) \psi(x; {\boldsymbol{\theta}})\psi_X(x)\;\mathrm{d}x & = -\int_{\mathbb{R}} p_X(x) \psi(x; {\boldsymbol{\theta}})\frac{\mathrm{d}}{\mathrm{d}x}\log(p_X(x))\;\mathrm{d}x \\
+    & = -\int_{\mathbb{R}} p_X(x) \psi(x; {\boldsymbol{\theta}})\frac{1}{p_X(x)}\frac{\mathrm{d}}{\mathrm{d}x}p_X(x)\;\mathrm{d}x \\
+    & = -\int_{\mathbb{R}} \psi(x; {\boldsymbol{\theta}})\frac{\mathrm{d}}{\mathrm{d}x}p_X(x)\;\mathrm{d}x \\
+    & = \int_{\mathbb{R}} \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})p_X(x)\;\mathrm{d}x.
 \end{align*}
 ```
-Thus, we rewrite $J(\theta)$ as
+Thus, we rewrite $J({\boldsymbol{\theta}})$ as
 ```math
-    J(\theta) = \int_{\mathbb{R}} p_X(x) \left(\frac{1}{2}\psi(x; \theta)^2 + \frac{\partial}{\partial x}\psi(x; \theta)\right)\;\mathrm{d}x + C,
+    J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left(\frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})\right)\;\mathrm{d}x + C,
 ```
-which is precisely $J(\theta) = \tilde J(\theta) + C$.
+which is precisely $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$.
 
 For this proof to be justified, we need
 ```math
@@ -257,15 +257,15 @@ For this proof to be justified, we need
 ```
 and
 ```math
-    \psi(x; \theta) p_X(x) \rightarrow 0, \quad |x| \rightarrow \infty,
+    \psi(x; {\boldsymbol{\theta}}) p_X(x) \rightarrow 0, \quad |x| \rightarrow \infty,
 ```
-for every $\theta$.
+for every ${\boldsymbol{\theta}}$.
 
-In our case, this looks fine, as $p_X(x)$ grows linearly, $\psi(x; \theta)$ grows at most linearly as well (as a composition of linear functions interposed with either ReLU or sigmoid or plain identity activation functions, which grow at most linearly), and $p_X(x)$ decays exponentially.
+In our case, this looks fine, as $p_X(x)$ grows linearly, $\psi(x; {\boldsymbol{\theta}})$ grows at most linearly as well (as a composition of linear functions interposed with either ReLU or sigmoid or plain identity activation functions, which grow at most linearly), and $p_X(x)$ decays exponentially.
 
-### Mean squared error loss function $J(\theta)$
+### Mean squared error loss function $J({\boldsymbol{\theta}})$
 
-For educational purposes, since we have the pdf and the score function, one of the ways we may train the model is directly on $J(\theta)$ itself. This is also useful to make sure that our network is able to model the desired score function.
+For educational purposes, since we have the pdf and the score function, one of the ways we may train the model is directly on $J({\boldsymbol{\theta}})$ itself. This is also useful to make sure that our network is able to model the desired score function.
 
 Here is how we implement it.
 ```@example simplescorematching
@@ -279,7 +279,7 @@ end
 
 ### Mean squared error plain loss function
 
-Still for educational purposes, we modify $J(\theta)$ for training, without weighting on the distribution of the random variable itself, as in $J(\theta)$. This has the benefit of giving more weight to the transition region. Here is how we implement it.
+Still for educational purposes, we modify $J({\boldsymbol{\theta}})$ for training, without weighting on the distribution of the random variable itself, as in $J({\boldsymbol{\theta}})$. This has the benefit of giving more weight to the transition region. Here is how we implement it.
 ```@example simplescorematching
 function loss_function_mse_plain(model, ps, st, data)
     x, y, target_pdf, sample = data
@@ -291,7 +291,7 @@ end
 
 ### Mean squared error loss function with derivative
 
-Again, for educational purposes, we may implement $\tilde J_{\mathrm{FD}}(\theta)$, as follows.
+Again, for educational purposes, we may implement $\tilde J_{\mathrm{FD}}({\boldsymbol{\theta}})$, as follows.
 
 ```@example simplescorematching
 function loss_function_withFD(model, ps, st, data)
@@ -307,7 +307,7 @@ function loss_function_withFD(model, ps, st, data)
 end
 ```
 
-### Loss function ${\tilde J}_{\mathrm{MC, FD}}(\theta)$ with Monte-Carlo on the sample data with centered finite diferences
+### Loss function ${\tilde J}_{\mathrm{MC, FD}}({\boldsymbol{\theta}})$ with Monte-Carlo on the sample data with centered finite diferences
 
 In practice we would use the sample data, not the supposedly unknown score function and PDF themselves. Here would be one implementation using finite differences, along with Monte-Carlo.
 ```@example simplescorematching
@@ -324,7 +324,7 @@ function loss_function_withFD_over_sample(model, ps, st, data)
 end
 ```
 
-### Loss function $\tilde J_{\mathrm{MC}}(\theta)$ with Monte-Carlo on the sample data via Zygote
+### Loss function $\tilde J_{\mathrm{MC}}({\boldsymbol{\theta}})$ with Monte-Carlo on the sample data via Zygote
 
 We can implement the actual loss function with the derivative of the modeled score function using some automatic differentiation tool, as follows, but we do not optimize with it here. We do this in a separate note, not to render this note too slowly.
 ```@example simplescorematching
@@ -408,9 +408,9 @@ end
 
 ## Training
 
-### Training with $J(\theta)$
+### Training with $J({\boldsymbol{\theta}})$
 
-Now we attempt to train the model, starting with $J(\theta)$.
+Now we attempt to train the model, starting with $J({\boldsymbol{\theta}})$.
 ```@example simplescorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_mse, 500, 20, 125)
 nothing # hide
@@ -506,9 +506,9 @@ plot!(x', pdf_pred', label="recoverd")
 
 That is an almost perfect matching.
 
-### Training with $\tilde J_{\mathrm{FD}}(\theta)$
+### Training with $\tilde J_{\mathrm{FD}}({\boldsymbol{\theta}})$
 
-Now we attempt to train it with $\tilde J_{\mathrm{FD}}(\theta)$. Again we start over with the untrained state of the model.
+Now we attempt to train it with $\tilde J_{\mathrm{FD}}({\boldsymbol{\theta}})$. Again we start over with the untrained state of the model.
 ```@example simplescorematching
 @time tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_withFD, 500)
 nothing # hide
@@ -631,9 +631,9 @@ end
 gif(anim, fps = 10) # hide
 ```
 
-### Pre-training ${\tilde J}_{\mathrm{MC, FD}}$ with $J(\theta)$
+### Pre-training ${\tilde J}_{\mathrm{MC, FD}}$ with $J({\boldsymbol{\theta}})$
 
-Let us now pre-train the model with the $J(\theta)$ and see if ${\tilde J}_{\mathrm{MC, FD}}$ improves.
+Let us now pre-train the model with the $J({\boldsymbol{\theta}})$ and see if ${\tilde J}_{\mathrm{MC, FD}}$ improves.
 
 ```@example simplescorematching
 tstate, = train(tstate_org, vjp_rule, data, loss_function_mse, 500)
