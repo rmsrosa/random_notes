@@ -6,15 +6,11 @@ Draft = false
 
 ## Introduction
 
-### Aim
-
-Here, we modify the previous score-matching example to a two-dimensional Gaussian mixture model. But it is not converging yet... :(
+Here, we modify the previous score-matching example to fit a two-dimensional model. But it is not converging yet... :(
 
 ## Julia language setup
 
 We use the [Julia programming language](https://julialang.org) with suitable packages.
-
-### Packages
 
 ```@example 2dscorematching
 using StatsPlots
@@ -27,16 +23,12 @@ using Zygote # automatic differentiation
 nothing # hide
 ```
 
-### Reproducibility
-
 We set the random seed for reproducibility purposes.
 
 ```@example 2dscorematching
 rng = Xoshiro(12345)
 nothing # hide
 ```
-
-### Extending the score function from Distributions.jl
 
 This time, we extend `Distributions.gradlogpdf` to *multivariate* `MixtureModels`.
 
@@ -123,10 +115,10 @@ scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alph
 
 ## The neural network model
 
-The neural network we consider is again a simple feed-forward neural network made of a single hidden layer.
+The neural network we consider is again a simple feed-forward neural network made of a single hidden layer. For the 2d case, we need to bump it a little bit, doubling the width of the hidden layer.
 
 ```@example 2dscorematching
-model = Chain(Dense(2 => 32, relu), Dense(32 => 2))
+model = Chain(Dense(2 => 16, relu), Dense(16 => 2))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
@@ -136,9 +128,7 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ## Loss functions for score-matching
 
-### Loss function ${\tilde J}_{\mathrm{MC, FD}}(\theta)$ with Monte-Carlo on the sample data with centered finite diferences
-
-Here is the loss function based on [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), combined with the work of [Pang, Xu, Li, Song, Ermon, and Zhu (2020)](https://openreview.net/forum?id=LVRoKppWczk) using finite differences to approximate the divergence of the modeled score function.
+The loss function is again based on [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), combined with the work of [Pang, Xu, Li, Song, Ermon, and Zhu (2020)](https://openreview.net/forum?id=LVRoKppWczk) using finite differences to approximate the divergence of the modeled score function.
 ```@example 2dscorematching
 function loss_function(model, ps, st, data)
     sample, deltax, deltay = data
@@ -154,7 +144,7 @@ function loss_function(model, ps, st, data)
 end
 ```
 
-We included the steps for the finite difference computations within the data to avoid repeated computations.
+We included the steps for the finite difference computations in the `data` passed to training to avoid repeated computations.
 ```@example 2dscorematching
 xmin, xmax = extrema(sample[1, :])
 ymin, ymax = extrema(sample[2, :])
@@ -163,11 +153,48 @@ deltay = (ymax - ymin) / 2size(sample, 2)
 data = sample, deltax, deltay
 ```
 
+For a sanity check, we also include the MSE loss function, which however uses the known PDF and the know score functions of the target model.
+
+```@example 2dscorematching
+function loss_function_cheat(model, ps, st, data)
+    xy_cheat, pdf_cheat, score_cheat = data
+    score_pred, st = Lux.apply(model, xy_cheat, ps, st)
+    loss = mean(pdf_cheat .* (score_pred .- score_cheat) .^2)
+    return loss, st, ()
+end
+```
+
+The data in this case include information about the target distribution.
+
+```@example 2dscorematching
+x_cheat, y_cheat = meshgrid(xrange[begin:4:end], yrange[begin:4:end])
+xy_cheat = vcat(x_cheat', y_cheat')
+pdf_cheat = reduce(hcat, pdf(target_prob, u) for u in eachcol(xy_cheat))
+score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(xy_cheat))
+data_cheat = xy_cheat, pdf_cheat, score_cheat
+```
+
+```@example 2dscorematching
+function loss_function_cheat(model, ps, st, data)
+    sample, score_cheat = data
+    score_pred, st = Lux.apply(model, sample, ps, st)
+    loss = mean(abs2, score_pred .- score_cheat)
+    return loss, st, ()
+end
+```
+
+The data in this case include information about the target distribution.
+
+```@example 2dscorematching
+score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample))
+data_cheat = sample, score_cheat
+```
+
 ## Optimization setup
 
 ### Optimization method
 
-The ADAM optimization.
+As usual, we use the ADAM optimization.
 
 ```@example 2dscorematching
 opt = Adam(0.03)
@@ -177,10 +204,30 @@ tstate_org = Lux.Training.TrainState(rng, model, opt)
 
 ### Automatic differentiation in the optimization
 
-[FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) for the automatic differentiation.
+[FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) is used for the automatic differentiation as it is currently the only AD backend working with [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl).
 
 ```@example 2dscorematching
 vjp_rule = Lux.Training.AutoZygote()
+```
+
+### Processor
+
+We use the CPU instead of the GPU.
+```@example 2dscorematching
+dev_cpu = cpu_device()
+## dev_gpu = gpu_device()
+```
+
+### Check differentiation
+
+Check if AD is working fine to differentiate the loss functions for training.
+
+```@example 2dscorematching
+Lux.Training.compute_gradients(vjp_rule, loss_function, data, tstate_org)
+```
+
+```@example 2dscorematching
+Lux.Training.compute_gradients(vjp_rule, loss_function_cheat, data_cheat, tstate_org)
 ```
 
 ### Training loop
@@ -206,21 +253,51 @@ function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, ep
 end
 ```
 
-We use the CPU instead of the GPU.
-```@example 2dscorematching
-dev_cpu = cpu_device()
-## dev_gpu = gpu_device()
-```
+## Cheat training
 
-### Check differentiation
-
-Check if Zygote via Lux is working fine to differentiate the loss functions for training.
+We first train the model with the known pdf and score functions. That is cheating. The aim is a sanity check, to make sure the proposed model is good enough to fit the desired score function and the setup is right.
 
 ```@example 2dscorematching
-Lux.Training.compute_gradients(vjp_rule, loss_function, data, tstate_org)
+@time tstate_cheat, losses_cheat, tstates_cheat = train(tstate_org, vjp_rule, data_cheat, loss_function_cheat, 160, 20, 80)
+nothing # hide
 ```
 
-## Training
+Testing out the trained model.
+```@example 2dscorematching
+uu_cheat = Lux.apply(tstate_cheat.model, vcat(xx', yy'), tstate_cheat.parameters, tstate_cheat.states)[1]
+```
+
+```@example 2dscorematching
+heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score functions (vector fields)", titlefont=10, color=:vik, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
+quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
+scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+quiver!(xx, yy, quiver = (uu_cheat[1, :] ./ 8, uu_cheat[2, :] ./ 8), color=:cyan, alpha=0.5)
+```
+
+```@setup 2dscorematching
+anim = @animate for (epoch, tstate) in tstates_cheat
+    uu_pred = Lux.apply(tstate.model, vcat(xx', yy'), tstate.parameters, tstate.states)[1]
+
+    heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]),color=:vik)
+    quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
+    scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+    quiver!(xx, yy, quiver = (uu_pred[1, :] ./ 8, uu_pred[2, :] ./ 8), color=:cyan, alpha=0.5)
+
+    plot!(title="Fitting evolution (epoch=$(lpad(epoch, (length(string(last(tstates_cheat)[1]))), '0')))", titlefont=10, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
+end
+```
+
+```@example 2dscorematching
+gif(anim, fps = 10) # hide
+```
+
+```@example 2dscorematching
+plot(losses_cheat, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
+```
+
+## Real training
+
+Now we go to the real thing.
 
 ```@example 2dscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 10000, 20, 100)
