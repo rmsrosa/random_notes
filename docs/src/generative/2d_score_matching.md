@@ -6,7 +6,7 @@ Draft = false
 
 ## Introduction
 
-Here, we modify the previous score-matching example to fit a two-dimensional model. But it is not converging yet... :(
+Here, we modify the previous score-matching example to fit a two-dimensional model.
 
 ## Julia language setup
 
@@ -129,6 +129,102 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 ## Loss functions for score-matching
 
 The loss function is again based on [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), combined with the work of [Pang, Xu, Li, Song, Ermon, and Zhu (2020)](https://openreview.net/forum?id=LVRoKppWczk) using finite differences to approximate the divergence of the modeled score function.
+
+In the multidimensional case, say on $\mathbb{R}^d$, $d\in\mathbb{N}$, the mean square distance of the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ to the target score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$ is given by
+```math
+    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\|^2\;\mathrm{d}\mathbf{x};
+```
+where $p_{\mathbf{X}}(\mathbf{x})$ is the PDF of the target distribution.
+
+The change of variables in the expectation yields $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$, where $C$ is constant with respect to the parameters and $\tilde J$ is given by
+```math
+    \tilde J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
+```
+which does not involve the unknown score function of ${\mathbf{X}}$. It does, however, involve the divergence of the modeled score function, which is expensive to compute.
+
+In practice, the loss function is estimated via Monte-Carlo, so the unknown $p_{\mathbf{X}}(\mathbf{x})$ is handled implicitly by the sample data $(\mathbf{x}_n)_n$, and we minimize
+```math
+    {\tilde J}_{\mathrm{MC}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+```
+
+Componentwise, with $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) = (\psi_i(\mathbf{x}; {\boldsymbol{\theta}}))_{i=1}^d$, this is written as
+```math
+    {\tilde J}_{\mathrm{MC}} =  \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^d \left( \frac{1}{2}\psi_i(\mathbf{x}_n; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x_i} \psi_i(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+```
+
+As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, so we approximate the derivative of the modeled score function by centered finite differences. With the model calculated at the displaced points, we just average them to avoid computing the model at the sample point itself. This leads to
+```math
+    {\tilde J}_{\mathrm{MC, FD(\delta)}} =  \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^d \Bigg( \frac{1}{2}\left(\frac{1}{d}\sum_{j=1}^d \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_j; {\boldsymbol{\theta}}) + \psi_i(\mathbf{x}_n - \delta\mathbf{e}_j; {\boldsymbol{\theta}})}{2}\right)^2 \\ \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad + \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_i; {\boldsymbol{\theta}}) - \psi_i(\mathbf{x}_n - \delta\mathbf{e}_i; {\boldsymbol{\theta}})}{2\delta} \Bigg).
+```
+
+We also consider the Monte-Carlo approximation of $J({\boldsymbol{\theta}})$,
+```math
+    J_{\mathrm{MC}}({\boldsymbol{\theta}}) = \frac{1}{2} \frac{1}{N}\sum_{n=1}^N \|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}_n)\|^2.
+```
+
+### Proof that $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$
+
+Here is the multi-dimensional version of the proof, from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html).
+
+We have
+```math
+    \|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\|^2 = \|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 - 2\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \cdot \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}) + \|\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\|^2.
+```
+
+Thus,
+```math
+    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 - 2\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right)\;\mathrm{d}\mathbf{x} + C,
+```
+where
+```math
+    C = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})^2\;\mathrm{d}\mathbf{x}
+```
+does not depend on ${\boldsymbol{\theta}}$.
+
+For the middle term, we use explicitly that the score function is the gradient of the log of the pdf of the distribution,
+```math
+    \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}) = \boldsymbol{\nabla}_{\mathbf{x}}\log(p_{\mathbf{X}}(\mathbf{x})).
+```
+Differentiating the logarithm and using the Divergence Theorem for the integration by parts, we find
+```math
+\begin{align*}
+    -\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \cdot \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x} & = -\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\boldsymbol{\nabla}_{\mathbf{x}}\log(p_{\mathbf{X}}(\mathbf{x}))\;\mathrm{d}\mathbf{x} \\
+    & = -\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\frac{1}{p_{\mathbf{X}}(x)}\boldsymbol{\nabla}_{\mathbf{x}}p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x} \\
+    & = -\int_{\mathbb{R}} \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\boldsymbol{\nabla}_{\mathbf{x}}p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x} \\
+    & = \int_{\mathbb{R}} \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x}.
+\end{align*}
+```
+Thus, we rewrite $J({\boldsymbol{\theta}})$ as
+```math
+    J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right)\;\mathrm{d}\mathbf{x} + C,
+```
+which is precisely $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$.
+
+For this proof to be justified, we need
+```math
+    C = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})^2\;\mathrm{d}\mathbf{x} < \infty,
+```
+and
+```math
+    \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) p_{\mathbf{X}}(\mathbf{x}) \rightarrow \mathbf{0}, \quad |\mathbf{x}| \rightarrow \infty,
+```
+for every ${\boldsymbol{\theta}}$, which is fine for at most linearly-growing score function and model and an exponentially decreasing Gaussian mixture distribution.
+
+### Implementation of ${\tilde J}_{\mathrm{MC, FD(\delta)}}$
+
+In the two-dimensional case, $d = 2$, this becomes
+```math
+    \begin{align*}
+        {\tilde J}_{\mathrm{MC, FD(\delta)}} & = \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^d \Bigg( \frac{1}{2}\left(\frac{1}{d}\sum_{j=1}^d \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_j; {\boldsymbol{\theta}}) + \psi_i(\mathbf{x}_n - \delta\mathbf{e}_j; {\boldsymbol{\theta}})}{2}\right)^2 \\
+        & \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad + \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_i; {\boldsymbol{\theta}}) - \psi_i(\mathbf{x}_n - \delta\mathbf{e}_i; {\boldsymbol{\theta}})}{2\delta} \Bigg) \\
+        & = \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^2 \Bigg( \frac{1}{2}\left(\sum_{j=1}^2 \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_j; {\boldsymbol{\theta}}) + \psi_i(\mathbf{x}_n - \delta\mathbf{e}_j; {\boldsymbol{\theta}})}{4}\right)^2 \\
+        & \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad \qquad + \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_i; {\boldsymbol{\theta}}) - \psi_i(\mathbf{x}_n - \delta\mathbf{e}_i; {\boldsymbol{\theta}})}{2\delta} \Bigg) \\
+        & = \frac{1}{N} \frac{1}{2} \sum_{n=1}^N \sum_{i=1}^2 \left(\sum_{j=1}^2 \frac{\psi_i(\mathbf{x}_n + \delta\mathbf{e}_j; {\boldsymbol{\theta}}) + \psi_i(\mathbf{x}_n - \delta\mathbf{e}_j; {\boldsymbol{\theta}})}{4}\right)^2 \\
+        & \qquad \qquad \qquad \qquad \qquad \qquad + \frac{1}{N}\sum_{n=1}^N \frac{\psi_1(\mathbf{x}_n + \delta\mathbf{e}_1; {\boldsymbol{\theta}}) - \psi_1(\mathbf{x}_n - \delta\mathbf{e}_1; {\boldsymbol{\theta}})}{2\delta} \\
+        & \qquad \qquad \qquad \qquad \qquad \qquad + \frac{1}{N}\sum_{n=1}^N \frac{\psi_2(\mathbf{x}_n + \delta\mathbf{e}_2; {\boldsymbol{\theta}}) - \psi_2(\mathbf{x}_n - \delta\mathbf{e}_2; {\boldsymbol{\theta}})}{2\delta}
+    \end{align*}
+```
+
 ```@example 2dscorematching
 function loss_function(model, ps, st, data)
     sample, deltax, deltay = data
@@ -139,7 +235,7 @@ function loss_function(model, ps, st, data)
     s_pred = ( s_pred_bwd_x .+ s_pred_fwd_x .+ s_pred_bwd_y .+ s_pred_fwd_y) ./ 4
     dsdx_pred = (s_pred_fwd_x .- s_pred_bwd_x ) ./ 2deltax
     dsdy_pred = (s_pred_fwd_y .- s_pred_bwd_y ) ./ 2deltay
-    loss = mean(view(dsdx_pred, 1, :)) +  mean(view(dsdy_pred, 2, :))  + mean(abs2, s_pred)
+    loss = mean(abs2, s_pred) + mean(view(dsdx_pred, 1, :)) +  mean(view(dsdy_pred, 2, :)) 
     return loss, st, ()
 end
 ```
@@ -148,30 +244,21 @@ We included the steps for the finite difference computations in the `data` passe
 ```@example 2dscorematching
 xmin, xmax = extrema(sample[1, :])
 ymin, ymax = extrema(sample[2, :])
-deltax = (xmax - xmin) / 2size(sample, 1)
-deltay = (ymax - ymin) / 2size(sample, 2)
+deltax, deltay = (xmax - xmin) / 2size(sample, 2), (ymax - ymin) / 2size(sample, 2)
+```
+
+```@example 2dscorematching
 data = sample, deltax, deltay
 ```
 
-For a sanity check, we also include the MSE loss function, which however uses the known PDF and the know score functions of the target model.
 
-```@example 2dscorematching
-function loss_function_cheat(model, ps, st, data)
-    xy_cheat, pdf_cheat, score_cheat = data
-    score_pred, st = Lux.apply(model, xy_cheat, ps, st)
-    loss = mean(pdf_cheat .* (score_pred .- score_cheat) .^2)
-    return loss, st, ()
-end
-```
+### Implementation of $J_{\mathrm{MC}}({\boldsymbol{\theta}})$
 
-The data in this case include information about the target distribution.
+For a sanity check, we also include the MSE loss function, which uses the know score functions of the target model.
 
-```@example 2dscorematching
-x_cheat, y_cheat = meshgrid(xrange[begin:4:end], yrange[begin:4:end])
-xy_cheat = vcat(x_cheat', y_cheat')
-pdf_cheat = reduce(hcat, pdf(target_prob, u) for u in eachcol(xy_cheat))
-score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(xy_cheat))
-data_cheat = xy_cheat, pdf_cheat, score_cheat
+In the two-dimensional case, this is simply the mean square value of all the components.
+```math
+    J_{\mathrm{MC}}({\boldsymbol{\theta}}) = \frac{1}{2} \frac{1}{N}\sum_{n=1}^N \|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}_n)\|^2 = \frac{1}{2} \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^2 \left(\psi_i(\mathbf{x}_n; {\boldsymbol{\theta}}) - \psi_{\mathbf{X}, i}(\mathbf{x}_n) \right)^2.
 ```
 
 ```@example 2dscorematching
@@ -183,12 +270,107 @@ function loss_function_cheat(model, ps, st, data)
 end
 ```
 
-The data in this case include information about the target distribution.
-
+The data in this case includes information about the target distribution.
 ```@example 2dscorematching
 score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample))
 data_cheat = sample, score_cheat
 ```
+
+### Computation of the constant
+
+The identity $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$ can be used to test the implementation of the different loss functions. For that, we need to compute the constant $C$. This can be computed with a fine mesh or with a Monte-Carlo approximation. We do both.
+
+```@example 2dscorematching
+function compute_constante(target_prob, xrange, yrange)
+    dx = Float64(xrange.step)
+    dy = Float64(yrange.step)
+    Jconstant = sum(pdf(target_prob, [x, y]) * sum(abs2, gradlogpdf(target_prob, [x, y])) for y in yrange, x in xrange) * dx * dy / 2
+    return Jconstant
+end    
+```
+
+```@example 2dscorematching
+function compute_constante_MC(target_prob, sample)
+    Jconstant = mean(sum(abs2, gradlogpdf(target_prob, s)) for s in eachcol(sample)) / 2
+    return Jconstant
+end    
+```
+
+```@example 2dscorematching
+Jconstant = compute_constante(target_prob, xrange, yrange)
+```
+
+```@example 2dscorematching
+Jconstant_MC = compute_constante_MC(target_prob, sample)
+```
+
+```@example 2dscorematching
+constants = [(n, compute_constante_MC(target_prob, rand(rng, target_prob, n))) for _ in 1:100 for n in (1, 10, 20, 50, 100, 500, 1000, 2000, 4000)]
+```
+
+```@example 2dscorematching
+scatter(constants, markersize=2, title="constant computed by MC and fine mesh", titlefont=10, xlabel="sample size", ylabel="value", label="via various samples")
+hline!([Jconstant], label="via fine mesh")
+hline!([Jconstant_MC], label="via working sample", linestyle=:dash)
+```
+
+### A test for the implementations of the loss functions
+
+Notice that, for a sufficiently large sample and sufficiently small discretization step $\delta$, we should have
+```math
+J_{\mathrm{MC}}({\boldsymbol{\theta}}) \approx J({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{MC, FD(\delta)}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC, FD(\delta)}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC, FD(\delta)}}({\boldsymbol{\theta}}) + C.
+```
+which is a good test for the implementations of the loss functions. For example:
+
+```@example 2dscorematching
+first(loss_function_cheat(model, ps, st, data_cheat))
+```
+
+```@example 2dscorematching
+first(loss_function(model, ps, st, data)) + Jconstant
+```
+
+Let us do a more statistically significan test.
+```@example 2dscorematching
+test_losses = reduce(
+    hcat,
+    Lux.setup(rng, model) |> pstj -> 
+    [
+        first(loss_function_cheat(model, pstj[1], pstj[2], data_cheat)),
+        first(loss_function(model, pstj[1], pstj[2], data))
+    ]
+    for _ in 1:30
+)
+```
+
+```@example 2dscorematching
+plot(title="Loss functions at random model parameters", titlefont=10)
+scatter!(test_losses[1, :], label="\$J_{\\mathrm{MC}}({\\theta})\$")
+scatter!(test_losses[2, :], label="\$\\tilde J_{\\mathrm{MC, FD}}({\\theta})\$")
+scatter!(test_losses[2, :] .+ Jconstant, label="\$J_{\\mathrm{MC, FD}}({\\theta}) + C\$")
+```
+
+One can check by visual inspection that the agreement between $J_{\mathrm{MC}}({\theta}) - C$ and $\tilde J_{\mathrm{MC, FD}}({\theta})$ seems reasonably good. Let us estimate the relative error.
+
+```@example 2dscorematching
+rel_errors = abs.( ( test_losses[2, :] .+ Jconstant .- test_losses[1, :] ) ./ test_losses[1, :] )
+plot(title="Relative error at random model parameters", titlefont=10, legend=false)
+scatter!(rel_errors, markercolor=2, label="error")
+mm = mean(rel_errors)
+mmstd = std(rel_errors)
+hline!([mm], label="mean")
+hspan!([mm+mmstd, mm-mmstd], fillbetween=true, alpha=0.3, label="65% margin")
+```
+
+Ok, good enough, just a few percentage points.
+
+### An extra test for the implementations of the loss functions and the gradient computation
+
+We also have
+```math
+\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{MC}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{MC, FD(\delta)}}({\boldsymbol{\theta}}),
+```
+which is another good test, which also checks the gradient computation, but everything seems fine, so no need to push this further.
 
 ## Optimization setup
 
@@ -197,7 +379,7 @@ data_cheat = sample, score_cheat
 As usual, we use the ADAM optimization.
 
 ```@example 2dscorematching
-opt = Adam(0.03)
+opt = Adam(0.003)
 
 tstate_org = Lux.Training.TrainState(rng, model, opt)
 ```
@@ -255,10 +437,10 @@ end
 
 ## Cheat training
 
-We first train the model with the known pdf and score functions. That is cheating. The aim is a sanity check, to make sure the proposed model is good enough to fit the desired score function and the setup is right.
+We first train the model with the known score function on the sample data. That is cheating. The aim is a sanity check, to make sure the proposed model is good enough to fit the desired score function and that the setup is right.
 
 ```@example 2dscorematching
-@time tstate_cheat, losses_cheat, tstates_cheat = train(tstate_org, vjp_rule, data_cheat, loss_function_cheat, 160, 20, 80)
+@time tstate_cheat, losses_cheat, tstates_cheat = train(tstate_org, vjp_rule, data_cheat, loss_function_cheat, 2000, 20, 100)
 nothing # hide
 ```
 
@@ -300,7 +482,7 @@ plot(losses_cheat, title="Evolution of the loss", titlefont=10, xlabel="iteratio
 Now we go to the real thing.
 
 ```@example 2dscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 10000, 20, 100)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 2000, 20, 100)
 nothing # hide
 ```
 
@@ -334,5 +516,9 @@ gif(anim, fps = 10) # hide
 ```
 
 ```@example 2dscorematching
-plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
+plot(losses, title="Evolution of the losses", titlefont=10, xlabel="iteration", ylabel="error", label="\$\\tilde J_{\\mathrm{MC, FD}}({\\theta})\$")
+plot!(losses_cheat, linestyle=:dash, label="\$J_{\\mathrm{MC}}({\\theta})\$")
+plot!(losses .+ Jconstant, linestyle=:dash, color=1, label="\$J_{\\mathrm{MC, FD}}({\\theta}) + C\$")
 ```
+
+Ok, that seems visually good enough. We will later check the sampling from this score function via Langevin sampling.
