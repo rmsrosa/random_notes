@@ -356,28 +356,7 @@ As mentioned, we setup differentiation in [LuxDL/Lux.jl](https://github.com/LuxD
 vjp_rule = Lux.Training.AutoZygote()
 ```
 
-### Training loop
-
-Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```@example simplescorematching
-function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
-    losses = zeros(epochs)
-    tstates = [(0, tstate)]
-    for epoch in 1:epochs
-        grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp,
-            loss_function, data, tstate)
-        if ( epochs ≥ numshowepochs > 0 ) && rem(epoch, div(epochs, numshowepochs)) == 0
-            println("Epoch: $(epoch) || Loss: $(loss)")
-        end
-        if ( epochs ≥ numsavestates > 0 ) && rem(epoch, div(epochs, numsavestates)) == 0
-            push!(tstates, (epoch, tstate))
-        end
-        losses[epoch] = loss
-        tstate = Lux.Training.apply_gradients(tstate, grads)
-    end
-    return tstate, losses, tstates
-end
-```
+### Processor
 
 We use the CPU instead of the GPU.
 ```@example simplescorematching
@@ -402,6 +381,29 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_withFD, data, tstate_org)
 
 ```@example simplescorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_withFD_over_sample, data, tstate_org)
+```
+
+### Training loop
+
+Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
+```@example simplescorematching
+function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
+    losses = zeros(epochs)
+    tstates = [(0, tstate)]
+    for epoch in 1:epochs
+        grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp,
+            loss_function, data, tstate)
+        if ( epochs ≥ numshowepochs > 0 ) && rem(epoch, div(epochs, numshowepochs)) == 0
+            println("Epoch: $(epoch) || Loss: $(loss)")
+        end
+        if ( epochs ≥ numsavestates > 0 ) && rem(epoch, div(epochs, numsavestates)) == 0
+            push!(tstates, (epoch, tstate))
+        end
+        losses[epoch] = loss
+        tstate = Lux.Training.apply_gradients(tstate, grads)
+    end
+    return tstate, losses, tstates
+end
 ```
 
 ## Training
