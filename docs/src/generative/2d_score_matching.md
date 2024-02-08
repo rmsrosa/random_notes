@@ -79,8 +79,8 @@ end
 We build the target model and draw samples from it. This time the target model is a bivariate random variable.
 
 ```@example 2dscorematching
-xrange = range(-8, 8, 200)
-yrange = range(-8, 8, 200)
+xrange = range(-8, 8, 120)
+yrange = range(-8, 8, 120)
 dx = Float64(xrange.step)
 dy = Float64(yrange.step)
 
@@ -91,7 +91,7 @@ target_score = reduce(hcat, gradlogpdf(target_prob, [x, y]) for y in yrange, x i
 ```
 
 ```@example 2dscorematching
-sample = rand(rng, target_prob, 2048)
+sample = rand(rng, target_prob, 1024)
 ```
 
 ```@example 2dscorematching
@@ -111,7 +111,7 @@ scatter!(sample[1, :], sample[2, :], [logpdf(target_prob, [x, y]) for (x, y) in 
 
 ```@example 2dscorematching
 meshgrid(x, y) = (repeat(x, outer=length(y)), repeat(y, inner=length(x)))
-xx, yy = meshgrid(xrange[begin:10:end], yrange[begin:10:end])
+xx, yy = meshgrid(xrange[begin:8:end], yrange[begin:8:end])
 uu = reduce(hcat, gradlogpdf(target_prob, [x, y]) for (x, y) in zip(xx, yy))
 ```
 
@@ -126,7 +126,7 @@ scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alph
 The neural network we consider is again a simple feed-forward neural network made of a single hidden layer.
 
 ```@example 2dscorematching
-model = Chain(Dense(2 => 16, relu), Dense(16 => 2))
+model = Chain(Dense(2 => 32, relu), Dense(32 => 2))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
@@ -223,7 +223,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function, data, tstate_org)
 ## Training
 
 ```@example 2dscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 20000, 20, 100)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 10000, 20, 100)
 nothing # hide
 ```
 
