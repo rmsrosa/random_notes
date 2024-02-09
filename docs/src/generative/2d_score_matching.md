@@ -1,9 +1,5 @@
 # Score-matching a two-dimensional Gaussian mixture model
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 Here, we modify the previous score-matching example to fit a two-dimensional model.
