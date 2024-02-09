@@ -3,22 +3,27 @@ using Documenter
 allpages = [
     "Random Notes" => "index.md",
     "Probability" => [
+        "Basic things" => [
+            "probability/kernel_density_estimation.md"
+        ]
+    ],
+    "Bayesian inference" => [
         "Bayes Theory" => [
-            "Bayes Theorem" => "probability/bayes.md",
-            "Bayesian inference" => "probability/bayes_inference.md",
-            "Bernstein–von Mises theorem" => "probability/bernstein_vonmises.md"
+            "Bayes Theorem" => "bayesian/bayes.md",
+            "Bayesian inference" => "bayesian/bayes_inference.md",
+            "Bernstein–von Mises theorem" => "bayesian/bernstein_vonmises.md"
         ],
         "Probabilistic programming" => [
-            "Overview" => "probability/probprog.md",
-            "Markov Chain Monte Carlo (MCMC)" => "probability/mcmc.md",
-            "Gibbs sampling" => "probability/gibbs.md",
-            "Hamiltonian Monte Carlo (HMC)" => "probability/hmc.md"
+            "Overview" => "bayesian/probprog.md",
+            "Markov Chain Monte Carlo (MCMC)" => "bayesian/mcmc.md",
+            "Gibbs sampling" => "bayesian/gibbs.md",
+            "Hamiltonian Monte Carlo (HMC)" => "bayesian/hmc.md"
         ],
         "Examples" => [
-            "Estimating π via frequentist and Bayesian methods" => "probability/find_pi.md",
-            "Many Ways to Linear Regression" => "probability/linear_regression.md",
-            "Alometry law for the Nile Tilapia" => "probability/tilapia_alometry.md",
-            "Modeling mortality tables" => "probability/mortality_tables.md"
+            "Estimating π via frequentist and Bayesian methods" => "bayesian/find_pi.md",
+            "Many Ways to Linear Regression" => "bayesian/linear_regression.md",
+            "Alometry law for the Nile Tilapia" => "bayesian/tilapia_alometry.md",
+            "Modeling mortality tables" => "bayesian/mortality_tables.md"
         ]
     ],
     "Generative models" => [
