@@ -137,22 +137,24 @@ This yields the estimation
 plts = [] # hide
 for h in (0.01, 0.05, 0.1, 0.5) # hide
     plti = plot(xrange, x -> kerneldensityestimation(x, x -> exp(-x^2/2)/sqrt(2pi), h, sample), xlims=extrema(xrange), title="Gaussian kernel with h=$h", titlefont=8, legend=false) # hide
-    push!(plts, plti)
+    push!(plts, plti) # hide
 end # hide
 plot(plts..., plot_title="kernel density estimations", plot_titlevspan=0.1, plot_titlefont=10) # hide
 ```
 
-The sample in this example was drawn from a mixture model combining a Beta distribution $Beta(3, 10)$, a Gamma distribution $Gamma(20, 0.04)$, and a normal distribution $Normal(2, 0.2)$, with weights $0.3, 0.3$, and $0.4$, respectively. Here is the actual PDF compared with Gaussian kernel estimation with a specific value of $h$.
+The sample in this example was drawn from a mixture model combining a Beta distribution, a Gamma distribution, and a normal distribution. Here is the actual PDF compared with Gaussian kernel estimation with a specific value of $h$.
 ```@example kde
-h = 0.1
-plot(title="Sample, histogram, actual PDF and kernel density estimation", titlefont=10, xlims=extrema(xrange))
-scatter!(sample, zero(sample) .+ 0.02 , label="sample", color=1)
-histogram!(sample, alpha=0.3, bins=30, normalized=true, label="histogram", color=1)
+h = 0.1 # hide
+plot(title="Sample, histogram, actual PDF and kernel density estimation", titlefont=10, xlims=extrema(xrange)) # hide
+scatter!(sample, zero(sample) .+ 0.02 , label="sample", color=1) # hide
+histogram!(sample, alpha=0.3, bins=30, normalized=true, label="histogram", color=1) # hide
 plot!(xrange, x -> pdf(prob, x), label="actual PDF", color=2) # hide
 plot!(xrange, x -> kerneldensityestimation(x, x -> exp(-x^2/2)/sqrt(2pi), h, sample), xlims=extrema(xrange), label="Gaussian kernel estimation with h=$h", color=3) # hide
 ```
 
-The choice of a suitable value for $h$ is a delicate problem, as one can see from the estimations above. In fact, the works of Rosenblatt, Whittle, and Parzen are deeper than simply proposing the estimation $\bar p_h$ for some kernel function and some value $h$. They also discuss further conditions on the kernel such that the estimate is not biased, and also discuss asymptotic properties of the estimation, as the number of sample points grows to infinity. One of the results is that the choice of $h$ should depend on $n$ and decay to zero as $n$ increases. They are worth reading, but we will not dwelve into further details at this moment.
+The choice of a suitable value for $h$ is a delicate problem, though, as one can see from the estimations above, which is akin to the problem of choosing how many bins to view the histogram. And how can we be sure that this is really a good approximation for some "reasonable" choices of $h$?
+
+Indeed, these are fundamental questions, and the works of Rosenblatt, Whittle, and Parzen are deeper than simply proposing the estimation $\bar p_h$ for some kernel function and some value $h$. They also discuss further conditions on the kernel such that the estimate is not biased, and discuss asymptotic properties of the estimation, as the number of sample points grows to infinity. One of the results is that the choice of $h$ should depend on $n$ and decay to zero as $n$ increases. They are worth reading, but we will not dwelve into further details at this moment.
 
 ## References
 
