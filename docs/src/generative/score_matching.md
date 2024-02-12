@@ -1,9 +1,5 @@
 # Score matching of Aapo Hyvärinen
 
-```@meta
-Draft = false
-```
-
 ## Aim
 
 Here we revisit the original score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and apply it to fit a normal distribution to a sample of a univariate random variable just for illustrative purposes.
