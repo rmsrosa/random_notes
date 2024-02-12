@@ -1,8 +1,8 @@
-# Score-matching a two-dimensional Gaussian mixture model
+# Finite-difference score-matching of a two-dimensional Gaussian mixture model
 
 ## Introduction
 
-Here, we modify the previous score-matching example to fit a two-dimensional model.
+Here, we modify the previous finite-difference score-matching example to fit a two-dimensional model.
 
 ## Julia language setup
 

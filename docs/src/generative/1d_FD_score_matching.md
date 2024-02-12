@@ -1,4 +1,4 @@
-# Score-matching a one-dimensional Gaussian mixture model
+# Finite-difference score-matching of a one-dimensional Gaussian mixture model
 
 ## Introduction
 
