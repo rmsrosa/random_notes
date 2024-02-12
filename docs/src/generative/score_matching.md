@@ -4,15 +4,19 @@
 Draft = false
 ```
 
+## Aim
+
+Here we revisit the original score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and apply it to fit a normal distribution to a sample of a univariate random variable just for illustrative purposes.
+
 ## Motivation
 
 The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), as a first step towards building a solid background on score-matching diffusion.
 
-Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function, from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This is obtained by a simple integration by parts on the MSE loss function between the modeled score function and the actual score function. The integration by parts separates the dependence on the actual score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown score function.
+Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This is obtained by a simple integration by parts on the MSE loss function between the modeled score function and the actual score function. The integration by parts separates the dependence on the actual score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown score function.
 
 It is worth noticing, in light of the main objective of score-matching diffusion, that the original work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has no diffusion. It is a direct modeling of the score function in the original probability space. But this is a fundamental work.
 
-We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD). We illustrate this approach fitting a Gaussian distribution to samples of a univariate radom variables.
+We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD). We illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
 
 ## The score function
 
@@ -26,40 +30,62 @@ The parametrized modeled score function is denoted by $\boldsymbol{\psi}(\mathbf
 
 ## Loss functions for score-matching
 
-The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the following ideas.
-
-1. **Explicit score matching:** Fit the model by minimizing the expected square distance between the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is sometimes called *explicit score matching,*
+The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function ${\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical (Monte-Carlo) implicit score matching** loss function ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$, with
 ```math
-    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x};
+J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) + C,
+```
+for a *constant* $C$ (with respect to the parameters $\boldsymbol{\theta}$ of the model), so that the optimization process has (approximately) the same gradients
+```math
+\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}).
 ```
 
-2. **Implicit score matching:** Use integration by parts in the expectation to write that $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$, where $C$ is constant with respect to the parameters, so we only need to minimize $\tilde J$, given by
-```math
-    \tilde J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
-```
-which does not involve the unknown score function of ${\mathbf{X}}$. This is sometimes called *implicit score matching.* Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
+More precisly, the idea of the score-matching method is as follows.
 
-3. **Empirical implicit score matching:** In practice, the implicit score-matching loss function is estimated via Monte-Carlo, so the unknown $p_\mathbf{X}(\mathbf{x})$ is handled implicitly by the sample data $(\mathbf{x}_n)_n$, and we minimize
+### 1. Start with the explicit score matching
+
+Fit the model by minimizing the expected square distance between the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is sometimes called *explicit score matching (ESM),*
 ```math
-    {\tilde J}_{\mathrm{MC}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x};
 ```
-In a different perspective, this uses the *empirical distribution*
+
+### 2. Rewrite it with the implicit score matching
+
+Use integration by parts in the expectation to write that
+```math
+J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C,
+```
+where $C$ is constant with respect to the parameters, so we only need to minimize ${\tilde J}_{\mathrm{ISM}}$, given by
+```math
+    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
+```
+which does not involve the unknown score function of ${\mathbf{X}}$. This is sometimes called *implicit score matching (ISM).* Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
+
+### 3. Approximate it with the empirical implicit score matching
+
+In practice, the implicit score-matching loss function is estimated via Monte-Carlo, so the unknown $p_\mathbf{X}(\mathbf{x})$ is handled implicitly by the sample data $(\mathbf{x}_n)_n$, and we minimize
+```math
+    {\tilde J}_{\mathrm{MC,ISM}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+```
+
+In a different perspective, ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$ uses the *empirical distribution*
 ```math
 \frac{1}{N} \sum_{n=1}^N \delta_{\mathbf{x}_n},
 ```
-so we call this the *empirical implicit score matching.*
+so we call this the *empirical implicit score matching (EISM),* or *Monte-Carlo implicit score matching (MC,ISM).*
 
 ## Concerning the gradient in the loss function
 
-As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, other methods are developed, such as using kernel density estimation, auto-encoders, finite-differences, and so on. We will explore them in due course. For the moment, we will just sketch the proof of $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$.
+As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, other methods are developed, such as using kernel density estimation, auto-encoders, finite-differences, and so on. We will explore them in due course. For the moment, we will just sketch the proof of $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$ and apply the method to models for which the gradient can be computed more explicitly.
 
-## Proof that $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$
+## Proof that $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$
+
+We separate the one-dimensional from the multi-dimensional case for the sake of clarity.
 
 ### One-dimensional case
 
 We start with the one-dimensional version of the proof from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html). In this case,
 ```math
-    \tilde J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x; {\boldsymbol{\theta}}) \right)\;\mathrm{d}x.
+    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x; {\boldsymbol{\theta}}) \right)\;\mathrm{d}x.
 ```
 
 Since this is a one-dimensional problem, the score function is a scalar and we have
@@ -68,7 +94,7 @@ Since this is a one-dimensional problem, the score function is a scalar and we h
 ```
 Thus
 ```math
-    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \left(\psi(x; {\boldsymbol{\theta}})^2 - 2\psi(x; {\boldsymbol{\theta}})\psi_X(x)\right)\;\mathrm{d}x + C,
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \left(\psi(x; {\boldsymbol{\theta}})^2 - 2\psi(x; {\boldsymbol{\theta}})\psi_X(x)\right)\;\mathrm{d}x + C,
 ```
 where
 ```math
@@ -89,11 +115,11 @@ Differentiating the logarithm and using integration by parts, we find
     & = \int_{\mathbb{R}} \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})p_X(x)\;\mathrm{d}x.
 \end{align*}
 ```
-Thus, we rewrite $J({\boldsymbol{\theta}})$ as
+Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```math
-    J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left(\frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})\right)\;\mathrm{d}x + C,
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left(\frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})\right)\;\mathrm{d}x + C,
 ```
-which is precisely $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$.
+which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
 For this proof to be justified, we need
 ```math
@@ -107,16 +133,14 @@ for every ${\boldsymbol{\theta}}$.
 
 ### Multi-dimensional case
 
-Here is the multi-dimensional version of the proof, from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html).
-
-We have
+For the multi-dimensional version of the proof, we have
 ```math
     \|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\|^2 = \|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 - 2\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \cdot \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}) + \|\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\|^2.
 ```
 
 Thus,
 ```math
-    J({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 - 2\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right)\;\mathrm{d}\mathbf{x} + C,
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 - 2\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right)\;\mathrm{d}\mathbf{x} + C,
 ```
 where
 ```math
@@ -137,11 +161,11 @@ Differentiating the logarithm and using the Divergence Theorem for the integrati
     & = \int_{\mathbb{R}} \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x}.
 \end{align*}
 ```
-Thus, we rewrite $J({\boldsymbol{\theta}})$ as
+Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```math
-    J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right)\;\mathrm{d}\mathbf{x} + C,
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right)\;\mathrm{d}\mathbf{x} + C,
 ```
-which is precisely $J({\boldsymbol{\theta}}) = \tilde J({\boldsymbol{\theta}}) + C$.
+which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
 For this proof to be justified, we need
 ```math
@@ -174,7 +198,7 @@ Say we have a sample $\{x_n\}_{n=1}^N$ of $X$, where $N\in\mathbb{N}$.
 
 ```@setup aaposcorematching
 sample = rand(rng, prob, 100)
-xrange = range(minimum(sample) - 0.2, maximum(sample) + 0.2, length=200)
+xrange = range(minimum(sample) - 0.5, maximum(sample) + 0.5, length=400)
 ```
 
 ```@example aaposcorematching
@@ -183,48 +207,82 @@ scatter(sample, one.(sample), xlims=extrema(xrange), ylims=(0, 2), axis=false, l
 
 The model is a score function of a Gaussian distribution $\mathcal{N}(\mu, \sigma^2)$, whose PDF is
 ```math
-    p_{\theta}(x) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2}.
+    p_{\theta}(x) = p(x; \mu, \sigma) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2},
 ```
-The logpdf is
+with parameters $\boldsymbol{\theta} = (\mu, \sigma)$. The logpdf is
 ```math
-    \log p_{\theta}(x) = -\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2 - \log\left(\sqrt{2\pi}\sigma\right).
+    \log p(x; \mu, \sigma) = -\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2 - \log\left(\sqrt{2\pi}\sigma\right).
 ```
 And the score function is
 ```math
-    \psi(x; \mu, \sigma) = \frac{\partial}{\partial x}\log p_{\theta}(x) = - \frac{x - \mu}{\sigma^2},
+    \psi(x; \mu, \sigma) = \frac{\partial}{\partial x} p(x; \mu, \sigma) = - \frac{x - \mu}{\sigma^2},
 ```
-with parameters $\boldsymbol{\theta} = (\mu, \sigma)$. The derivative of the score function, needed for the loss function, is constant,
+The derivative of the score function, needed for the loss function, is constant with respect to $x$, but depends on the parameter $\sigma$,
 ```math
     \frac{\partial}{\partial x} \psi(x; \mu, \theta) = -\frac{1}{\sigma^2}.
 ```
 
 Thus, the implicit score matching loss becomes
 ```math
-    \tilde J({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\left(\frac{x - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right)\;\mathrm{d}x.
+    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}(\mu, \sigma) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\left(\frac{x - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right)\;\mathrm{d}x.
 ```
 The Monte-Carlo approximation, with the empirical distribution, is
 ```math
-    {\tilde J}_{\mathrm{MC}} = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
+    {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{MC,ISM}}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
 ```
 
-Implementing this loss for the given model score function yields the following solution, represented graphically in the plot.
+Implementing this loss for the given model score function yields the following graph over a reasonable range of values for $\mu$ and $\sigma$.
 
 ```@example aaposcorematching
-loss_function(mu, sigma) = mean( (xn - mu)^2 / sigma^4 / 2 - 1 / sigma^2 for xn in sample)
+loss_function(mu, sigma) = mean( (xn - mu)^2 / sigma^4 / 2 - 1 / sigma^2 for xn in sample) # hide
+nothing # hide
 ```
 
 ```@setup aaposcorematching
 murange = copy(xrange)
-sigmarange = range(1, 10.0, length=200)
+sigmarange = range(0.1, 6.0, length=200)
+cutitoff(x) = ifelse(x > 0.5, NaN, x)
 ```
 
 ```@example aaposcorematching
-surface(murange, sigmarange, log ∘ loss_function, color=:vik) # hide
+surface(murange, sigmarange, cutitoff ∘ loss_function, title="Graph of the loss function", titlefont=10, color=:vik) # hide
 ```
 
 ```@example aaposcorematching
-heatmap(murange, sigmarange, log ∘ loss_function, color=:vik) # hide
+heatmap(murange, sigmarange, cutitoff ∘ loss_function, title="Heatmap of the loss function", titlefont=10, color=:vik) # hide
 ```
+
+In this example, the optimal parameters can be found numerically to be approximately $\mu = 3.2$ and $\sigma = 1.5$, or more precisely,
+
+```@example aaposcorematching
+(j, i) = argmin([loss_function(mu, sigma) for sigma in sigmarange, mu in murange]).I # hide
+mu = murange[i] # hide
+sigma = sigmarange[j] # hide
+println("μ = $(round(mu, digits=4)), σ = $(round(sigma, digits=4))") # hide
+```
+
+We do not actually perform a minimization in this case. We simply sweep the values computed for the previous two plots and find the location of the smallest one. This is good enough for this illustrative example.
+
+With that approximate minimizer, we have our modeled Normal distribution fitting the sample. The result can be visualized as follows.
+```@setup aaposcorematching
+plt = plot(title="Sample, histogram, target PDF, and model PDF", titlefont = 10, legend=:topleft)
+histogram!(plt, sample, bins = 40, alpha = 0.4, normalized=true, label="histogram")
+scatter!(plt, sample, zero(sample) .+ 0.005 , label="sample", color=1)
+plot!(plt, xrange, x -> pdf(prob, x), linewidth=2, label="actual PDF")
+plot!(plt, xrange, x -> pdf(Normal(mu, sigma), x), linewidth=2, color=2, label="model PDF")
+```
+
+```@example aaposcorematching
+plot(plt) # hide
+```
+
+## Conclusion
+
+This concludes our review of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and illustrates the use of *empirical implicit score matching* to model a univariate random variable by a closed form model.
+
+The work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has some more elaborate models, namely a (i) multivariate Gaussian model; a (ii) basic independent component analysis model; and an (iii) overcomplete model for image data.
+
+As we mentioned earlier, our interest, however, is on modeling the score-function using a neural network and for which the gradient needs to be handled properly. For that, other techniques were developed, which will be examined next.
 
 ## References
 
