@@ -418,27 +418,44 @@ One can check that the PDF above is also a solution in the multi-dimensional cas
 
 When the potential $U=U(x)$ grows sufficiently rapidly as $|x|\rightarrow \infty$, this distribution is the unique equilibrium. In the case of thermodynamics, this corresponds to thermodynamic equilibrium and this is known as the Boltzmann distribution. The condition that the potential grows sufficiently rapidly at infinite means that the potential well is deep enough to confine the particle.
 
+Abstracting away from the physical model and considering the overdamped Langevin equation in the form
+```math
+    \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{2\gamma}\;\mathrm{d}W_{t},
+```
+for some constant $\gamma > 0$, then the Fokker-Planck equation reads
+```math
+    \frac{\partial}{\partial t} p(t, x) = \nabla_x \cdot \left(\nabla U(x) p(t, x)\right) + \gamma\Delta_x p(t, x),
+```
+and the stationary distribution takes the form
+```math
+    p_\infty(x) = \frac{1}{Z_0} e^{-\frac{U(x)}{\gamma}}.
+```
+
 ## Convergence to the limit distribution
 
 There are many rigorous results concerning the convergence to the equilibrium distribution, discussing conditions for the convergence, metrics, and rate of convergence. We will discuss them in more details in due course.
 
 ## Sampling from the score function via Langevin dynamics
 
-Now, suppose we take for the potential $U=U(x)$ minus the logpdf of a random variable $X$ with probability density function $p_X(x)$ up to an arbitrary constant, i.e.
+Now, suppose we take for the potential $U=U(x)$ minus a multiple of the logpdf of a random variable $X$ with probability density function $p_X(x)$ up to an arbitrary constant, i.e.
 ```math
-    U(x) = - \log p_X(x) + C,
+    U(x) = - \gamma \log p_X(x) + C,
 ```
-for some constant $C$. The score function is precisely minus the gradient of the potential,
+for some constants $\gamma$ and $C$. The score function is connected to the gradient of the potential by
 ```math
-    \psi_X(x) = \nabla_x \log p_X(x) = - \nabla_x U(x).
+    \psi_X(x) = \nabla_x \log p_X(x) = - \frac{1}{\gamma} \nabla_x U(x).
 ```
 In this case, we can write the PDF as
 ```math
-    p_X(x) = e^{\log p_X(x)} = e^{-U(x) + C} = \frac{1}{Z} e^{-U(x)},
+    p_X(x) = e^{\log p_X(x)} = e^{-U(x)/\gamma + C/\gamma} = \frac{1}{Z} e^{-U(x)/\gamma},
 ```
-for a (normalizing) constant $Z = e^{-C}$. Then we see that the PDF $p_X(x)$ is exactly the equilibrium of the Langevin equation. Since minus the gradient of the potential is the score function, we find that the PDF is the equilibrium of the overdamped Langevin equation
+for a (normalizing) constant $Z = e^{-C/\gamma}$. Then we see that the PDF $p_X(x)$ is exactly the equilibrium of the Langevin equation
 ```math
-    \mathrm{d}X_t = \psi_X(X_t)\;\mathrm{d}t + \sqrt{2}\mathrm{d}W_t.
+    \mathrm{d}X_t = -\nabla U(X_t)\;\mathrm{d}t + \sqrt{2\gamma}\mathrm{d}W_t.
+```
+which can be written as
+```math
+    \mathrm{d}X_t = \gamma\psi_X(X_t)\;\mathrm{d}t + \sqrt{2\gamma}\mathrm{d}W_t.
 ```
 
 This lead to a sampling method to draw samples from a distribution using its score function, as introduced by [Gareth Roberts and Richard Tweedie (1996)](https://doi.org/10.2307/3318418).
@@ -465,21 +482,23 @@ plot(plt1, plt2, size=(600, 600), layout=(2, 1)) # hide
 ```
 
 ```@setup scoreandlangevin
+gamma = 1/2
 mu0 = 5
 sigma0 = 1
 prob0 = Normal(5, 1)
 # prob0 = Uniform(1, 7)
-t0 = 0.0
-tf = 20.0
+t0 = 0
+tf = 10
 ```
+
 ```@example scoreandlangevin
-Markdown.parse("""Now we draw samples from it using the overdamped Langevin equation. We start with samples from a normal distribution ``\\mathcal{N}($mu0, $sigma0^2)`` and evolve them according to the overdamped Langevin equation, from the initial time ``t_0 = $t0`` up to time ``t_f = $tf``.""") # hide
+Markdown.parse("""Now we draw samples from it using the overdamped Langevin equation with ``\\gamma = $gamma``. We start with samples from a normal distribution ``\\mathcal{N}($mu0, $sigma0^2)`` and evolve them according to the equation, from the initial time ``t_0 = $t0`` up to time ``t_f = $tf``.""") # hide
 ```
 
 ```@setup scoreandlangevin
-params = (prob=prob,)
-f(t, x, params) = gradlogpdf(params.prob, x)
-g(t, x, params) = sqrt(2)
+params = (prob=prob,gamma)
+f(t, x, params) = gamma * gradlogpdf(params.prob, x)
+g(t, x, params) = sqrt(2gamma)
 
 p0 = pdf.(prob0, xrange)
 tt, pt = solve_fokkerplanck(p0, t0, tf, xrange, f, g, params, snapshots=200)
