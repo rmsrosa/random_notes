@@ -217,7 +217,7 @@ where $\mu$ is a proportionality viscosity coefficient associated with the frict
 ```
 where $k_B$ is the Boltzmann constant and $T$ is the temperature of the fluid.
 
-The white noise is highly irregular, so the equation above is made rigorous with the theory of stochatic differential equations when casted in the form
+The white noise is highly irregular, so the equation above is made rigorous with the theory of stochastic differential equations when casted in the form
 ```math
     \mathrm{d}V_t = \nu V_t \;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
 ```
@@ -249,25 +249,23 @@ The corresponding stochastic system reduces to a single equation
 ```math
     \nu \mathrm{d}X_t = - \nabla U(X_t)\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
 ```
-The time scale for this approximation to hold is a short time scale represented by $\tilde t = \frac{t}{\nu}$. Rescaling leads to the *overdamped Langevin equation*
+The time scale for this approximation to hold is a short time scale represented by $\tilde t = t / \nu$. Rescaling leads to the *overdamped Langevin equation*
 ```math
     \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
 ```
 We will do the details of this change of variables below, when performing a different approach of taking the overdamped asymptotic limit $\nu \rightarrow \infty$.
 
-For the moment, notice that, in the absence of a force field $U=U(x)$, we are left with (dropping the tildes in the rescaled equation)
+For the moment, notice that, in the absence of a force field $U=U(x)$, we are left (dropping the tildes in the rescaled equation) with
 ```math
     \mathrm{d}X_t = \sqrt{\frac{2k_B T}{m}} \;\mathrm{d}W_t,
 ```
-which is the Brownian motion, with the solution
+which is the Brownian motion equation, with the solution
 ```math
     X_t = \sqrt{\frac{2k_B T}{m}} W_t.
 ```
 In this way, we recover the Brownian motion from the Langevin equation as the overdamped limit without a force field.
 
-Now we go back to the rescaling to a more representative time scale and deduce the overdamped approximation at the limit $\nu \rightarrow \infty$.
-
-Making the change of time scale to
+Now we go back to the rescaling to a more representative time scale and deduce the overdamped approximation at the limit $\nu \rightarrow \infty$. Making the change of time scale to
 ```math
     \tilde t = \frac{t}{\nu},
 ```
@@ -330,20 +328,32 @@ Substituting $\mathrm{d}\tilde X_t = \tilde V_{\tilde t}\;\mathrm{d}\tilde t$ an
 ```math
     \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
 ```
-Hence, we obtain the overdamped Langeving equation. Dropping the tildes, we write the equation as
+Hence, we obtain the overdamped Langevin equation. Dropping the tildes, we write the equation as
 ```math
     \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}W_{t}.
 ```
 
 ## The limit distribution
 
-In the inviscid and deterministic case, the Langevin equation reads $m \ddot x_t = - \nabla U(x_t)$, and the level sets
+In the inviscid and deterministic case, the Langevin equation reads
+```math
+    m \ddot x_t = - \nabla U(x_t),
+```
+and the level sets
 ```math
     \left\{(x, v); \frac{1}{2}v^2 + U(x) = c\right\}
 ```
-of the *total energy* are invariant by the solution group. In the viscous deterministic case $m \ddot x_t = - \mu \dot x_t - \nabla U(x_t)$, the solutions tend to the equilibria states $\min_x U(x)$, or more precisely to the variety $\{(x, v); v = \nabla U(x) = 0\}$. In the full viscous, stochastic equation, the tendency to go to the equilibria is balanced by the diffusion, and the system tends to a stochastic equilibrium represented by a distribution with probability density function
+of the *total energy* are invariant by the solution group. In the viscous deterministic case
 ```math
-    p_U(x, v) = \frac{1}{Z} e^{-\frac{m}{k_B T}U(x) + v^2/2},
+    m \ddot x_t = - \mu \dot x_t - \nabla U(x_t),
+```
+the solutions tend to the equilibria states $\min_x U(x)$, or more precisely to the variety
+```math
+    \{(x, v); v = \nabla U(x) = 0\}.
+```
+In the full viscous, stochastic equation, the tendency to go to the equilibria is balanced by the diffusion, and the system tends to a stochastic equilibrium represented by a distribution with probability density function
+```math
+    p_U(x, v) = \frac{1}{Z} e^{-\frac{m}{k_B T}U(x) + \frac{v^2}{2}},
 ```
 where $Z$ is a normalization constant to have $p_U(x, v)$ integrate to $1$.
 
@@ -353,7 +363,7 @@ A similar behavior occurs in the overdamped Langevin equation, for which the equ
 ```
 where $Z_0$ is another normalization constant.
 
-We discuss in more details the equilibrium distribution in the overdamped equation. For that, we look at the Fokker-Plank equation for
+We now discuss in more details the equilibrium distribution in the overdamped equation. For that, we look at the Fokker-Plank equation for
 ```math
     \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}W_{t},
 ```
