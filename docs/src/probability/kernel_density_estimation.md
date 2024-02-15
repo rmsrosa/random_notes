@@ -1,9 +1,5 @@
 # Kernel density estimation
 
-```@meta
-Draft = false
-```
-
 ```@setup kde
 using Random
 using StatsPlots

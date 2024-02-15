@@ -28,7 +28,9 @@ allpages = [
     ],
     "Generative models" => [
         "Score matching" => [
+            "generative/score_and_langevin.md",
             "generative/score_matching.md",
+            "generative/kde_score_matching.md",
             "generative/1d_FD_score_matching.md",
             "generative/2d_FD_score_matching.md"
         ]

@@ -60,11 +60,9 @@ rng = Xoshiro(12345)
 nothing # hide
 ```
 
-### Extending the score function from Distributions.jl
+The distributions and their PDF are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we do some *pirating* and extend `Distributions.gradlogpdf` to *univariate* `MixtureModels`.
 
-The distributions and their PDF are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we do some *pirating* and extend `Distributions.gradlogpdf` to *univariate* `MixtureModels` as follows.
-
-```@example simplescorematching
+```@setup simplescorematching
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
     ps = probs(d)
     cs = components(d)
@@ -91,21 +89,6 @@ function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
     end 
     return glp
 end
-```
-
-As an illustration:
-```@example simplescorematching
-x_interval = range(0.0, 20.0, 200)
-prob = MixtureModel([Normal(3, 1), Normal(8, 2)], [0.3, 0.7])
-plot(x_interval, s -> pdf(prob, s), label=false, title="pdf", titlefont=10)
-```
-
-```@example simplescorematching
-plot(x_interval, s -> logpdf(prob, s), label=false, title="logpdf", titlefont=10)
-```
-
-```@example simplescorematching
-plot(x_interval, s -> gradlogpdf(prob, s), label=false, title="gradlogpdf", titlefont=10)
 ```
 
 ## Code introspection
