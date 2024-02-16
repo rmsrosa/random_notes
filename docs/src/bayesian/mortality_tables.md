@@ -164,7 +164,7 @@ end
 Now we define the compound probability model, assigning Beta distributions to the parameters. But, as mentioned before, the initial prior is very important. It is not easy to get a good fit. So, first, we approximate by "hand", with trial and error, to get the following approximate fit:
 
 ```@example mortality
-let (A, B, C) = (0.00002, 0.10, 0.001)
+let (A, B, C) = (0.00001, 0.1, 0.001)
     m = A * exp.(B * x) .+ C
     plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=:topleft)
     plot!(plt, x, m, label="Gompertz-Makeham hand-fit")
@@ -252,25 +252,25 @@ plot!(plt, x, m_gm, ribbon=(m_gm .- view(quantiles_gm, 1, :), view(quantiles_gm,
 scatter!(plt, x, mx, label="data")
 ```
 
-Notice how the function with the means of the parameters is outside the quantiles, which is based on the function values of the parameter samples. Let's check the ensemble.
+Notice how the function with the means of the parameters is outside the quantiles, which is based on the function values of the parameter samples. Let's check the last portion of the ensemble.
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
 plot!(plt, x, m_gm, label="Bayesian fitted line", color=2)
-for (A, B, C) in eachrow(view(chain_gm.value.data, :, 1:3, 1))
-    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.01, color=2, label=false)
+for (A, B, C) in eachrow(view(chain_gm.value.data, 4500:5000, 1:3, 1))
+    plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.1, color=2, label=false)
 end
 scatter!(plt, x, mx, color=1)
 ```
 
 Let's look at just a few samples to have a better look at the dependence of the function on the sampled values:[^off]
 
-[^off]: How often do you see $x \mapsto f_{\mathrm{mean}(p)}(x)$ fall off the credible interval of the family $x \mapsto \{f_p(x)\}_p$, where $p$ is the set of parameters?
+[^off]: How often do you see $x \mapsto f_{\mathrm{mean}(p)}(x)$ fall off the credible interval of the family $x \mapsto \{f_p(x)\}_p$, where $p$ is the set of parameters? It happens.
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
 plot!(plt, x, m_gm, label="Bayesian fitted line", color=2)
-for (A, B, C) in eachrow(view(chain_gm.value.data, 1:50:500, 1:3, 1))
+for (A, B, C) in eachrow(view(chain_gm.value.data, 1000:50:2000, 1:3, 1))
     plot!(plt, x, x -> gompertz_makeham(x, (A, B, C)), alpha=0.4, color=3, label=false)
 end
 scatter!(plt, x, mx, color=1)
@@ -427,13 +427,13 @@ plot!(plt, x, m_hp, ribbon=(m_hp .- view(quantiles_hp, 1, :), view(quantiles_hp,
 scatter!(plt, x, mx, label="data")
 ```
 
-Notice how the function with the means of the parameters is again outside the quantiles, which is based on the function values of the parameter samples. Let's check the ensemble with the first one thousand parameters values:
+Notice how the function with the means of the parameters is again outside the quantiles, which is based on the function values of the parameter samples. Let's check the last portion of the ensemble:
 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
 plot!(plt, x, m_hp, label="Bayesian fitted line", color=2)
-for p in eachrow(view(chain_hp.value.data, 1:1_000, 1:9, 1))
-    plot!(plt, x, x -> heligman_pollard(x, p), alpha=0.01, color=2, label=false)
+for p in eachrow(view(chain_hp.value.data, 4500:5000, 1:9, 1))
+    plot!(plt, x, x -> heligman_pollard(x, p), alpha=0.1, color=2, label=false)
 end
 scatter!(plt, x, mx, color=1)
 ```
@@ -443,7 +443,7 @@ Let's look at just a few samples to have a better look at the dependence of the 
 ```@example mortality
 plt = plot(yscale=:log10, title="Force of mortality", titlefont=10, xlabel="age", ylabel="force of mortality", legend=nothing)
 plot!(plt, x, m_hp, label="Bayesian fitted line", color=2)
-for p in eachrow(view(chain_hp.value.data, 1:50:500, 1:9, 1))
+for p in eachrow(view(chain_hp.value.data, 1000:50:2000, 1:9, 1))
     plot!(plt, x, x -> heligman_pollard(x, p), alpha=0.4, color=3, label=false)
 end
 scatter!(plt, x, mx, color=1)
