@@ -265,7 +265,7 @@ which is the Brownian motion equation, with the solution
 ```
 In this way, we recover the Brownian motion from the Langevin equation as the overdamped limit without a force field.
 
-Now we go back to the rescaling to a more representative time scale and deduce the overdamped approximation at the limit $\nu \rightarrow \infty$. Making the change of time scale to
+Now we go back to the rescaling to a more representative time scale and deduce the overdamped approximation at the limit $\nu \rightarrow \infty$. More details in [Section 6.5](https://doi.org/10.1007/978-1-4939-1323-7_6) of [Grigorios Pavliotis (2014)](https://doi.org/10.1007/978-1-4939-1323-7). Making the change of time scale to
 ```math
     \tilde t = \frac{t}{\nu},
 ```
@@ -547,7 +547,7 @@ anim # hide
 
 ## Score function in the Julia language
 
-The distributions and their pdf are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we did some *pirating* and extended `Distributions.gradlogpdf` to *univariate* `MixtureModels`. This was the code used.
+The distributions and their pdf are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we did some *pirating* and extended `Distributions.gradlogpdf` to *univariate* `MixtureModels`, both univariate and multivariate. These are the codes for that.
 
 ```julia
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
@@ -578,10 +578,45 @@ function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
 end
 ```
 
+```julia
+function Distributions.gradlogpdf(d::MultivariateMixture, x::AbstractVector{<:Real})
+    ps = probs(d)
+    cs = components(d)
+
+    # `d` is expected to have at least one distribution, otherwise this will just error
+    psi, idxps = iterate(ps)
+    csi, idxcs = iterate(cs)
+    pdfx1 = pdf(csi, x)
+    pdfx = psi * pdfx1
+    glp = pdfx * gradlogpdf(csi, x)
+    if iszero(psi)
+        fill!(glp, zero(eltype(glp)))
+    end
+    
+    while (iterps = iterate(ps, idxps)) !== nothing && (itercs = iterate(cs, idxcs)) !== nothing
+        psi, idxps = iterps
+        csi, idxcs = itercs
+        if !iszero(psi)
+            pdfxi = pdf(csi, x)
+            if !iszero(pdfxi)
+                pipdfxi = psi * pdfxi
+                pdfx += pipdfxi
+                glp .+= pipdfxi .* gradlogpdf(csi, x)
+            end
+        end
+    end
+    if !iszero(pdfx) # else glp is already zero
+        glp ./= pdfx
+    end 
+    return glp
+end
+```
+
 ## References
 
 1. [R. Brown (1828), "A brief account of microscopical observations made in the months of June, July and August, 1827, on the particles contained in the pollen of plants; and on the general existence of active molecules in organic and inorganic bodies". Philosophical Magazine. 4 (21), 161-173. doi:10.1080/14786442808674769](https://doi.org/10.1080%2F14786442808674769)
 2. [A. Einstein (1905), "Über die von der molekularkinetischen Theorie der Wärme geforderte Bewegung von in ruhenden Flüssigkeiten suspendierten Teilchen" [On the Movement of Small Particles Suspended in Stationary Liquids Required by the Molecular-Kinetic Theory of Heat], Annalen der Physik, 322 (8), 549-560, doi:10.1002/andp.19053220806](https://doi.org/10.1002/andp.19053220806)
 3. [P. Mörters and Y. Peres (2010), "Brownian motion", Cambridge Series in Statistical and Probabilistic Mathematics. Cambridge University Press, Cambridge. With an appendix by Oded Schramm and Wendelin Werner](https://www.cambridge.org/il/academic/subjects/statistics-probability/probability-theory-and-stochastic-processes/brownian-motion?format=HB&isbn=9780521760188)
 4. [P. Langevin (1908), "Sur la théorie du mouvement brownien [On the Theory of Brownian Motion]". C. R. Acad. Sci. Paris. 146: 530–533](https://gallica.bnf.fr/ark:/12148/bpt6k3100t/f530.item) 
-5. [G. O. Roberts, R. L. Tweedie (1996), "Exponential Convergence of Langevin Distributions and Their Discrete Approximations", Bernoulli, Vol. 2, No. 4, 341-363, doi:10.2307/3318418](https://doi.org/10.2307/3318418) 
+5. [G. A. Pavliotis (2014), "The Langevin Equation. In: Stochastic Processes and Applications". Texts in Applied Mathematics, vol 60. Springer, New York, NY, doi:10.1007/978-1-4939-1323-7_6](https://doi.org/10.1007/978-1-4939-1323-7)
+6. [G. O. Roberts, R. L. Tweedie (1996), "Exponential Convergence of Langevin Distributions and Their Discrete Approximations", Bernoulli, Vol. 2, No. 4, 341-363, doi:10.2307/3318418](https://doi.org/10.2307/3318418)
