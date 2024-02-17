@@ -1,4 +1,4 @@
-# Score-matching with kernel density estimation
+# Denoising score-matching in Flux.jl
 
 ```@meta
 Draft = true
@@ -40,11 +40,7 @@ rng = Xoshiro(12345)
 nothing # hide
 ```
 
-### Extending the score function from Distributions.jl
-
-The distributions and their PDF are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we do some *pirating* and extend `Distributions.gradlogpdf` to *univariate* `MixtureModels` as follows.
-
-```@example kdescorematching
+```@setup kdescorematching
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
     ps = probs(d)
     cs = components(d)
@@ -73,25 +69,6 @@ function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
 end
 ```
 
-As an illustration:
-```@example kdescorematching
-x_interval = range(0.0, 20.0, 200)
-prob = MixtureModel([Normal(3, 1), Normal(8, 2)], [0.3, 0.7])
-plot(x_interval, s -> pdf(prob, s), label=false, title="pdf", titlefont=10)
-```
-
-```@example kdescorematching
-plot(x_interval, s -> logpdf(prob, s), label=false, title="logpdf", titlefont=10)
-```
-
-```@example kdescorematching
-plot(x_interval, s -> gradlogpdf(prob, s), label=false, title="gradlogpdf", titlefont=10)
-```
-
-## Code introspection
-
-We do not attempt to overly optimize the code here since this is a simple one-dimensional problem. Nevertheless, it is always healthy to check the type stability of the critical parts (like the loss functions) with `@code_warntype`. One should also check for any unusual time and allocation with `BenchmarkTools.@btime` or `BenchmarkTools.@benchmark`. We performed these analysis and everything seems good. We found it unnecessary to clutter the notebook with their outputs here, though.
-
 ## Data
 
 Now we build the target model and draw samples from it.
@@ -109,7 +86,7 @@ dx = Float64(xrange.step)
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
 
 sample_points = permutedims(rand(rng, target_prob, 1024))
-sample_gradlogpdf = gradlogpdf(target_prob, sample_points)
+sample_gradlogpdf = gradlogpdf.(target_prob, sample_points)
 ```
 
 Notice the data `x` and `sample_points` are defined as row vectors so we can apply the model in batch to all of their values at once. The values `y` are also row vectors for easy comparison with the predicted values. When, plotting, though, we need to revert them to vectors.
@@ -123,15 +100,15 @@ Visualizing the sample data drawn from the distribution and the PDF.
 ```@example kdescorematching
 plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
 histogram!(sample_points', normalize=:pdf, nbins=80, label="sample histogram")
-plot!(x', target_pdf', linewidth=4, label="pdf")
-scatter!(sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
+plot!(xrange, x -> pdf(target_prob, x), linewidth=2, label="pdf")
+# scatter!(sample_points', s -> pdf(target_prob, s), markersize=2, label="sample")
 ```
 
 Visualizing the score function.
 ```@example kdescorematching
 plot(title="The score function and the sample", titlefont=10)
 
-plot!(x', target_score', label="score function", markersize=2)
+plot!(xrange, s -> gradlogpdf(target_prob, s), label="score function", markersize=2)
 scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 ```
 
@@ -167,19 +144,37 @@ end
 function loss_function_mse(model, x, y)
     y_pred = model(x)
     loss = mean(abs2, y_pred .- y)
-    return loss, st, ()
+    return loss
 end
 ```
 
 ### Loss function
 
 ```@example kdescorematching
-function loss_function_kde(model, ps, st, data)
+function loss_function_kde_old(model, ps, st, data)
     x, y, target_pdf, sigma, sample_points = data
     y_pred = model(x)
     loss = mean(abs2, y_pred[i] + (s - xi) / sigma ^ 2 for xi in x for (i, s) in enumerate(sample_points)) / 2
     return loss, st, ()
 end
+```
+
+```julia
+mean(abs2, model(sample_points) .+ (sample_points .- sample_points') ./ sigma ^ 2) / 2
+```
+
+```julia
+sigma = 0.5
+y_score_kse = (sample_points .- sample_points') ./ sigma ^ 2
+
+loss_function_kse(y, y_score_kse) = mean(abs2, y .+ y_score_kse) / 2
+
+loss_function_kse(model(sample_points), y_score_kse)
+
+y_pred_tst = model(sample_points)
+mean(abs2, y_pred_tst[i] + (s - xi) / sigma ^ 2 for xi in sample_points for (i, s) in enumerate(sample_points)) / 2
+
+Flux.gradient(m -> loss_function_kse(m(sample_points), y_score_kse), model)
 ```
 
 ## Optimization setup
@@ -189,18 +184,27 @@ end
 We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8)), which is a stochastic gradient-based optimization method.
 
 ```@example kdescorematching
-opt = Adam(0.01)
+opt = Flux.setup(Adam(), model)
 ```
 
-
 ## Training
+
+### Preparing the data
+
+```@example kdescorematching
+data = (sample_points, gradlogpdf.(target_prob, sample_points))
+data = (sample_points, y_score_kse)
+```
+
+```@example kdescorematching
+Flux.gradient(m -> loss_function_kse(m(sample_points), y_score_kse), model)
+```
 
 ### Training with $J({\boldsymbol{\theta}})$
 
 Now we attempt to train the model, starting with $J({\boldsymbol{\theta}})$.
 ```@example kdescorematching
-train!(loss_function_mse, model, data, opt)
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_mse, 500, 20, 125)
+Flux.train!(loss_function_kse, model, data, opt)
 nothing # hide
 ```
 

@@ -26,13 +26,13 @@ The parametrized modeled score function is denoted by $\boldsymbol{\psi}(\mathbf
 
 ## Loss functions for score-matching
 
-The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function ${\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical (Monte-Carlo) implicit score matching** loss function ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$, with
+The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical (Monte-Carlo) implicit score matching** loss function ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$, with
 ```math
-J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) + C,
+J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) + C,
 ```
 for a *constant* $C$ (with respect to the parameters $\boldsymbol{\theta}$ of the model), so that the optimization process has (approximately) the same gradients
 ```math
-\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}).
+\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}).
 ```
 
 More precisly, the idea of the score-matching method is as follows.
@@ -48,11 +48,11 @@ Fit the model by minimizing the expected square distance between the model score
 
 Use integration by parts in the expectation to write that
 ```math
-J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C,
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C,
 ```
 where $C$ is constant with respect to the parameters, so we only need to minimize ${\tilde J}_{\mathrm{ISM}}$, given by
 ```math
-    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
+    J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
 ```
 which does not involve the unknown score function of ${\mathbf{X}}$. This is sometimes called *implicit score matching (ISM).* Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
 
@@ -71,9 +71,9 @@ so we call this the *empirical implicit score matching (EISM),* or *Monte-Carlo 
 
 ## Concerning the gradient in the loss function
 
-As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, other methods are developed, such as using kernel density estimation, auto-encoders, finite-differences, and so on. We will explore them in due course. For the moment, we will just sketch the proof of $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$ and apply the method to models for which the gradient can be computed more explicitly.
+As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, other methods are developed, such as using kernel density estimation, auto-encoders, finite-differences, and so on. We will explore them in due course. For the moment, we will just sketch the proof of $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$ and apply the method to models for which the gradient can be computed more explicitly.
 
-## Proof that $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$
+## Proof that $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$
 
 We separate the one-dimensional from the multi-dimensional case for the sake of clarity.
 
@@ -81,7 +81,7 @@ We separate the one-dimensional from the multi-dimensional case for the sake of 
 
 We start with the one-dimensional version of the proof from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html). In this case,
 ```math
-    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x; {\boldsymbol{\theta}}) \right)\;\mathrm{d}x.
+    J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x} \psi(x; {\boldsymbol{\theta}}) \right)\;\mathrm{d}x.
 ```
 
 Since this is a one-dimensional problem, the score function is a scalar and we have
@@ -115,7 +115,7 @@ Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```math
     J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_X(x) \left(\frac{1}{2}\psi(x; {\boldsymbol{\theta}})^2 + \frac{\partial}{\partial x}\psi(x; {\boldsymbol{\theta}})\right)\;\mathrm{d}x + C,
 ```
-which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
+which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
 For this proof to be justified, we need
 ```math
@@ -161,7 +161,7 @@ Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```math
     J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left(\frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right)\;\mathrm{d}\mathbf{x} + C,
 ```
-which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
+which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
 For this proof to be justified, we need
 ```math
@@ -220,7 +220,7 @@ The derivative of the score function, needed for the loss function, is constant 
 
 Thus, the implicit score matching loss becomes
 ```math
-    {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}(\mu, \sigma) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\left(\frac{x - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right)\;\mathrm{d}x.
+    J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}(\mu, \sigma) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\left(\frac{x - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right)\;\mathrm{d}x.
 ```
 The Monte-Carlo approximation, with the empirical distribution, is
 ```math

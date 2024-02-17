@@ -30,7 +30,7 @@ allpages = [
         "Score matching" => [
             "generative/score_and_langevin.md",
             "generative/score_matching_aapo.md",
-            "generative/kde_score_matching.md",
+            "generative/denoising_score_matching.md",
             "generative/1d_FD_score_matching.md",
             "generative/2d_FD_score_matching.md"
         ]
