@@ -1,16 +1,22 @@
-# Denoising score matching of Pascal Vincent
+# Score matching with Parzen estimation
+
+```@meta
+Draft = false
+```
 
 ## Aim
 
-Explore the **denoising score matching** method proposed by [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) and illustrate it by fiting a multi-layer perceptron to model the score function of a one-dimensional synthetic Gaussian-mixture distribution.
+Explore the use of *Parzen kernel estimation* to approximate the explicit score matching objective proposed by [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and discussed *en passant* by [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142). We illustrate the method by fiting a multi-layer perceptron to model the score function of a one-dimensional synthetic Gaussian-mixture distribution.
 
 ### Motivation
 
 The motivation is to continue building a solid background on score-matching diffusion.
 
-After the proposition of the **score-matching** method by [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), which requires the derivative of the model score function, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using non-parametric Parzen density estimators to circumvent this derivative, making a connection with denoising autoenconders, and proposing the **denoising score matching** method.
+After the proposition of the **score-matching** method by [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), which requires the derivative of the model score function, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using **non-parametric Parzen density estimation** to circumvent this derivative, making a connection with denoising autoenconders, and proposing the **denoising score matching** method.
 
-## Objetive function for denoising score matching
+We will detail denoising score matching in a separate note. Here, we stop at the Parzen density estimation idea, which was used in [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) only as a step towards the denoising score matching.
+
+## Objetive function approximating the explicit score matching objetive
 
 The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the model score function $\psi(x; {\boldsymbol{\theta}})$ to the score function $\psi_X(x)$ of the random variable $X$, i.e. by minimizing the **explicit score matching** objective
 ```math
@@ -28,7 +34,7 @@ which does not involve the unknown score function of $X$. It does, however, invo
 
 [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentioned that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismissed it for the "simple trick of partial integration to compute the objective function [$J_{\mathrm{ISM}}({\boldsymbol{\theta}})$] very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes prohibitive.
 
-A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using a Parzel kernel density estimation
+A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) commented about the idea of using a Parzel kernel density estimation
 ```math
     \tilde p_\sigma(\mathbf{x}) = \int K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right) \;\mathrm{d}\tilde p_0(\mathbf{x}) = \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
 ```
@@ -40,6 +46,9 @@ In this way, the explicit score matching objetive function is approximated by
 ```math
     {\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x}.
 ```
+
+However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objetive function. They further simplified the objective function by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. We will do this in a follow up note, but for the moment we will stop at ${\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}})$, use a Gaussian estimator, and see how this works.
+
 Computing the score function with the Parzen estimation amounts to
 ```math
     \begin{align*}
@@ -231,9 +240,6 @@ plot!(x', target_score', label="score function", markersize=2)
 scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="score at data", markersize=2, alpha=0.5)
 
 scatter!(sample_points', s -> score_parzen1(s, sigma, sample_points), label="score from parzen estimation", markersize=2)
-
-#y_score_kse = (sample_points .- sample_points') ./ sigma ^ 2
-#data = (sample_points, y_score_kse)
 ```
 
 ## The neural network model
@@ -257,7 +263,7 @@ For educational purposes, since we have the pdf and the score function, one of t
 
 Here is how we implement it.
 ```@example simplescorematching
-function loss_function_kse(model, ps, st, data)
+function loss_function_parzen(model, ps, st, data)
     sample_points, score_parzen = data
     y_score_pred, st = Lux.apply(model, sample_points, ps, st)
     loss = mean(abs2, y_score_pred - score_parzen)
@@ -296,7 +302,7 @@ dev_cpu = cpu_device()
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
 ```@example simplescorematching
-Lux.Training.compute_gradients(vjp_rule, loss_function_kse, data, tstate_org)
+Lux.Training.compute_gradients(vjp_rule, loss_function_parzen, data, tstate_org)
 ```
 
 ### Training loop
@@ -328,7 +334,7 @@ end
 
 Now we attempt to train the model, starting with $J({\boldsymbol{\theta}})$.
 ```@example simplescorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_kse, 500, 20, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_parzen, 500, 20, 125)
 nothing # hide
 ```
 
