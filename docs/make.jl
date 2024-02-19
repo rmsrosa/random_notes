@@ -28,6 +28,7 @@ allpages = [
     ],
     "Generative models" => [
         "Score matching" => [
+            "Overview" => "generative/overview.md",
             "generative/score_and_langevin.md",
             "generative/score_matching_aapo.md",
             "generative/parzen_estimation_score_matching.md",
