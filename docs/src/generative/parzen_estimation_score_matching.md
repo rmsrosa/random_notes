@@ -101,7 +101,7 @@ Then, the explicit score matching approximated with the Parzen kernel estimator 
     {\tilde J}_{\mathrm{ESM_{\sigma, data}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}_n)\right\|^2.
 ```
 
-## Numerical implementation
+## Numerical example
 
 We illustrate, numerically, the use of the **Parzen estimated score matching** objective ${\tilde J}_{\mathrm{ESM_{\sigma, data}}}$ to model a synthetic univariate Gaussian mixture distribution.
 

@@ -8,7 +8,9 @@ Here, the aim is to fit a neural network (more specifically a multi-layer percep
 
 ### Motivation
 
-The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), as a first step towards building a solid background on score-matching diffusion.
+The motivation is to continue building a solid background on score-matching diffusion.
+
+### Background
 
 Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function, from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This is obtained by a simple integration by parts on the MSE loss function between the modeled score function and the actual score function. The integration by parts separates the dependence on the actual score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown score function.
 
@@ -19,8 +21,6 @@ It is worth noticing, in light of the main objective of score-matching diffusion
 We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the derivative of the model could be computed more explicitly. There was no artificial neural network involved and no need for automatic differention (AD). Here, however, we want something more general, as done in the generative methods, and attempt to fit a neural network instead. This presents practical difficulties for the minimization process, since we would end up needing automatic differentiation (for the optimization) on top of automatic differentiation (of the score function).
 
 The differentiation for the optimization is with respect to the parameters, while the differentiation of the modeled score function is on the variate, but still this is a great computational challenge and not all AD are fit for that. For this reason, we resort to centered finite differences to approximate the derivative of the modeled score function. We will use automatic differentiation of the modeled score function in a separate note, for illustrative purposes.
-
-This is a one-dimensional example. For higher-dimensional examples, the *sliced-score matching* approach of [Song, Garg, Shi, and Ermon (2020)](https://proceedings.mlr.press/v115/song20a.html) is quite useful (see also [Song's blog on sliced score matching](http://yang-song.net/blog/2019/ssm/)).
 
 For a python version of a similar pedagogical example, see [Eric J. Ma (2021)](https://ericmjl.github.io/score-models/). There, they use AD on top of AD, via the [google/jax](https://github.com/google/jax) library, which apparently handles this double-AD not so badly.
 
@@ -708,6 +708,4 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
 1. [T. Pang, K. Xu, C. Li, Y. Song, S. Ermon, J. Zhu (2020), Efficient Learning of Generative Models via Finite-Difference Score Matching, NeurIPS](https://openreview.net/forum?id=LVRoKppWczk) - see also the [arxiv version](https://arxiv.org/abs/2007.03317)
 1. [Eric J. Ma, A Pedagogical Introduction to Score Models, webpage, April 21, 2021](https://ericmjl.github.io/score-models/) - with the associated [github repo](https://github.com/ericmjl/score-models/blob/main/score_models/losses/diffusion.py#L7)
-1. [Y. Song, S. Garg, J. Shi, S. Ermon (2020), Sliced Score Matching: A Scalable Approach to Density and Score Estimation, Proceedings of The 35th Uncertainty in Artificial Intelligence Conference, PMLR 115:574-584](https://proceedings.mlr.press/v115/song20a.html) -- see also the [arxiv version](https://arxiv.org/abs/1905.07088)
-1. [Y. Song's blog on "Sliced Score Matching: A Scalable Approach to Density and Score Estimation"](http://yang-song.net/blog/2019/ssm/)
 1. [D. P. Kingma, J. Ba (2015), Adam: A Method for Stochastic Optimization, In International Conference on Learning Representations (ICLR)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8) -- see also the [arxiv version](https://arxiv.org/abs/1412.6980)

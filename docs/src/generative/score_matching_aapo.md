@@ -1,12 +1,16 @@
 # Score matching of Aapo Hyvärinen
 
-## Aim
+## Introduction
+
+### Aim
 
 Here we revisit the original score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and apply it to fit a normal distribution to a sample of a univariate random variable just for illustrative purposes.
 
-## Motivation
+### Motivation
 
 The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html), as a first step towards building a solid background on score-matching diffusion.
+
+### Background
 
 Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This is obtained by a simple integration by parts on the MSE loss function between the modeled score function and the actual score function. The integration by parts separates the dependence on the actual score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown score function.
 
@@ -24,7 +28,7 @@ which is a vector field in $\mathbb{R}^d$.
 
 The parametrized modeled score function is denoted by $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$, with parameter values $\boldsymbol{\theta}$.
 
-## Loss functions for score-matching
+## Loss functions for score matching
 
 The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical (Monte-Carlo) implicit score matching** loss function ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$, with
 ```math
@@ -173,7 +177,7 @@ and
 ```
 for every ${\boldsymbol{\theta}}$, which is fine for at most linearly-growing score function and model and an exponentially decreasing Gaussian mixture distribution.
 
-## Example
+## Numerical example
 
 ```@setup aaposcorematching
 using Random
