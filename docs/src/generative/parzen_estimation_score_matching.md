@@ -22,43 +22,56 @@ We will detail denoising score matching in a separate note. Here, we stop at the
 
 ## Objective function approximating the explicit score matching objective
 
-The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the model score function $\psi(\mathbf{x}; {\boldsymbol{\theta}})$ to the score function $\psi_X(\mathbf{x})$ of a random variable $\mathbf{X}$ by minimizing the **explicit score matching** objective
+The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the model score function $\psi(\mathbf{x}; {\boldsymbol{\theta}})$ to the score function $\psi_X(\mathbf{x})$ of a random variable $\mathbf{X}$ by minimizing the 
+**implicit score matching** objective
+```math
+    J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
+```
+which is equivalent to minimizing the **explicit score matching** objective
 ```math
     J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x},
 ```
-by using a change of variables in the expectation and writing that
+due to the following identity obtained via integration by parts in the expectation
 ```math
     J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C,
 ```
-where $C$ is constant with respect to the parameters, so we only need to minimize the **implicit score matching** objective $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$, given by
-```math
-    J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
-```
-which does not involve the unknown score function of $X$. It does, however, involve the gradient of the modeled score function, which is expensive to compute.
+where $C$ is constant with respect to the parameters. The advantage of ${\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}})$ is that it does not involve the unknown score function of $X$. It does, however, involve the gradient of the modeled score function, which is expensive to compute.
 
-[Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentioned that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismissed it for the "simple trick of partial integration to compute the objective function [$J_{\mathrm{ISM}}({\boldsymbol{\theta}})$] very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes prohibitive.
-
-A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) commented about the idea of using a Parzel kernel density estimation
+In practice, this is further approximated by the **empirical distribution** $\tilde p_{\mathrm{data}}(\mathbf{x})$ given by
 ```math
-    \tilde p_\sigma(\mathbf{x}) = \int K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right) \;\mathrm{d}\tilde p_0(\mathbf{x}) = \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
+    \tilde p_{\mathrm{data}}(\mathbf{x}) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x} - \mathbf{x}_n),
 ```
-where $\sigma > 0$ is a kernel window parameter, $K(\mathbf{x})$ is a kernel density (properly normalized to have mass one) and $\tilde p_0(\mathbf{x})$ is the **empirical distribution** given by
+so the implemented implicit score matching objetive is
 ```math
-    \tilde p_0(\mathbf{x}) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x} - \mathbf{x}_n).
-```
-In this way, the explicit score matching objective function is approximated by
-```math
-    {\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x}.
+    J_{\mathrm{ISM, data}}({\boldsymbol{\theta}}) = \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
 
-However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. We will do this in a follow up note, but for the moment we will stop at ${\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}})$, use a Gaussian estimator, and see how this works.
+[Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentions that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismisses it for the "simple trick of partial integration to compute the objective function [$J_{\mathrm{ISM}}({\boldsymbol{\theta}})$] very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes computationally expensive.
+
+A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) considered the idea of using a Parzel kernel density estimation
+```math
+    {\tilde p}_\sigma(\mathbf{x}) = \frac{1}{\sigma}\int_{\mathbb{R}^d} K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right) \;\mathrm{d}\tilde p_{\mathrm{data}}(\mathbf{x}) = \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
+```
+where $\sigma > 0$ is a kernel window parameter and $K(\mathbf{x})$ is a kernel density (properly normalized to have mass one). In this way, the explicit score matching objective function is approximated by
+```math
+    {\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_\sigma(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x},
+```
+which is then further approximated with the empirical distribution,
+```math
+    \begin{align*}
+        {\tilde J}_{\mathrm{ESM_\sigma, data}}({\boldsymbol{\theta}}) & = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathrm{data}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x} \\
+        & = \frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}_n}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2.
+    \end{align*}
+```
+
+However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function ${\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}})$ by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. We will do this in a follow up note, but for the moment we will stop at ${\tilde J}_{\mathrm{ESM_\sigma}}({\boldsymbol{\theta}})$, use a Gaussian estimator, and see how this works.
 
 Computing the score function with the Parzen estimation amounts to
 ```math
     \begin{align*}
-        \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x}) & = \boldsymbol{\nabla}_{\mathbf{x}}\log\left( \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\right) \\
-        & = \frac{1}{\tilde p_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N \boldsymbol{\nabla}_{\mathbf{x}} \left(K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\right) \\
-        & = \frac{1}{\tilde p_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N \frac{1}{\sigma}\left(\boldsymbol{\nabla}_{\mathbf{x}} K\right)\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right).
+        \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}) & = \boldsymbol{\nabla}_{\mathbf{x}}\log\left( \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\right) \\
+        & = \frac{1}{{\tilde p}_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N \boldsymbol{\nabla}_{\mathbf{x}} \left(K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\right) \\
+        & = \frac{1}{{\tilde p}_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N \frac{1}{\sigma}\left(\boldsymbol{\nabla}_{\mathbf{x}} K\right)\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right).
     \end{align*}
 ```
 If we use the standard Gaussian kernel
@@ -71,26 +84,26 @@ then
 ```
 so that
 ```math
-    \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x}) = \frac{1}{\tilde p_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N G\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\frac{\mathbf{x} - \mathbf{x}_n}{\sigma^2}.
+    \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}) = \frac{1}{{\tilde p}_\sigma(\mathbf{x})} \frac{1}{\sigma N}\sum_{n=1}^N G\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right)\frac{\mathbf{x} - \mathbf{x}_n}{\sigma^2}.
 ```
 
-Notice that this can be computed beforehand at the sample points, just with the knowledge of the sample points themselves. Indeed, renaming the index above from $n$ to $j$, and computing the approximate score function at each point $\mathbf{x}_n$ yields
+Notice that this can be computed beforehand at the sample points, just with the knowledge of the sample points themselves. Indeed, renaming the index above from $n$ to $j$, and computing the approximate score function at each sample point $\mathbf{x}_n$ yields
 ```math
-    \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x}_n) = \frac{1}{\tilde p_\sigma(\mathbf{x}_n)} \frac{1}{\sigma N}\sum_{n=1}^N G\left(\frac{\mathbf{x}_n - \mathbf{x}_j}{\sigma}\right)\frac{\mathbf{x}_n - \mathbf{x}_j}{\sigma^2},
+    \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}_n) = \frac{1}{{\tilde p}_\sigma(\mathbf{x}_n)} \frac{1}{\sigma N}\sum_{n=1}^N G\left(\frac{\mathbf{x}_n - \mathbf{x}_j}{\sigma}\right)\frac{\mathbf{x}_n - \mathbf{x}_j}{\sigma^2},
 ```
 where
 ```math
-\tilde p_\sigma(\mathbf{x}_n) = \frac{1}{\sigma N}\sum_{j=1}^N G\left(\frac{\mathbf{x} - \mathbf{x}_j}{\sigma}\right).
+{\tilde p}_\sigma(\mathbf{x}_n) = \frac{1}{\sigma N}\sum_{j=1}^N G\left(\frac{\mathbf{x} - \mathbf{x}_j}{\sigma}\right).
 ```
 
 Then, the explicit score matching approximated with the Parzen kernel estimator and with the empirical distribution yields the objective
 ```math
-    {\tilde J}_{\mathrm{ESM_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log \tilde p_\sigma(\mathbf{x}_n)\right\|^2.
+    {\tilde J}_{\mathrm{ESM_{\sigma, data}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}_n)\right\|^2.
 ```
 
 ## Numerical implementation
 
-We illustrate, numerically, the use of the **Parzen estimated score matching** objective ${\tilde J}_{\mathrm{ESM_{\sigma, 0}}}$ to model a synthetic univariate Gaussian mixture distribution.
+We illustrate, numerically, the use of the **Parzen estimated score matching** objective ${\tilde J}_{\mathrm{ESM_{\sigma, data}}}$ to model a synthetic univariate Gaussian mixture distribution.
 
 ### Julia language setup
 
@@ -253,7 +266,7 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ### Loss function
 
-Here it is how we implement the objective ${\tilde J}_{\mathrm{ESM_{\sigma, 0}}}({\boldsymbol{\theta}})$.
+Here it is how we implement the objective ${\tilde J}_{\mathrm{ESM_{\sigma, data}}}({\boldsymbol{\theta}})$.
 ```@example simplescorematching
 function loss_function_parzen(model, ps, st, data)
     sample_points, score_parzen_points = data
@@ -322,7 +335,7 @@ end
 
 ### Training
 
-Now we attempt to train the model with the objective function ${\tilde J}_{\mathrm{ESM_{\sigma, 0}}}({\boldsymbol{\theta}})$.
+Now we attempt to train the model with the objective function ${\tilde J}_{\mathrm{ESM_{\sigma, data}}}({\boldsymbol{\theta}})$.
 ```@example simplescorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_parzen, 500, 20, 125)
 nothing # hide
