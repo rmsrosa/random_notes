@@ -1,9 +1,5 @@
 # Score matching of Aapo Hyvärinen
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim

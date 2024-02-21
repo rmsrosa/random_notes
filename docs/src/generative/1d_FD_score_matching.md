@@ -1,9 +1,5 @@
 # Finite-difference score-matching of a one-dimensional Gaussian mixture model
 
-```@meta 
-Draft = false
-```
-
 ## Introduction
 
 ### Aim

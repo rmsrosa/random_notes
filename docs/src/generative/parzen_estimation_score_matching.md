@@ -1,9 +1,5 @@
 # Score matching with Parzen estimation
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
