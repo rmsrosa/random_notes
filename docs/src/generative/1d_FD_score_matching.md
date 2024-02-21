@@ -80,7 +80,7 @@ We use the [Julia programming language](https://julialang.org) with suitable pac
 
 #### Packages
 
-```@example simplescorematching
+```@example onedimscorematching
 using StatsPlots
 using Random
 using Distributions
@@ -95,12 +95,12 @@ nothing # hide
 
 We set the random seed for reproducibility purposes.
 
-```@example simplescorematching
+```@example onedimscorematching
 rng = Xoshiro(12345)
 nothing # hide
 ```
 
-```@setup simplescorematching
+```@setup onedimscorematching
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
     ps = probs(d)
     cs = components(d)
@@ -137,7 +137,7 @@ We do not attempt to overly optimize the code here since this is a simple one-di
 
 We build the target model and draw samples from it. We need enough sample points to capture the transition region in the mixture of Gaussians.
 
-```@example simplescorematching
+```@example onedimscorematching
 xrange = range(-10, 10, 200)
 dx = Float64(xrange.step)
 x = permutedims(collect(xrange))
@@ -155,7 +155,7 @@ data = (x, y, target_pdf, sample_points)
 Notice the data `x` and `sample_points` are defined as row vectors so we can apply the model in batch to all of their values at once. The values `y` are also row vectors for easy comparison with the predicted values. When, plotting, though, we need to revert them to vectors.
 
 Visualizing the sample data drawn from the distribution and the PDF.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
 histogram!(sample_points', normalize=:pdf, nbins=80, label="sample histogram")
 plot!(x', target_pdf', linewidth=4, label="pdf")
@@ -163,7 +163,7 @@ scatter!(sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
 ```
 
 Visualizing the score function.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="The score function and the sample", titlefont=10)
 
 plot!(x', target_score', label="score function", markersize=2)
@@ -176,12 +176,12 @@ The neural network we consider is a simple feed-forward neural network made of a
 
 We will see, again, that we don't need a big neural network in this simple example. We go as low as it works.
 
-```@example simplescorematching
+```@example onedimscorematching
 model = Chain(Dense(1 => 8, relu), Dense(8 => 1))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
-```@example simplescorematching
+```@example onedimscorematching
 ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of the model
 ```
 
@@ -190,7 +190,7 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 For educational purposes, since we have the pdf and the score function, one of the ways we may train the model is directly with $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$. This is also useful to make sure that our network is able to model the desired score function.
 
 Here is how we implement it.
-```@example simplescorematching
+```@example onedimscorematching
 function loss_function_esm(model, ps, st, data)
     x, y, target_pdf, sample_points = data
     y_pred, st = Lux.apply(model, x, ps, st)
@@ -202,7 +202,7 @@ end
 ### Plain square error loss function
 
 Still for educational purposes, we modify $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ for training, without weighting on the distribution of the random variable itself, as in $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$. This has the benefit of giving more weight to the transition region. Here is how we implement it.
-```@example simplescorematching
+```@example onedimscorematching
 function loss_function_esm_plain(model, ps, st, data)
     x, y, target_pdf, sample_points = data
     y_pred, st = Lux.apply(model, x, ps, st)
@@ -215,7 +215,7 @@ end
 
 Again, for educational purposes, we may implement ${\tilde J}_{\mathrm{FDSM}}({\boldsymbol{\theta}})$, as follows.
 
-```@example simplescorematching
+```@example onedimscorematching
 function loss_function_FDSM(model, ps, st, data)
     x, y, target_pdf, sample_points = data
     xmin, xmax = extrema(x)
@@ -232,7 +232,7 @@ end
 ### Empirical finite-difference score matching loss function ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}$
 
 In practice we would use the sample data, not the supposedly unknown score function and PDF themselves. Here would be one implementation using finite differences, along with Monte-Carlo.
-```@example simplescorematching
+```@example onedimscorematching
 function loss_function_FDSM_over_sample(model, ps, st, data)
     x, y, target_pdf, sample_points = data
     xmin, xmax = extrema(sample_points)
@@ -249,7 +249,7 @@ end
 ### Empirical implicit score matching loss function $J_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}})$
 
 We can implement the actual implicit loss function with the derivative of the model score function using some automatic differentiation tool, as follows, but we do not optimize with it here. We do this in a separate note, not to render this note too slowly.
-```@example simplescorematching
+```@example onedimscorematching
 function loss_function_EISM_Zygote(model, ps, st, data)
     x, y, target_pdf, sample_points = data
     y_pred, st = Lux.apply(model, sample_points, ps, st)
@@ -265,7 +265,7 @@ end
 
 We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8)), which is a stochastic gradient-based optimization method.
 
-```@example simplescorematching
+```@example onedimscorematching
 opt = Adam(0.03)
 
 tstate_org = Lux.Training.TrainState(rng, model, opt)
@@ -274,14 +274,14 @@ tstate_org = Lux.Training.TrainState(rng, model, opt)
 ### Automatic differentiation in the optimization
 
 As mentioned, we setup differentiation in [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) with the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library, which is currently the only one implemented (there are pre-defined methods for `AutoForwardDiff()`, `AutoReverseDiff()`, `AutoFiniteDifferences()`, etc., but not implemented yet).
-```@example simplescorematching
+```@example onedimscorematching
 vjp_rule = Lux.Training.AutoZygote()
 ```
 
 ### Processor
 
 We use the CPU instead of the GPU.
-```@example simplescorematching
+```@example onedimscorematching
 dev_cpu = cpu_device()
 ## dev_gpu = gpu_device()
 ```
@@ -289,26 +289,26 @@ dev_cpu = cpu_device()
 ### Check differentiation
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
-```@example simplescorematching
+```@example onedimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_esm, data, tstate_org)
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_esm_plain, data, tstate_org)
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_FDSM, data, tstate_org)
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_FDSM_over_sample, data, tstate_org)
 ```
 
 ### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```@example simplescorematching
+```@example onedimscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -333,18 +333,18 @@ end
 ### Training with $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$
 
 Now we attempt to train the model, starting with $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$.
-```@example simplescorematching
+```@example onedimscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_esm, 500, 20, 125)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -355,7 +355,7 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Just for the fun of it, let us see an animation of the optimization process.
-```@setup simplescorematching
+```@setup onedimscorematching
 ymin, ymax = extrema(y)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -370,17 +370,17 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 gif(anim, fps = 20) # hide
 ```
 
 We also visualize the evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -391,18 +391,18 @@ plot!(x', pdf_pred', label="recoverd")
 ### Training with plain square error loss
 
 Now we attempt to train it with the plain square error loss function. We do not reuse the state from the previous optimization. We start over at the initial state, for the sake of comparison of the different loss functions.
-```@example simplescorematching
+```@example onedimscorematching
 @time tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_esm_plain, 500)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -413,12 +413,12 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 And evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) * dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -431,25 +431,25 @@ That is an almost perfect matching.
 ### Training with ${\tilde J}_{\mathrm{FDSM}}({\boldsymbol{\theta}})$
 
 Now we attempt to train it with ${\tilde J}_{\mathrm{FDSM}}$. Again we start over with the untrained state of the model.
-```@example simplescorematching
+```@example onedimscorematching
 @time tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_FDSM, 500)
 nothing # hide
 ```
 
 We may try a little longer from this state on.
-```@example simplescorematching
+```@example onedimscorematching
 @time tstate, losses_more, = train(tstate, vjp_rule, data, loss_function_FDSM, 500)
 append!(losses, losses_more)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -460,12 +460,12 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 And evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) * dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -476,18 +476,18 @@ plot!(x', pdf_pred', label="recoverd")
 ### Training with ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}})$
 
 Finally we attemp to train with the sample data. This is the real thing, without anything from the supposedly unknown target distribution other than the sample data.
-```@example simplescorematching
+```@example onedimscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_FDSM_over_sample, 500, 20, 125)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -498,7 +498,7 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Let us see an animation of the optimization process in this case, as well, since it is the one of interest.
-```@setup simplescorematching
+```@setup onedimscorematching
 ymin, ymax = extrema(y)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -513,17 +513,17 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 gif(anim, fps = 20) # hide
 ```
 
 Here is the evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) * dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -532,7 +532,7 @@ plot!(x', pdf_pred', label="recoverd")
 ```
 
 And the evolution of the PDF.
-```@setup simplescorematching
+```@setup onedimscorematching
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -549,31 +549,31 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 gif(anim, fps = 10) # hide
 ```
 
-### Pre-training ${\tilde J}_{\mathrm{MC, FD}}$ with $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$
+### Pre-training ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}{\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}})$ with $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$
 
-Let us now pre-train the model with the $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ and see if ${\tilde J}_{\mathrm{MC, FD}}$ improves.
+Let us now pre-train the model with the $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ and see if ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}})$ improves.
 
-```@example simplescorematching
+```@example onedimscorematching
 tstate, = train(tstate_org, vjp_rule, data, loss_function_esm, 500)
 nothing # hide
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 tstate, losses, = train(tstate, vjp_rule, data, loss_function_FDSM_over_sample, 500)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -584,7 +584,7 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) * dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -593,7 +593,7 @@ plot!(x', pdf_pred', label="recoverd")
 ```
 
 And evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
@@ -601,24 +601,24 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 
 One interesting thing is that enough sample points in the low-probability transition region is required for a proper fit, as the following example with few samples illustrates.
 
-```@example simplescorematching
+```@example onedimscorematching
 y = target_score # just to simplify the notation
 sample_points = permutedims(rand(rng, target_prob, 128))
 data = (x, y, target_pdf, sample_points)
 ```
 
-```@example simplescorematching
+```@example onedimscorematching
 tstate, losses, = train(tstate_org, vjp_rule, data, loss_function_FDSM_over_sample, 500)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example simplescorematching
+```@example onedimscorematching
 y_pred = Lux.apply(tstate.model, dev_cpu(x), tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example onedimscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(x', y', linewidth=4, label="score function")
@@ -629,7 +629,7 @@ plot!(x', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example onedimscorematching
 paux = exp.(accumulate(+, y_pred) * dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -638,7 +638,7 @@ plot!(x', pdf_pred', label="recoverd")
 ```
 
 And evolution of the losses.
-```@example simplescorematching
+```@example onedimscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 

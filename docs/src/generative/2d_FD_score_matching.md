@@ -8,7 +8,7 @@ Here, we modify the previous finite-difference score-matching example to fit a t
 
 We use the [Julia programming language](https://julialang.org) with suitable packages.
 
-```@example 2dscorematching
+```@example twodimscorematching
 using StatsPlots
 using Random
 using Distributions
@@ -21,12 +21,12 @@ nothing # hide
 
 We set the random seed for reproducibility purposes.
 
-```@example 2dscorematching
+```@example twodimscorematching
 rng = Xoshiro(12345)
 nothing # hide
 ```
 
-```@setup 2dscorematching
+```@setup twodimscorematching
 function Distributions.gradlogpdf(d::MultivariateMixture, x::AbstractVector{<:Real})
     ps = probs(d)
     cs = components(d)
@@ -64,7 +64,7 @@ end
 
 We build the target model and draw samples from it. This time the target model is a bivariate random variable.
 
-```@example 2dscorematching
+```@example twodimscorematching
 xrange = range(-8, 8, 120)
 yrange = range(-8, 8, 120)
 dx = Float64(xrange.step)
@@ -76,32 +76,32 @@ target_pdf = [pdf(target_prob, [x, y]) for y in yrange, x in xrange]
 target_score = reduce(hcat, gradlogpdf(target_prob, [x, y]) for y in yrange, x in xrange)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 sample = rand(rng, target_prob, 1024)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 surface(xrange, yrange, target_pdf, title="PDF", titlefont=10, legend=false, color=:vik)
 scatter!(sample[1, :], sample[2, :], [pdf(target_prob, [x, y]) for (x, y) in eachcol(sample)], markercolor=:lightgreen, markersize=2, alpha=0.5)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 heatmap(xrange, yrange, target_pdf, title="PDF", titlefont=10, legend=false, color=:vik)
 scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 surface(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf", titlefont=10, legend=false, color=:vik)
 scatter!(sample[1, :], sample[2, :], [logpdf(target_prob, [x, y]) for (x, y) in eachcol(sample)], markercolor=:lightgreen, alpha=0.5, markersize=2)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 meshgrid(x, y) = (repeat(x, outer=length(y)), repeat(y, inner=length(x)))
 xx, yy = meshgrid(xrange[begin:8:end], yrange[begin:8:end])
 uu = reduce(hcat, gradlogpdf(target_prob, [x, y]) for (x, y) in zip(xx, yy))
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score function (vector field)", titlefont=10, legend=false, color=:vik)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
 scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
@@ -111,12 +111,12 @@ scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alph
 
 The neural network we consider is again a simple feed-forward neural network made of a single hidden layer. For the 2d case, we need to bump it a little bit, doubling the width of the hidden layer.
 
-```@example 2dscorematching
+```@example twodimscorematching
 model = Chain(Dense(2 => 16, relu), Dense(16 => 2))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
-```@example 2dscorematching
+```@example twodimscorematching
 ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of the model
 ```
 
@@ -172,7 +172,7 @@ In the two-dimensional case, $d = 2$, this becomes
     \end{align*}
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 function loss_function(model, ps, st, data)
     sample, deltax, deltay = data
     s_pred_fwd_x, = Lux.apply(model, sample .+ [deltax, 0.0], ps, st)
@@ -188,13 +188,13 @@ end
 ```
 
 We included the steps for the finite difference computations in the `data` passed to training to avoid repeated computations.
-```@example 2dscorematching
+```@example twodimscorematching
 xmin, xmax = extrema(sample[1, :])
 ymin, ymax = extrema(sample[2, :])
 deltax, deltay = (xmax - xmin) / 2size(sample, 2), (ymax - ymin) / 2size(sample, 2)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 data = sample, deltax, deltay
 ```
 
@@ -207,7 +207,7 @@ In the two-dimensional case, this is simply the mean square value of all the com
     {\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) = \frac{1}{2} \frac{1}{N}\sum_{n=1}^N \|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}_n)\|^2 = \frac{1}{2} \frac{1}{N}\sum_{n=1}^N \sum_{i=1}^2 \left(\psi_i(\mathbf{x}_n; {\boldsymbol{\theta}}) - \psi_{\mathbf{X}, i}(\mathbf{x}_n) \right)^2.
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 function loss_function_cheat(model, ps, st, data)
     sample, score_cheat = data
     score_pred, st = Lux.apply(model, sample, ps, st)
@@ -217,7 +217,7 @@ end
 ```
 
 The data in this case includes information about the target distribution.
-```@example 2dscorematching
+```@example twodimscorematching
 score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample))
 data_cheat = sample, score_cheat
 ```
@@ -226,7 +226,7 @@ data_cheat = sample, score_cheat
 
 The expression ${\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}) + C$ can be used to test the implementation of the different loss functions. For that, we need to compute the constant $C$. This can be computed with a fine mesh or with a Monte-Carlo approximation. We do both just for fun.
 
-```@example 2dscorematching
+```@example twodimscorematching
 function compute_constante(target_prob, xrange, yrange)
     dx = Float64(xrange.step)
     dy = Float64(yrange.step)
@@ -235,26 +235,26 @@ function compute_constante(target_prob, xrange, yrange)
 end    
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 function compute_constante_MC(target_prob, sample)
     Jconstant = mean(sum(abs2, gradlogpdf(target_prob, s)) for s in eachcol(sample)) / 2
     return Jconstant
 end    
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 Jconstant = compute_constante(target_prob, xrange, yrange)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 Jconstant_MC = compute_constante_MC(target_prob, sample)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 constants = [(n, compute_constante_MC(target_prob, rand(rng, target_prob, n))) for _ in 1:100 for n in (1, 10, 20, 50, 100, 500, 1000, 2000, 4000)]
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 scatter(constants, markersize=2, title="constant computed by MC and fine mesh", titlefont=10, xlabel="sample size", ylabel="value", label="via various samples")
 hline!([Jconstant], label="via fine mesh")
 hline!([Jconstant_MC], label="via working sample", linestyle=:dash)
@@ -264,20 +264,20 @@ hline!([Jconstant_MC], label="via working sample", linestyle=:dash)
 
 Notice that, for a sufficiently large sample and sufficiently small discretization step $\delta$, we should have
 ```math
-{\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{FDSM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}}) + C.
+    {\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{FDSM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}}) + C.
 ```
 which is a good test for the implementations of the loss functions. For example:
 
-```@example 2dscorematching
+```@example twodimscorematching
 first(loss_function_cheat(model, ps, st, data_cheat))
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 first(loss_function(model, ps, st, data)) + Jconstant
 ```
 
 Let us do a more statistically significant test.
-```@example 2dscorematching
+```@example twodimscorematching
 test_losses = reduce(
     hcat,
     Lux.setup(rng, model) |> pstj -> 
@@ -289,16 +289,16 @@ test_losses = reduce(
 )
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 plot(title="Loss functions at random model parameters", titlefont=10)
-scatter!(test_losses[1, :], label="{\\tilde J}_{\\mathrm{ESM}{\\tilde p}_0}")
-scatter!(test_losses[2, :], label="\$\\tilde {\\tilde J}_{\\mathrm{FDSM}{\\tilde p}_0}\$")
+scatter!(test_losses[1, :], label="\${\\tilde J}_{\\mathrm{ESM}{\\tilde p}_0}\$")
+scatter!(test_losses[2, :], label="\${\\tilde J}_{\\mathrm{FDSM}{\\tilde p}_0}\$")
 scatter!(test_losses[2, :] .+ Jconstant, label="\${\\tilde J}_{\\mathrm{FDSM}{\\tilde p}_0} + C\$")
 ```
 
 One can check by visual inspection that the agreement between ${\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) - C$ and ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}})$ seems reasonably good. Let us estimate the relative error.
 
-```@example 2dscorematching
+```@example twodimscorematching
 rel_errors = abs.( ( test_losses[2, :] .+ Jconstant .- test_losses[1, :] ) ./ test_losses[1, :] )
 plot(title="Relative error at random model parameters", titlefont=10, legend=false)
 scatter!(rel_errors, markercolor=2, label="error")
@@ -314,7 +314,7 @@ Ok, good enough, just a few percentage points.
 
 We also have
 ```math
-\boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}}),
+    \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{FDSM}{\tilde p}_0}({\boldsymbol{\theta}}),
 ```
 which is another good test, which also checks the gradient computation, but everything seems fine, so no need to push this further.
 
@@ -324,7 +324,7 @@ which is another good test, which also checks the gradient computation, but ever
 
 As usual, we use the ADAM optimization.
 
-```@example 2dscorematching
+```@example twodimscorematching
 opt = Adam(0.003)
 
 tstate_org = Lux.Training.TrainState(rng, model, opt)
@@ -334,14 +334,14 @@ tstate_org = Lux.Training.TrainState(rng, model, opt)
 
 [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) is used for the automatic differentiation as it is currently the only AD backend working with [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl).
 
-```@example 2dscorematching
+```@example twodimscorematching
 vjp_rule = Lux.Training.AutoZygote()
 ```
 
 ### Processor
 
 We use the CPU instead of the GPU.
-```@example 2dscorematching
+```@example twodimscorematching
 dev_cpu = cpu_device()
 ## dev_gpu = gpu_device()
 ```
@@ -350,18 +350,18 @@ dev_cpu = cpu_device()
 
 Check if AD is working fine to differentiate the loss functions for training.
 
-```@example 2dscorematching
+```@example twodimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function, data, tstate_org)
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_cheat, data_cheat, tstate_org)
 ```
 
 ### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration and the model state for animation.
-```@example 2dscorematching
+```@example twodimscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -385,24 +385,24 @@ end
 
 We first train the model with the known score function on the sample data. That is cheating. The aim is a sanity check, to make sure the proposed model is good enough to fit the desired score function and that the setup is right.
 
-```@example 2dscorematching
+```@example twodimscorematching
 @time tstate_cheat, losses_cheat, tstates_cheat = train(tstate_org, vjp_rule, data_cheat, loss_function_cheat, 2000, 20, 100)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example 2dscorematching
+```@example twodimscorematching
 uu_cheat = Lux.apply(tstate_cheat.model, vcat(xx', yy'), tstate_cheat.parameters, tstate_cheat.states)[1]
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score functions (vector fields)", titlefont=10, color=:vik, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
 scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 quiver!(xx, yy, quiver = (uu_cheat[1, :] ./ 8, uu_cheat[2, :] ./ 8), color=:cyan, alpha=0.5)
 ```
 
-```@setup 2dscorematching
+```@setup twodimscorematching
 anim = @animate for (epoch, tstate) in tstates_cheat
     uu_pred = Lux.apply(tstate.model, vcat(xx', yy'), tstate.parameters, tstate.states)[1]
 
@@ -415,11 +415,11 @@ anim = @animate for (epoch, tstate) in tstates_cheat
 end
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 gif(anim, fps = 10) # hide
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 plot(losses_cheat, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
@@ -427,24 +427,24 @@ plot(losses_cheat, title="Evolution of the loss", titlefont=10, xlabel="iteratio
 
 Now we go to the real thing.
 
-```@example 2dscorematching
+```@example twodimscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function, 2000, 20, 100)
 nothing # hide
 ```
 
 Testing out the trained model.
-```@example 2dscorematching
+```@example twodimscorematching
 uu_pred = Lux.apply(tstate.model, vcat(xx', yy'), tstate.parameters, tstate.states)[1]
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score functions (vector fields)", titlefont=10, color=:vik, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
 scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 quiver!(xx, yy, quiver = (uu_pred[1, :] ./ 8, uu_pred[2, :] ./ 8), color=:cyan, alpha=0.5)
 ```
 
-```@setup 2dscorematching
+```@setup twodimscorematching
 anim = @animate for (epoch, tstate) in tstates
     uu_pred = Lux.apply(tstate.model, vcat(xx', yy'), tstate.parameters, tstate.states)[1]
 
@@ -457,13 +457,13 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 gif(anim, fps = 10) # hide
 ```
 
-```@example 2dscorematching
+```@example twodimscorematching
 plot(losses, title="Evolution of the losses", titlefont=10, xlabel="iteration", ylabel="error", label="\${\\tilde J}_{\\mathrm{FDSM}{\\tilde p}_0}\$")
-plot!(losses_cheat, linestyle=:dash, label="{\\tilde J}_{\\mathrm{ESM}{\\tilde p}_0}")
+plot!(losses_cheat, linestyle=:dash, label="\${\\tilde J}_{\\mathrm{ESM}{\\tilde p}_0}\$")
 plot!(losses .+ Jconstant, linestyle=:dash, color=1, label="\${\\tilde J}_{\\mathrm{FDSM}{\\tilde p}_0} + C\$")
 ```
 

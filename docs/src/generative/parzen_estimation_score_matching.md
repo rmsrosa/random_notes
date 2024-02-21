@@ -109,7 +109,7 @@ We use the [Julia programming language](https://julialang.org) for the numerical
 
 #### Packages
 
-```@example simplescorematching
+```@example parzenscorematching
 using StatsPlots
 using Random
 using Distributions
@@ -131,12 +131,12 @@ As we mentioned, the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library is 
 
 We set the random seed for reproducibility purposes.
 
-```@example simplescorematching
+```@example parzenscorematching
 rng = Xoshiro(12345)
 nothing # hide
 ```
 
-```@setup simplescorematching
+```@setup parzenscorematching
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
     ps = probs(d)
     cs = components(d)
@@ -171,7 +171,7 @@ We build the target model and draw samples from it.
 
 The target model is a univariate random variable denoted by $X$ and defined by a probability distribution. Associated with that we consider its PDF and its score-function.
 
-```@example simplescorematching
+```@example parzenscorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
 
 xrange = range(-10, 10, 200)
@@ -184,31 +184,31 @@ sample_points = permutedims(rand(rng, target_prob, 1024))
 ```
 
 Visualizing the sample data drawn from the distribution and the PDF.
-```@setup simplescorematching
+```@setup parzenscorematching
 plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
 histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
 plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
 scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 plt # hide
 ```
 
 Visualizing the score function.
-```@setup simplescorematching
+```@setup parzenscorematching
 plt = plot(title="The score function and the sample", titlefont=10)
 
 plot!(plt, xrange, target_score', label="score function", markersize=2)
 scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 plt # hide
 ```
 
 For the Parzen estimated score matching, we need to pre-compute the score function of the Parzen estimation.
-```@example simplescorematching
+```@example parzenscorematching
 G(x) = exp(-x^2 / 2) / √(2π)
 
 psigma(x, sigma, sample_points) = mean(G( (x - xn) / sigma ) for xn in sample_points) / sigma
@@ -217,7 +217,7 @@ score_parzen(x, sigma, sample_points) = mean(G( (x - xn) / sigma ) * (xn - x) / 
 ```
 
 The Parzen estimated score function is highly sensitive to the window parameter $\sigma$:
-```@setup simplescorematching
+```@setup parzenscorematching
 plt = plot(title="The score functions of the target density and kernel density estimations", titlefont=10)
 
 plot!(plt, xrange, target_score', label="score target", markersize=2)
@@ -227,21 +227,21 @@ for sigma in (0.2, 0.5, 1.0)
 end
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 plt # hide
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 sigma = 0.5
 score_parzen_points = map(x -> score_parzen(x, sigma, sample_points), sample_points)
 data = (sample_points, score_parzen_points)
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 Markdown.parse("""We choose the value ``\\sigma = $sigma``.""") # hide
 ```
 
-```@setup simplescorematching
+```@setup parzenscorematching
 plt = plot(title="The score functions of the target density and the kernel density estimation", titlefont=10, legend=:bottomleft)
 
 plot!(plt, xrange, target_score', label="score target", markersize=2)
@@ -249,7 +249,7 @@ scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="score at d
 scatter!(plt, sample_points', score_parzen_points', label="score Parzen \$\\sigma=$sigma\$", markersize=2)
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 plt # hide
 ```
 
@@ -259,19 +259,19 @@ The neural network we consider is a simple feed-forward neural network made of a
 
 We will see that we don't need a big neural network in this simple example. We go as low as it works.
 
-```@example simplescorematching
+```@example parzenscorematching
 model = Chain(Dense(1 => 8, relu), Dense(8 => 1))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
-```@example simplescorematching
+```@example parzenscorematching
 ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of the model
 ```
 
 ### Loss function
 
 Here it is how we implement the objective ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
-```@example simplescorematching
+```@example parzenscorematching
 function loss_function_parzen(model, ps, st, data)
     sample_points, score_parzen_points = data
     y_score_pred, st = Lux.apply(model, sample_points, ps, st)
@@ -286,7 +286,7 @@ end
 
 We use the Adam optimiser.
 
-```@example simplescorematching
+```@example parzenscorematching
 opt = Adam(0.01)
 
 tstate_org = Lux.Training.TrainState(rng, model, opt)
@@ -295,14 +295,14 @@ tstate_org = Lux.Training.TrainState(rng, model, opt)
 #### Automatic differentiation in the optimization
 
 As mentioned, we setup differentiation in [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) with the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library.
-```@example simplescorematching
+```@example parzenscorematching
 vjp_rule = Lux.Training.AutoZygote()
 ```
 
 #### Processor
 
 We use the CPU instead of the GPU.
-```@example simplescorematching
+```@example parzenscorematching
 dev_cpu = cpu_device()
 ## dev_gpu = gpu_device()
 ```
@@ -310,14 +310,14 @@ dev_cpu = cpu_device()
 #### Check differentiation
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
-```@example simplescorematching
+```@example parzenscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_parzen, data, tstate_org)
 ```
 
 #### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```@example simplescorematching
+```@example parzenscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -340,7 +340,7 @@ end
 ### Training
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
-```@example simplescorematching
+```@example parzenscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_parzen, 500, 20, 125)
 nothing # hide
 ```
@@ -348,12 +348,12 @@ nothing # hide
 ### Results
 
 Testing out the trained model.
-```@example simplescorematching
+```@example parzenscorematching
 y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example simplescorematching
+```@example parzenscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(xrange, target_score', linewidth=4, label="score function")
@@ -364,7 +364,7 @@ plot!(xx', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Just for the fun of it, let us see an animation of the optimization process.
-```@setup simplescorematching
+```@setup parzenscorematching
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -379,12 +379,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 gif(anim, fps = 20) # hide
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example simplescorematching
+```@example parzenscorematching
 paux = exp.(accumulate(+, y_pred) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -393,7 +393,7 @@ plot!(xrange, pdf_pred', label="recoverd")
 ```
 
 And the animation of the evolution of the PDF.
-```@setup simplescorematching
+```@setup parzenscorematching
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -410,12 +410,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example simplescorematching
+```@example parzenscorematching
 gif(anim, fps = 10) # hide
 ```
 
 We also visualize the evolution of the losses.
-```@example simplescorematching
+```@example parzenscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
