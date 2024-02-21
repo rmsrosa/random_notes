@@ -37,20 +37,20 @@ due to the following identity obtained via integration by parts in the expectati
 ```
 where $C$ is constant with respect to the parameters. The advantage of ${\tilde J}_{\mathrm{ISM}}({\boldsymbol{\theta}})$ is that it does not involve the unknown score function of $X$. It does, however, involve the gradient of the modeled score function, which is expensive to compute.
 
-In practice, this is further approximated by the **empirical distribution** $\tilde p_{\mathrm{data}}(\mathbf{x})$ given by
+In practice, this is further approximated by the **empirical distribution** $\tilde p_0(\mathbf{x})$ given by
 ```math
-    \tilde p_{\mathrm{data}}(\mathbf{x}) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x} - \mathbf{x}_n),
+    {\tilde p}_0(\mathbf{x}) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x} - \mathbf{x}_n),
 ```
-so the implemented implicit score matching objetive is
+so the implemented objective is the **empirical implicit score matching** objetive is
 ```math
-    J_{\mathrm{ISM, data}}({\boldsymbol{\theta}}) = \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+    {\tilde J}_{\mathrm{ISM}p_0}({\boldsymbol{\theta}}) = \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
 
 [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentions that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismisses it for the "simple trick of partial integration to compute the objective function [$J_{\mathrm{ISM}}({\boldsymbol{\theta}})$] very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes computationally expensive.
 
 A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) considered the idea of using a Parzel kernel density estimation
 ```math
-    {\tilde p}_\sigma(\mathbf{x}) = \frac{1}{\sigma}\int_{\mathbb{R}^d} K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right) \;\mathrm{d}\tilde p_{\mathrm{data}}(\mathbf{x}) = \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
+    {\tilde p}_\sigma(\mathbf{x}) = \frac{1}{\sigma}\int_{\mathbb{R}^d} K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right) \;\mathrm{d}{\tilde p}_0(\mathbf{x}) = \frac{1}{\sigma N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
 ```
 where $\sigma > 0$ is a kernel window parameter and $K(\mathbf{x})$ is a kernel density (properly normalized to have mass one). In this way, the explicit score matching objective function is approximated by
 ```math

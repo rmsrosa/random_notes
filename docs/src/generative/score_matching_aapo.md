@@ -12,7 +12,7 @@ The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https
 
 ### Background
 
-Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This is obtained by a simple integration by parts on the MSE loss function between the modeled score function and the actual score function. The integration by parts separates the dependence on the actual score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown score function.
+Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the objective function given by the expected square distance between the score of the model and score of the unkown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unkown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
 
 It is worth noticing, in light of the main objective of score-matching diffusion, that the original work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has no diffusion. It is a direct modeling of the score function in the original probability space. But this is a fundamental work.
 
@@ -30,25 +30,30 @@ The parametrized modeled score function is denoted by $\boldsymbol{\psi}(\mathbf
 
 ## Loss functions for score matching
 
-The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical (Monte-Carlo) implicit score matching** loss function ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$, with
+The score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical implicit score matching** loss function ${\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}})$, with
 ```math
-J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) + C,
+J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}) + C,
 ```
 for a *constant* $C$ (with respect to the parameters $\boldsymbol{\theta}$ of the model), so that the optimization process has (approximately) the same gradients
 ```math
-\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}).
+\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}).
 ```
 
 More precisly, the idea of the score-matching method is as follows.
 
-### 1. Start with the explicit score matching
+**1. Start with the explicit score matching**
 
-Fit the model by minimizing the expected square distance between the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is sometimes called *explicit score matching (ESM),*
+Fit the model by minimizing the expected square distance between the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is termed **explicit score matching (ESM),**
 ```math
-    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x};
+    J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x}.
 ```
+Since the score function is the gradient of the logpdf, this is connected with the Fisher divergence
+```math
+    F(p_{\mathbf{X}}, p_{\boldsymbol{\theta}}) = \int_{\mathbb{R}^d} \left\| \nabla_{\mathbf{x}}\log p_{\mathbf{X}}(\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{x}; \boldsymbol{\theta})\right\|^2 p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x},
+```
+except that the modeled score function may not be exactly the gradient of a probability density function (the constraint of being the gradient of a function might not be valid for some models such as the usual neural networks).
 
-### 2. Rewrite it with the implicit score matching
+**2. Rewrite it with the implicit score matching**
 
 Use integration by parts in the expectation to write that
 ```math
@@ -58,20 +63,22 @@ where $C$ is constant with respect to the parameters, so we only need to minimiz
 ```math
     J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
 ```
-which does not involve the unknown score function of ${\mathbf{X}}$. This is sometimes called *implicit score matching (ISM).* Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
+which does not involve the unknown score function of ${\mathbf{X}}$. This is called **implicit score matching (ISM).**
 
-### 3. Approximate it with the empirical implicit score matching
+Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
 
-In practice, the implicit score-matching loss function is estimated via Monte-Carlo, so the unknown $p_\mathbf{X}(\mathbf{x})$ is handled implicitly by the sample data $(\mathbf{x}_n)_n$, and we minimize
+**3. Approximate it with the empirical implicit score matching**
+
+In practice, the implicit score-matching loss function, which depends on the unknown $p_\mathbf{X}(\mathbf{x})$, is estimated via the empirical distribution, obtained from the sample data $(\mathbf{x}_n)_n$. Thus, we minimize
 ```math
-    {\tilde J}_{\mathrm{MC,ISM}} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+    {\tilde J}_{\mathrm{ISM}\varepsilon} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
 
-In a different perspective, ${\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}})$ uses the *empirical distribution*
+In a different perspective, ${\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}})$ uses the *empirical distribution*
 ```math
 \frac{1}{N} \sum_{n=1}^N \delta_{\mathbf{x}_n},
 ```
-so we call this the *empirical implicit score matching (EISM),* or *Monte-Carlo implicit score matching (MC,ISM).*
+so we call this the **empirical implicit score matching (EISM)**.
 
 ## Concerning the gradient in the loss function
 
@@ -226,9 +233,9 @@ Thus, the implicit score matching loss becomes
 ```math
     J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}}(\mu, \sigma) = \int_{\mathbb{R}} p_X(x) \left( \frac{1}{2}\left(\frac{x - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right)\;\mathrm{d}x.
 ```
-The Monte-Carlo approximation, with the empirical distribution, is
+The approximation with the empirical distribution is
 ```math
-    {\tilde J}_{\mathrm{MC,ISM}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{MC,ISM}}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
+    {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}\varepsilon}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
 ```
 
 Implementing this loss for the given model score function yields the following graph over a reasonable range of values for $\mu$ and $\sigma$.

@@ -147,7 +147,7 @@ In the univariate case, the score function is also univariate and is given by th
         \psi_X(x) & = - \frac{x - \mu}{\sigma^2}.
     \end{align*}
 ```
-Notice the score function in this case is just a linear function vanishing at the mean and with the slope being minus the multiplicative inverse of the variance.
+Notice the score function in this case is just a linear function vanishing at the mean of the distribution and with the slope being minus the multiplicative inverse of its variance.
 
 ```@setup scoreandlangevin
 xrange = range(0, 10, length=200)
@@ -185,17 +185,21 @@ quiver!(plt2b, xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, a
 plot(plt1a, plt1b, plt2a, plt2b, size=(600, 400)) # hide
 ```
 
-We should warn that this notion of score function used in generative models in machine learning is different from the more classical notion of score in Statistics. The classical score function is defined for a parametrized model and refers to the gradient of the pdf with respect to the parameters,
+We should warn that this notion of score function used in generative models in machine learning is different from the more classical notion of score in Statistics. The classical score function is defined for a parametrized model and refers to the gradient of the log-likelyhood
+```math
+    \ell(\boldsymbol{\theta}|\mathbf{x}) = \log\mathcal{L}(\boldsymbol{\theta}|\mathbf{x}) = p(\mathbf{x}|\boldsymbol{\theta}),
+```
+of a parametrized model, with respect to the parameters, i.e.
 ```math
     \boldsymbol{\nabla}_{\boldsymbol{\theta}}p(\mathbf{x}, \boldsymbol{\theta}) = \left( \frac{\partial}{\partial \theta_k} p(\mathbf{x}, \boldsymbol{\theta})\right)_{k=1, \ldots, m}.
 ```
-This notion is quite useful for comparing different models.
+This notion measures the sensitivity of the model with respect to changes in the parameters and is useful in parameter estimation, to maximize the maximum likelyhood function.
 
 The score function given by the gradlogpdf of a distribution is, on the other hand, useful for drawing samples via Langevin dynamics.
 
 ## Langevin dynamics
 
-The velocity of a particle moving in a fluid has long been known to be reduced by friction forces with the surrounding fluid particles. For relatively slowly moving particles, when the surrouding fluid flow is essentially laminar, this friction force is regarded to be proportional to the velocity, in what is known as the *Stokes law.* When the motion is relatively fast and the flow around the particle is turbulent, this friction force tends to be proportional to the square of the velocity.
+The velocity of a particle moving in a fluid has long been known to be reduced by friction forces with the surrounding fluid particles. For relatively slowly moving particles, when the surrouding fluid flow is essentially laminar, this friction force is regarded to be proportional to the velocity, in what is known as the *Stokes law.* When the motion is relatively fast and the flow around the particle is turbulent, this friction tends to be proportional to the square of the velocity.
 
 If this were the only force, though, a particle initially at rest would remain forever at rest. That is not the case, as observed by the botanist [Robert Brown (1828)](https://doi.org/10.1080%2F14786442808674769). His observations led to what is now known as Brownian motion, and which is formally modeled as a Wiener process (see e.g. [Einstein (1905)](https://doi.org/10.1002/andp.19053220806) and [Mörters and Peres (2010)](https://www.cambridge.org/il/academic/subjects/statistics-probability/probability-theory-and-stochastic-processes/brownian-motion?format=HB&isbn=9780521760188)). A Wiener process describes the (random) position of a particle which is initially at rest and is put into motion by the erratic collisions with the nearby fluid particles.
 
@@ -217,7 +221,7 @@ The white noise is highly irregular, so the equation above is made rigorous with
 ```math
     \mathrm{d}V_t = \nu V_t \;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
 ```
-where $\{V_t\}_t$ is a stochastic processes representing the evolution of the velocity in time, $\nu = \mu / m$, $\sigma$ is called the *diffusion* parameter, and $\{W_t\}_t$ is a Wiener process, whose (distributional) derivative represents the white noise. The solution $\{V_t\}_t$ of the equation above is known as the **Ornstein-Uhlenbeck** stochastic process. The relation between $\sigma$ and $\nu$ becomes
+where $\{V_t\}_t$ is a stochastic processes representing the evolution of the velocity in time, $\nu = \mu / m$, $\sigma$ is called the *diffusion* parameter, and $\{W_t\}_t$ is a Wiener process, whose formal derivative represents the white noise. The solution $\{V_t\}_t$ of the equation above is known as the **Ornstein-Uhlenbeck** stochastic process. The relation between $\sigma$ and $\nu$ becomes
 ```math
     \sigma = \sqrt{\frac{2\nu k_B T}{m}}.
 ```
@@ -347,7 +351,7 @@ the solutions tend to the equilibria states $\min_x U(x)$, or more precisely to 
 ```math
     \{(x, v); v = \nabla U(x) = 0\}.
 ```
-In the full viscous, stochastic equation, the tendency to go to the equilibria is balanced by the diffusion, and the system tends to a stochastic equilibrium represented by a distribution with probability density function
+In the full viscous, stochastic equation, the tendency to go to the equilibria is balanced by the diffusion, and the system tends to a *stochastic* equilibrium represented by a distribution with probability density function
 ```math
     p_U(x, v) = \frac{1}{Z} e^{-\frac{m}{k_B T}U(x) + \frac{v^2}{2}},
 ```
@@ -412,7 +416,7 @@ The constant $Z_0$ is a normalization factor to yield that $p(x)$ is a proper pr
 
 One can check that the PDF above is also a solution in the multi-dimensional case.
 
-When the potential $U=U(x)$ grows sufficiently rapidly as $|x|\rightarrow \infty$, this distribution is the unique equilibrium. In the case of thermodynamics, this corresponds to thermodynamic equilibrium and this is known as the Boltzmann distribution. The condition that the potential grows sufficiently rapidly at infinite means that the potential well is deep enough to confine the particle.
+When the potential $U=U(x)$ grows sufficiently rapidly as $|x|\rightarrow \infty$, this distribution is the unique equilibrium. In the case of thermodynamics, this corresponds to thermodynamic equilibrium and this is known as the *Boltzmann distribution.* The condition that the potential grows sufficiently rapidly at infinite means that the potential well is deep enough to confine the particle.
 
 Abstracting away from the physical model and considering the overdamped Langevin equation in the form
 ```math
