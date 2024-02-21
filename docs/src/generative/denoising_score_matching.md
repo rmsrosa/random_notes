@@ -39,7 +39,7 @@ In practice, this is further approximated by the **empirical distribution** $\ti
 ```math
     \tilde p_{\mathrm{data}}(\mathbf{x}) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x} - \mathbf{x}_n),
 ```
-so the implemented implicit score matching objetive is
+so the implemented implicit score matching objective is
 ```math
     {\tilde J}_{\mathrm{ISM, data}}({\boldsymbol{\theta}}) = \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```

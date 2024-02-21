@@ -131,12 +131,13 @@ One of the cornerstones of score-based generative models is the method of sampli
 
 Given a random variable $\mathbf{X}$ in $\mathbb{R}^d$, $d\in\mathbb{N},$ we denote its pdf by $p_X(\mathbf{x})$, while its **score function**, also known as **gradlogpdf**, is defined by
 ```math
-    \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}) = \boldsymbol{\nabla}_{\mathbf{x}} \log p(\mathbf{x}) = \left( \frac{\partial}{\partial x_j} \log p(\mathbf{x})\right)_{j=1, \ldots, d}.
+    \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x}) = \boldsymbol{\nabla}_{\mathbf{x}} \log p(\mathbf{x}) = \frac{\boldsymbol{\partial}\log p(\mathbf{x})}{\boldsymbol{\partial}\mathbf{x}} = \left( \frac{\partial}{\partial x_j} \log p(\mathbf{x})\right)_{j=1, \ldots, d},
 ```
+where we may use either notation $\boldsymbol{\nabla}_{\mathbf{x}}$ or ${\boldsymbol{\partial}}/{\boldsymbol{\partial}\mathbf{x}}$ for the gradient of a scalar function. (For the differential of a vector-valued function, we will use either $\mathrm{D}_{\mathbf{x}}$ or ${\boldsymbol{\partial}}/{\boldsymbol{\partial}\mathbf{x}}$.)
 
-For a parametrized model with pdf $p(\mathbf{x}, \boldsymbol{\theta})$ and parameters $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_m),$ $m\in \mathbb{N}$, the score function becomes
+For a parametrized model with pdf denoted by $p(\mathbf{x}; \boldsymbol{\theta})$, or $p(\mathbf{x} | \boldsymbol{\theta})$, and parameters $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_m),$ $m\in \mathbb{N}$, the score function becomes
 ```math
-    \boldsymbol{\psi}(\mathbf{x}, \boldsymbol{\theta}) = \boldsymbol{\nabla}_{\mathbf{x}}p(\mathbf{x}, \boldsymbol{\theta}) = \left( \frac{\partial}{\partial x_j} p(\mathbf{x}, \boldsymbol{\theta})\right)_{j=1, \ldots, d}.
+    \boldsymbol{\psi}(\mathbf{x}; \boldsymbol{\theta}) = \boldsymbol{\nabla}_{\mathbf{x}}p(\mathbf{x}; \boldsymbol{\theta}) = \left( \frac{\partial}{\partial x_j} p(\mathbf{x}; \boldsymbol{\theta})\right)_{j=1, \ldots, d}.
 ```
 
 In the univariate case, the score function is also univariate and is given by the derivative of the log of the pdf. For example, for a univariate Normal distribution $\mathcal{N}(\mu, \sigma^2)$, $\mu\in\mathbb{R}$, $\sigma > 0$, the pdf, logpdf and gradlogpdf are
@@ -191,9 +192,9 @@ We should warn that this notion of score function used in generative models in m
 ```
 of a parametrized model, with respect to the parameters, i.e.
 ```math
-    \boldsymbol{\nabla}_{\boldsymbol{\theta}}p(\mathbf{x}, \boldsymbol{\theta}) = \left( \frac{\partial}{\partial \theta_k} p(\mathbf{x}, \boldsymbol{\theta})\right)_{k=1, \ldots, m}.
+    s(\boldsymbol{\theta}; \mathbf{x}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}}\log \mathcal{L}(\boldsymbol{\theta}|\mathbf{x}) = \frac{\boldsymbol{\partial}\log \mathcal{L}(\boldsymbol{\theta}|\mathbf{x})}{\boldsymbol{\partial}\mathbf{x}}.
 ```
-This notion measures the sensitivity of the model with respect to changes in the parameters and is useful in parameter estimation, to maximize the maximum likelyhood function.
+This notion measures the sensitivity of the model with respect to changes in the parameters and is useful in parameter estimation, to maximize the maximum likelyhood function, for instance.
 
 The score function given by the gradlogpdf of a distribution is, on the other hand, useful for drawing samples via Langevin dynamics.
 

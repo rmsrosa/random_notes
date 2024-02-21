@@ -26,17 +26,21 @@ For the theoretical discussion, we denote the PDF of a multivariate random varia
 ```
 which is a vector field in $\mathbb{R}^d$.
 
-The parametrized modeled score function is denoted by $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$, with parameter values $\boldsymbol{\theta}$.
+The parametrized modeled score function is denoted by 
+```math
+    \boldsymbol{\psi}(\mathbf{x}; \boldsymbol{\theta}) = \boldsymbol{\nabla}_{\mathbf{x}}p(\mathbf{x}; \boldsymbol{\theta}) = \left( \frac{\partial}{\partial x_j} p(\mathbf{x}; \boldsymbol{\theta})\right)_{j=1, \ldots, d},
+```
+with parameter values $\boldsymbol{\theta}$.
 
 ## Loss functions for score matching
 
-The score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical implicit score matching** loss function ${\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}})$, with
+The score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) rests on the idea of rewriting the **explicit score matching** loss function $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ in terms of the **implicit score matching** loss function $J_{\mathrm{ISM}}({\boldsymbol{\theta}})$ and then approximating the latter by the **empirical implicit score matching** loss function ${\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}})$, with
 ```math
-J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}) + C,
+J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C \approx {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}) + C,
 ```
 for a *constant* $C$ (with respect to the parameters $\boldsymbol{\theta}$ of the model), so that the optimization process has (approximately) the same gradients
 ```math
-\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}).
+\boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}} J_{\mathrm{ISM}}({\boldsymbol{\theta}}) \approx \boldsymbol{\nabla}_{\boldsymbol{\theta}} {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}).
 ```
 
 More precisly, the idea of the score-matching method is as follows.
@@ -49,7 +53,7 @@ Fit the model by minimizing the expected square distance between the model score
 ```
 Since the score function is the gradient of the logpdf, this is connected with the Fisher divergence
 ```math
-    F(p_{\mathbf{X}}, p_{\boldsymbol{\theta}}) = \int_{\mathbb{R}^d} \left\| \nabla_{\mathbf{x}}\log p_{\mathbf{X}}(\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{x}; \boldsymbol{\theta})\right\|^2 p_{\mathbf{X}}(\mathbf{x})\;\mathrm{d}\mathbf{x},
+    F(p_{\mathbf{X}}, p_{\boldsymbol{\theta}}) = \int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\| \nabla_{\mathbf{x}}\log p_{\mathbf{X}}(\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{x}; \boldsymbol{\theta})\right\|^2 \;\mathrm{d}\mathbf{x},
 ```
 except that the modeled score function may not be exactly the gradient of a probability density function (the constraint of being the gradient of a function might not be valid for some models such as the usual neural networks).
 
@@ -65,30 +69,29 @@ where $C$ is constant with respect to the parameters, so we only need to minimiz
 ```
 which does not involve the unknown score function of ${\mathbf{X}}$. This is called **implicit score matching (ISM).**
 
-Notice the two functions have the same gradient, hence the minimization is, theoretically, the same. This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
+Notice the two functions have the same gradient, hence the minimization is, theoretically, the same (apart from the approximation with the empirical distribution and the different round-off errors). This implicit score matching loss function, however, involves the gradient of the modeled score function, which might be expensive to compute.
 
 **3. Approximate it with the empirical implicit score matching**
 
 In practice, the implicit score-matching loss function, which depends on the unknown $p_\mathbf{X}(\mathbf{x})$, is estimated via the empirical distribution, obtained from the sample data $(\mathbf{x}_n)_n$. Thus, we minimize
 ```math
-    {\tilde J}_{\mathrm{ISM}\varepsilon} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
+    {\tilde J}_{\mathrm{ISM}{\tilde p}_0} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
-
-In a different perspective, ${\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}})$ uses the *empirical distribution*
+where the *empirical distribution* is given by
 ```math
-\frac{1}{N} \sum_{n=1}^N \delta_{\mathbf{x}_n},
+    {\tilde p}_0 = \frac{1}{N} \sum_{n=1}^N \delta_{\mathbf{x}_n}.
 ```
-so we call this the **empirical implicit score matching (EISM)**.
+Therefore, we call this the **empirical implicit score matching**.
 
 ## Concerning the gradient in the loss function
 
 As mentioned before, computing a derivative to form the loss function becomes expensive when combined with the usual optimization methods to fit a neural network, as they require the gradient of the loss function itself, i.e. the optimization process involves the gradient of the gradient of something. Because of that, other methods are developed, such as using kernel density estimation, auto-encoders, finite-differences, and so on. We will explore them in due course. For the moment, we will just sketch the proof of $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$ and apply the method to models for which the gradient can be computed more explicitly.
 
-## Proof that $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$
+### Proof that $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$
 
 We separate the one-dimensional from the multi-dimensional case for the sake of clarity.
 
-### One-dimensional case
+#### One-dimensional case
 
 We start with the one-dimensional version of the proof from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html). In this case,
 ```math
@@ -128,17 +131,17 @@ Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```
 which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
-For this proof to be justified, we need
+For this proof to be justified, we need the constant to be finite,
 ```math
-    C = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \psi_X(x)^2\;\mathrm{d}x < \infty,
+    C = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \psi_X(x)^2\;\mathrm{d}x < \infty;
 ```
-and
+the model score function not to grow too fast at infinity,
 ```math
     \psi(x; {\boldsymbol{\theta}}) p_X(x) \rightarrow 0, \quad |x| \rightarrow \infty,
 ```
-for every ${\boldsymbol{\theta}}$.
+for every value ${\boldsymbol{\theta}}$ of the parameter; and the model score function to be smooth everywhere on the support of the distribution, again for every value of the parameter.
 
-### Multi-dimensional case
+#### Multi-dimensional case
 
 For the multi-dimensional version of the proof, we have
 ```math
@@ -174,15 +177,19 @@ Thus, we rewrite $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ as
 ```
 which is precisely $J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = J_{\mathrm{ISM}}({\boldsymbol{\theta}}) + C$.
 
-For this proof to be justified, we need
+Similarly to the one-dimensional case, for this proof to be justified, we need the constant to be finite,
 ```math
-    C = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})^2\;\mathrm{d}\mathbf{x} < \infty,
+    C = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})^2\;\mathrm{d}\mathbf{x} < \infty;
 ```
-and
+the model score function not to grow too fast at infinity,
 ```math
     \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) p_{\mathbf{X}}(\mathbf{x}) \rightarrow \mathbf{0}, \quad |\mathbf{x}| \rightarrow \infty,
 ```
-for every ${\boldsymbol{\theta}}$, which is fine for at most linearly-growing score function and model and an exponentially decreasing Gaussian mixture distribution.
+for every value ${\boldsymbol{\theta}}$ of the parameter; and the model score function to be smooth everywhere on the support of the distribution, again for every value of the parameter.
+
+#### About the conditions on the model function
+
+The conditions on the smoothness and on the growth of the model score function are usually fine for the common neural network models when using smooth and uniformly bounded activation functions. Piecewise smooth and/or growing activation functions might fail these requirements, depending on the unkown target distribution.
 
 ## Numerical example
 
@@ -235,7 +242,7 @@ Thus, the implicit score matching loss becomes
 ```
 The approximation with the empirical distribution is
 ```math
-    {\tilde J}_{\mathrm{ISM}\varepsilon}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}\varepsilon}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
+    {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}{\tilde p}_0}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
 ```
 
 Implementing this loss for the given model score function yields the following graph over a reasonable range of values for $\mu$ and $\sigma$.
