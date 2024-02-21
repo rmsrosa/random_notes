@@ -1,5 +1,9 @@
 # Score matching of Aapo Hyvärinen
 
+```@meta
+Draft = false
+```
+
 ## Introduction
 
 ### Aim
@@ -292,7 +296,7 @@ plot(plt) # hide
 
 ## Conclusion
 
-This concludes our review of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and illustrates the use of *empirical implicit score matching* to model a univariate random variable by a closed form model.
+This concludes our review of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and illustrates the use of *empirical implicit score matching* to model a univariate random variable by a closed-form model.
 
 The work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has some more elaborate models, namely a (i) multivariate Gaussian model; a (ii) basic independent component analysis model; and an (iii) overcomplete model for image data.
 

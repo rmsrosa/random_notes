@@ -56,17 +56,17 @@ A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142)
 ```
 where $\sigma > 0$ is a kernel window parameter and $K(\mathbf{x})$ is a kernel density (properly normalized to have mass one). In this way, the explicit score matching objective function is approximated by the **Parzen-estimated explicit score matching** objective
 ```math
-    {\tilde J}_{\mathrm{PESM_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_\sigma(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x},
+    {\tilde J}_{\mathrm{P_\sigma ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_\sigma(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x},
 ```
 which is then further approximated with the empirical distribution, yielding the **empirical Parzen-estimated explicit score matching**
 ```math
     \begin{align*}
-        {\tilde J}_{\mathrm{PESM_\sigma, {\tilde p}_0}}({\boldsymbol{\theta}}) & = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_0(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x} \\
+        {\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}}) & = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_0(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x} \\
         & = \frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}_n}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2.
     \end{align*}
 ```
 
-However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function ${\tilde J}_{\mathrm{PESM_\sigma}}({\boldsymbol{\theta}})$ by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. We will do this in a follow up note, but for the moment we will stop at ${\tilde J}_{\mathrm{PESM_\sigma}}({\boldsymbol{\theta}})$ and ${\tilde J}_{\mathrm{PESM_\sigma, {\tilde p}_0}}({\boldsymbol{\theta}})$, use a Gaussian estimator, and see how this works.
+However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function ${\tilde J}_{\mathrm{P_\sigma ESM}}({\boldsymbol{\theta}})$ by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. We will do this in a follow up note, but for the moment we will stop at ${\tilde J}_{\mathrm{P_\sigma ESM}}({\boldsymbol{\theta}})$ and ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$, use a Gaussian estimator, and see how this works.
 
 Computing the score function with the Parzen estimation amounts to
 ```math
@@ -100,12 +100,12 @@ where
 
 Then, the explicit score matching objective approximated with the Parzen kernel estimator and with the empirical distribution yields the objective
 ```math
-    {\tilde J}_{\mathrm{PESM_{\sigma, {\tilde p}_0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}_n)\right\|^2.
+    {\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N} \sum_{n=1}^N \left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x}_n)\right\|^2.
 ```
 
 ## Numerical example
 
-We illustrate, numerically, the use of the **empirical Parzen-estimated explicit score matching** objective ${\tilde J}_{\mathrm{PESM_{\sigma, {\tilde p}_0}}}$ to model a synthetic univariate Gaussian mixture distribution.
+We illustrate, numerically, the use of the **empirical Parzen-estimated explicit score matching** objective ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}$ to model a synthetic univariate Gaussian mixture distribution.
 
 ### Julia language setup
 
@@ -124,6 +124,12 @@ using Markdown
 
 nothing # hide
 ```
+
+There are several Julia libraries for artificial neural networks and for automatic differentiation (AD). The most established package for artificial neural networks is the [FluxML/Flux.jl](https://github.com/FluxML/Flux.jl) library, which handles the parameters implicitly, but it is moving to explicit parameters. A newer library that handles the parameters explicitly is the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library, which is taylored to the differential equations [SciML](https://sciml.ai) ecosystem.
+
+Since we aim to combine score-matching with neural networks and, eventually, with stochastic differential equations, we thought it was a reasonable idea to experiment with the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library.
+
+As we mentioned, the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library is a newer package and not as well developed. In particular, it seems the only AD that works with it is the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library. Unfortunately, the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library is not fit to do AD on top of AD, as one can see from e.g. [Zygote: Design limitations](https://fluxml.ai/Zygote.jl/dev/limitations/#Second-derivatives-1). Thus, we do not attempt to use the implicit score matching objective to fit a neural network. We only consider a closed-form model for which the gradient of the model score can be easily implemented.
 
 #### Reproducibility
 
@@ -268,7 +274,7 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ### Loss function
 
-Here it is how we implement the objective ${\tilde J}_{\mathrm{PESM_{\sigma, {\tilde p}_0}}}({\boldsymbol{\theta}})$.
+Here it is how we implement the objective ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example simplescorematching
 function loss_function_parzen(model, ps, st, data)
     sample_points, score_parzen_points = data
@@ -337,7 +343,7 @@ end
 
 ### Training
 
-Now we train the model with the objective function ${\tilde J}_{\mathrm{PESM_{\sigma, {\tilde p}_0}}}({\boldsymbol{\theta}})$.
+Now we train the model with the objective function ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example simplescorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_parzen, 500, 20, 125)
 nothing # hide
