@@ -1,9 +1,5 @@
 # Finite-difference score-matching of a two-dimensional Gaussian mixture model
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 Here, we modify the previous finite-difference score-matching example to fit a two-dimensional model.
@@ -226,7 +222,7 @@ score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample))
 data_cheat = sample, score_cheat
 ```
 
-### Computating the constant
+### Computing the constant
 
 The expression ${\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}}) \approx {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}) + C$ can be used to test the implementation of the different loss functions. For that, we need to compute the constant $C$. This can be computed with a fine mesh or with a Monte-Carlo approximation. We do both just for fun.
 
@@ -385,7 +381,7 @@ function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, ep
 end
 ```
 
-## Cheat training
+## Cheat training with ${\tilde J}_{\mathrm{ESM}{\tilde p}_0}$
 
 We first train the model with the known score function on the sample data. That is cheating. The aim is a sanity check, to make sure the proposed model is good enough to fit the desired score function and that the setup is right.
 
@@ -427,7 +423,7 @@ gif(anim, fps = 10) # hide
 plot(losses_cheat, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
-## Real training
+## Real training with ${\tilde J}_{\mathrm{FDSM}{\tilde p}_0}$
 
 Now we go to the real thing.
 
