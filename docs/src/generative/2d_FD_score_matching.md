@@ -77,22 +77,22 @@ target_score = reduce(hcat, gradlogpdf(target_prob, [x, y]) for y in yrange, x i
 ```
 
 ```@example twodimscorematching
-sample = rand(rng, target_prob, 1024)
+sample_points = rand(rng, target_prob, 1024)
 ```
 
 ```@example twodimscorematching
 surface(xrange, yrange, target_pdf, title="PDF", titlefont=10, legend=false, color=:vik)
-scatter!(sample[1, :], sample[2, :], [pdf(target_prob, [x, y]) for (x, y) in eachcol(sample)], markercolor=:lightgreen, markersize=2, alpha=0.5)
+scatter!(sample_points[1, :], sample_points[2, :], [pdf(target_prob, [x, y]) for (x, y) in eachcol(sample_points)], markercolor=:lightgreen, markersize=2, alpha=0.5)
 ```
 
 ```@example twodimscorematching
 heatmap(xrange, yrange, target_pdf, title="PDF", titlefont=10, legend=false, color=:vik)
-scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 ```
 
 ```@example twodimscorematching
 surface(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf", titlefont=10, legend=false, color=:vik)
-scatter!(sample[1, :], sample[2, :], [logpdf(target_prob, [x, y]) for (x, y) in eachcol(sample)], markercolor=:lightgreen, alpha=0.5, markersize=2)
+scatter!(sample_points[1, :], sample_points[2, :], [logpdf(target_prob, [x, y]) for (x, y) in eachcol(sample_points)], markercolor=:lightgreen, alpha=0.5, markersize=2)
 ```
 
 ```@example twodimscorematching
@@ -104,7 +104,7 @@ uu = reduce(hcat, gradlogpdf(target_prob, [x, y]) for (x, y) in zip(xx, yy))
 ```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score function (vector field)", titlefont=10, legend=false, color=:vik)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
-scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 ```
 
 ## The neural network model
@@ -174,11 +174,11 @@ In the two-dimensional case, $d = 2$, this becomes
 
 ```@example twodimscorematching
 function loss_function(model, ps, st, data)
-    sample, deltax, deltay = data
-    s_pred_fwd_x, = Lux.apply(model, sample .+ [deltax, 0.0], ps, st)
-    s_pred_bwd_x, = Lux.apply(model, sample .- [deltax, 0.0], ps, st)
-    s_pred_fwd_y, = Lux.apply(model, sample .+ [0.0, deltay], ps, st)
-    s_pred_bwd_y, = Lux.apply(model, sample .- [0.0, deltay], ps, st)
+    sample_points, deltax, deltay = data
+    s_pred_fwd_x, = Lux.apply(model, sample_points .+ [deltax, 0.0], ps, st)
+    s_pred_bwd_x, = Lux.apply(model, sample_points .- [deltax, 0.0], ps, st)
+    s_pred_fwd_y, = Lux.apply(model, sample_points .+ [0.0, deltay], ps, st)
+    s_pred_bwd_y, = Lux.apply(model, sample_points .- [0.0, deltay], ps, st)
     s_pred = ( s_pred_bwd_x .+ s_pred_fwd_x .+ s_pred_bwd_y .+ s_pred_fwd_y) ./ 4
     dsdx_pred = (s_pred_fwd_x .- s_pred_bwd_x ) ./ 2deltax
     dsdy_pred = (s_pred_fwd_y .- s_pred_bwd_y ) ./ 2deltay
@@ -189,13 +189,13 @@ end
 
 We included the steps for the finite difference computations in the `data` passed to training to avoid repeated computations.
 ```@example twodimscorematching
-xmin, xmax = extrema(sample[1, :])
-ymin, ymax = extrema(sample[2, :])
-deltax, deltay = (xmax - xmin) / 2size(sample, 2), (ymax - ymin) / 2size(sample, 2)
+xmin, xmax = extrema(sample_points[1, :])
+ymin, ymax = extrema(sample_points[2, :])
+deltax, deltay = (xmax - xmin) / 2size(sample_points, 2), (ymax - ymin) / 2size(sample_points, 2)
 ```
 
 ```@example twodimscorematching
-data = sample, deltax, deltay
+data = sample_points, deltax, deltay
 ```
 
 ### Implementation of ${\tilde J}_{\mathrm{ESM}{\tilde p}_0}({\boldsymbol{\theta}})$
@@ -209,8 +209,8 @@ In the two-dimensional case, this is simply the mean square value of all the com
 
 ```@example twodimscorematching
 function loss_function_cheat(model, ps, st, data)
-    sample, score_cheat = data
-    score_pred, st = Lux.apply(model, sample, ps, st)
+    sample_points, score_cheat = data
+    score_pred, st = Lux.apply(model, sample_points, ps, st)
     loss = mean(abs2, score_pred .- score_cheat)
     return loss, st, ()
 end
@@ -218,8 +218,8 @@ end
 
 The data in this case includes information about the target distribution.
 ```@example twodimscorematching
-score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample))
-data_cheat = sample, score_cheat
+score_cheat = reduce(hcat, gradlogpdf(target_prob, u) for u in eachcol(sample_points))
+data_cheat = sample_points, score_cheat
 ```
 
 ### Computing the constant
@@ -236,8 +236,8 @@ end
 ```
 
 ```@example twodimscorematching
-function compute_constante_MC(target_prob, sample)
-    Jconstant = mean(sum(abs2, gradlogpdf(target_prob, s)) for s in eachcol(sample)) / 2
+function compute_constante_MC(target_prob, sample_points)
+    Jconstant = mean(sum(abs2, gradlogpdf(target_prob, s)) for s in eachcol(sample_points)) / 2
     return Jconstant
 end    
 ```
@@ -247,7 +247,7 @@ Jconstant = compute_constante(target_prob, xrange, yrange)
 ```
 
 ```@example twodimscorematching
-Jconstant_MC = compute_constante_MC(target_prob, sample)
+Jconstant_MC = compute_constante_MC(target_prob, sample_points)
 ```
 
 ```@example twodimscorematching
@@ -398,7 +398,7 @@ uu_cheat = Lux.apply(tstate_cheat.model, vcat(xx', yy'), tstate_cheat.parameters
 ```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score functions (vector fields)", titlefont=10, color=:vik, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
-scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 quiver!(xx, yy, quiver = (uu_cheat[1, :] ./ 8, uu_cheat[2, :] ./ 8), color=:cyan, alpha=0.5)
 ```
 
@@ -408,7 +408,7 @@ anim = @animate for (epoch, tstate) in tstates_cheat
 
     heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]),color=:vik)
     quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
-    scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+    scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
     quiver!(xx, yy, quiver = (uu_pred[1, :] ./ 8, uu_pred[2, :] ./ 8), color=:cyan, alpha=0.5)
 
     plot!(title="Fitting evolution (epoch=$(lpad(epoch, (length(string(last(tstates_cheat)[1]))), '0')))", titlefont=10, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
@@ -440,7 +440,7 @@ uu_pred = Lux.apply(tstate.model, vcat(xx', yy'), tstate.parameters, tstate.stat
 ```@example twodimscorematching
 heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]), title="Logpdf (heatmap) and score functions (vector fields)", titlefont=10, color=:vik, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)
 quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
-scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
 quiver!(xx, yy, quiver = (uu_pred[1, :] ./ 8, uu_pred[2, :] ./ 8), color=:cyan, alpha=0.5)
 ```
 
@@ -450,7 +450,7 @@ anim = @animate for (epoch, tstate) in tstates
 
     heatmap(xrange, yrange, (x, y) -> logpdf(target_prob, [x, y]),color=:vik)
     quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
-    scatter!(sample[1, :], sample[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
+    scatter!(sample_points[1, :], sample_points[2, :], markersize=2, markercolor=:lightgreen, alpha=0.5)
     quiver!(xx, yy, quiver = (uu_pred[1, :] ./ 8, uu_pred[2, :] ./ 8), color=:cyan, alpha=0.5)
 
     plot!(title="Fitting evolution (epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0')))", titlefont=10, xlims=extrema(xrange), ylims=extrema(yrange), legend=false)

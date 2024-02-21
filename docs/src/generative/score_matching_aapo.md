@@ -211,12 +211,12 @@ prob = MixtureModel([Normal(2, 1), Normal(4, 1)], [0.4, 0.6])
 Say we have a sample $\{x_n\}_{n=1}^N$ of $X$, where $N\in\mathbb{N}$.
 
 ```@setup aaposcorematching
-sample = rand(rng, prob, 100)
-xrange = range(minimum(sample) - 0.5, maximum(sample) + 0.5, length=400)
+sample_points = rand(rng, prob, 100)
+xrange = range(minimum(sample_points) - 0.5, maximum(sample_points) + 0.5, length=400)
 ```
 
 ```@example aaposcorematching
-scatter(sample, one.(sample), xlims=extrema(xrange), ylims=(0, 2), axis=false, legend=false, grid=false, size=(600, 80)) # hide
+scatter(sample_points, one.(sample_points), xlims=extrema(xrange), ylims=(0, 2), axis=false, legend=false, grid=false, size=(600, 80)) # hide
 ```
 
 The model is a score function of a Gaussian distribution $\mathcal{N}(\mu, \sigma^2)$, whose PDF is
@@ -248,7 +248,7 @@ The approximation with the empirical distribution is
 Implementing this loss for the given model score function yields the following graph over a reasonable range of values for $\mu$ and $\sigma$.
 
 ```@example aaposcorematching
-loss_function(mu, sigma) = mean( (xn - mu)^2 / sigma^4 / 2 - 1 / sigma^2 for xn in sample) # hide
+loss_function(mu, sigma) = mean( (xn - mu)^2 / sigma^4 / 2 - 1 / sigma^2 for xn in sample_points) # hide
 nothing # hide
 ```
 
@@ -280,8 +280,8 @@ We do not actually perform a minimization in this case. We simply sweep the valu
 With that approximate minimizer, we have our modeled Normal distribution fitting the sample. The result can be visualized as follows.
 ```@setup aaposcorematching
 plt = plot(title="Sample, histogram, target PDF, and model PDF", titlefont = 10, legend=:topleft)
-histogram!(plt, sample, bins = 40, alpha = 0.4, normalized=true, label="histogram")
-scatter!(plt, sample, zero(sample) .+ 0.005 , label="sample", color=1)
+histogram!(plt, sample_points, bins = 40, alpha = 0.4, normalized=true, label="histogram")
+scatter!(plt, sample_points, zero(sample_points) .+ 0.005 , label="sample", color=1)
 plot!(plt, xrange, x -> pdf(prob, x), linewidth=2, label="actual PDF")
 plot!(plt, xrange, x -> pdf(Normal(mu, sigma), x), linewidth=2, color=2, label="model PDF")
 ```
