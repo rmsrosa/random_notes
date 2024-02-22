@@ -31,6 +31,7 @@ allpages = [
             "Overview" => "generative/overview.md",
             "generative/score_and_langevin.md",
             "generative/score_matching_aapo.md",
+            "generative/score_matching_neural_network.md",
             "generative/parzen_estimation_score_matching.md",
             "generative/denoising_score_matching.md",
             "1D finite-difference score matching" => "generative/1d_FD_score_matching.md",
