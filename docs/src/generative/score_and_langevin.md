@@ -652,7 +652,7 @@ quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.
 ```@setup scoreandlangevin2d
 gamma = 1/2
 t0 = 0
-tf = 20
+tf = 10
 nt = 128
 tt = range(t0, tf, length=nt+1)
 ```
@@ -665,7 +665,7 @@ g(t, x, params) = sqrt(2 * params.gamma)
 
 ```@setup scoreandlangevin2d
 initial_prob = MvNormal([0, 0], [1 0; 0 1])
-initial_sample = rand(rng, initial_prob, 256)
+initial_sample = rand(rng, initial_prob, 1024)
 ```
 
 ```@example scoreandlangevin2d
@@ -676,18 +676,20 @@ Markdown.parse("""Now we draw samples from it using the overdamped Langevin equa
 xt = solve_sde(rng, initial_sample, tt, f, g, params)
 ```
 
+Let us see the location of the generated sample points and their histogram.
+
 ```@example scoreandlangevin2d
-heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf (heatmap), score function (vector field)and particle sample", titlefont=10, legend=false, color=:vik) # hide
-quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5) # hide
-scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white) # hide
+plot(title="histogram and particles of the generated sample", titlefont=10) # hide
+histogram2d!(xt[1, :, end], xt[2, :, end], bins=40, normalize=true, color=:vik) # hide
+scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white, label=false) # hid2
 ```
 
-Observe how many particles get trapped near the smallest modal point in the middle.
+Observe how many more particles are trapped near the modal point in the middle. In the target distribution, this is the smallest nodal point, but it seems the highest. Given enough time, though, the particles do tend to the proper distribution.
 
-Let us see a animation for fun.
+Let us see an animation for fun.
 ```@setup scoreandlangevin2d
 anim = @gif for k in axes(xt, 3)
-    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf, score function, and particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
+    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf and score of target distribution and generated particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
     quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
     scatter!(xt[1, :, k], xt[2, :, k], markersize=2, markercolor=:white)
 end
@@ -700,7 +702,7 @@ anim # hide
 Now we draw samples starting from a uniform distribution of points.
 
 ```@setup scoreandlangevin2d
-initial_sample = 12 .* (rand(rng, 2, 256) .- [0.5, 0.5])
+initial_sample = 12 .* (rand(rng, 2, 1024) .- [0.5, 0.5])
 ```
 
 ```@setup scoreandlangevin2d
@@ -710,15 +712,16 @@ xt = solve_sde(rng, initial_sample, tt, f, g, params)
 Here is what we get.
 
 ```@example scoreandlangevin2d
-heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf (heatmap), score function (vector field)and particle sample", titlefont=10, legend=false, color=:vik) # hide
-quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5) # hide
-scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white) # hide
+plot(title="histogram and particles of the generated sample", titlefont=10) # hide
+histogram2d!(xt[1, :, end], xt[2, :, end], bins=40, normalize=true, color=:vik) # hide
+scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white, label=false) # hid2
 ```
+This is closer to the desired distribution.
 
-Again, let us see a animation.
+Again, let us see an animation.
 ```@setup scoreandlangevin2d
 anim = @gif for k in axes(xt, 3)
-    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf, score function, and particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
+    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf and score of target distribution and generated particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
     quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
     scatter!(xt[1, :, k], xt[2, :, k], markersize=2, markercolor=:white)
 end
@@ -730,7 +733,7 @@ anim # hide
 
 ## Score function in the Julia language
 
-The distributions and their pdf are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we did some *pirating* and extended `Distributions.gradlogpdf` to *univariate* `MixtureModels`, both univariate and multivariate. These are the codes for that.
+The distributions and their pdf are obtained from the [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. The score function is also implemented in [JuliaStats/Distributions.jl](https://github.com/JuliaStats/Distributions.jl) as `gradlogpdf`, but only for some distributions. Since we are interested on Gaussian mixtures, we did some *pirating* and extended `Distributions.gradlogpdf` to `MixtureModels`, both univariate and multivariate. These are the codes for that.
 
 ```julia
 function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
