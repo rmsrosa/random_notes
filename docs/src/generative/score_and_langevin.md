@@ -39,30 +39,29 @@ end
 ```
 
 ```@setup scoreandlangevin
-function solve_sde!(rng, xt, x0, tt, f, g, params)
+function solve_sde_1d!(rng, xt, x0, tt, f, g, params)
     @assert axes(xt) == (eachindex(tt), eachindex(x0))
 
     dt = (tt[end] - tt[begin])/(tt.len - 1)
     sqrtdt = √dt
 
     xt[1, :] .= x0
-    i1 = firstindex(tt)
-    @inbounds for i in Iterators.drop(eachindex(tt), 1)
+    k1 = firstindex(tt)
+    @inbounds for k in Iterators.drop(eachindex(tt), 1)
         randn!(rng, view(xt, lastindex(tt), :))
         for j in axes(xt, 2)
-            xt[i, j] = xt[i1, j] + f(tt[i1], xt[i1, j], params) * dt + g(tt[i1], xt[i1, j], params) * sqrtdt * xt[end, j]
+            xt[k, j] = xt[k1, j] + f(tt[k1], xt[k1, j], params) * dt + g(tt[k1], xt[k1, j], params) * sqrtdt * xt[end, j]
         end
-        # xt[i, :] .= view(xt, i1, :) .+ f(tt[i1], view(xt, i1, :), params) * dt .+ g(tt[i1], view(xt, i1, :), params) * sqrtdt * view(xt, lastindex(tt), :)
-        i1 = i
+        k1 = k
     end
     return xt
 end
 
-function solve_sde(rng, x0, tt, f, g, params)
+function solve_sde_1d(rng, x0, tt, f, g, params)
     
     xt = zeros(length(tt), length(x0))
 
-    solve_sde!(rng, xt, x0, tt, f, g, params)
+    solve_sde_1d!(rng, xt, x0, tt, f, g, params)
 
     return xt
 end
@@ -79,7 +78,7 @@ function solve_fokkerplanck!(pt, p0, tt, xx, f, g, params)
     dxsquare = dx^2
 
     pt[begin, :] .= p0
-    i1 = firstindex(tt)
+    k1 = firstindex(tt)
     # Julia is column-major, which means the next code is not optimized with respect to the order of the indices of `xt`,
     # but this is for ilustrative purposes and is good enough this way.
     for i in Iterators.drop(eachindex(tt), 1)
@@ -87,18 +86,18 @@ function solve_fokkerplanck!(pt, p0, tt, xx, f, g, params)
         jm1, jc = Iterators.take(eachindex(p0), 2)
         pt[i, jm1] = 0.0
         for jp1 in Iterators.drop(eachindex(p0), 2)
-            pt[i, jc] = pt[i1, jc] + 
+            pt[i, jc] = pt[k1, jc] + 
                 dt * (
                         - (
-                        f(tt[i1], xx[jp1], params) * pt[i1, jp1] - f(tt[i1], xx[jm1], params) * pt[i1, jm1]
+                        f(tt[k1], xx[jp1], params) * pt[k1, jp1] - f(tt[k1], xx[jm1], params) * pt[k1, jm1]
                     ) / twicedx + (
-                        g(tt[i1], xx[jp1], params)^2 * pt[i1, jp1] - 2 * g(tt[i1], xx[jc], params)^2 * pt[i1, jc] + g(tt[i1], xx[jm1], params)^2 * pt[i1, jm1]
+                        g(tt[k1], xx[jp1], params)^2 * pt[k1, jp1] - 2 * g(tt[k1], xx[jc], params)^2 * pt[k1, jc] + g(tt[k1], xx[jm1], params)^2 * pt[k1, jm1]
                     ) / dxsquare / 2
                 )
             jm1, jc = jc, jp1
         end
         pt[i, jc] = 0.0
-        i1 = i
+        k1 = i
     end
     return pt
 end
@@ -463,9 +462,9 @@ This lead to a sampling method to draw samples from a distribution using its sco
 
 As mentioned above, questions about the conditions for the convergence, rate of converge and convergence metric are of great importance, and they are also important for sampling purposes. Other relevant question concern the stability of the equilibrium solution, when for instance an approximate score function is used. This is also relevant when the modeled score function (say via a neural network) might even not be exactly the gradient of a potential. We will leave these questions for another opportunity.
 
-## Numerical example
+## One-dimensional numerical example
 
-We illustrate the Langevin sampling by drawing samples for a Gaussian mixture distribution.
+We first illustrate the Langevin sampling by drawing samples for a univariate Gaussian mixture distribution.
 
 ```@setup scoreandlangevin
 xrange = range(0.0, 10.0, 200)
@@ -497,15 +496,16 @@ Markdown.parse("""Now we draw samples from it using the overdamped Langevin equa
 ```
 
 ```@setup scoreandlangevin
-params = (prob=prob,gamma)
-f(t, x, params) = gamma * gradlogpdf(params.prob, x)
-g(t, x, params) = sqrt(2gamma)
+params = (prob=prob, gamma=gamma)
+f(t, x, params) = params.gamma * gradlogpdf(params.prob, x)
+g(t, x, params) = sqrt(2 * params.gamma)
 
 p0 = pdf.(prob0, xrange)
 tt, pt = solve_fokkerplanck(p0, t0, tf, xrange, f, g, params, snapshots=200)
 
 x0 = rand(rng, prob0, 200)
-xt = solve_sde(rng, x0, tt, f, g, params)
+xt = solve_sde_1d(rng, x0, tt, f, g, params)
+# nothing
 ```
 
 Here is $tx$ plot of the ensemble of solutions of the stochastic overdamped Langevin equation.
@@ -543,6 +543,188 @@ end
 ```
 
 ```@example scoreandlangevin
+anim # hide
+```
+
+## Two-dimensional numerical example
+
+Let's do a two-dimensional example, now. We consider a trimodel bivariate normal distribution and use the two-dimensional overdamped Langevin equations to obtain samples from the score function of the distribution.
+
+```@setup scoreandlangevin2d
+using StatsPlots
+using Random
+using Distributions
+using Markdown
+
+rng = Xoshiro(123)
+```
+
+```@setup scoreandlangevin2d
+function Distributions.gradlogpdf(d::MultivariateMixture, x::AbstractVector{<:Real})
+    ps = probs(d)
+    cs = components(d)
+
+    # `d` is expected to have at least one distribution, otherwise this will just error
+    psi, idxps = iterate(ps)
+    csi, idxcs = iterate(cs)
+    pdfx1 = pdf(csi, x)
+    pdfx = psi * pdfx1
+    glp = pdfx * gradlogpdf(csi, x)
+    if iszero(psi)
+        fill!(glp, zero(eltype(glp)))
+    end
+    
+    while (iterps = iterate(ps, idxps)) !== nothing && (itercs = iterate(cs, idxcs)) !== nothing
+        psi, idxps = iterps
+        csi, idxcs = itercs
+        if !iszero(psi)
+            pdfxi = pdf(csi, x)
+            if !iszero(pdfxi)
+                pipdfxi = psi * pdfxi
+                pdfx += pipdfxi
+                glp .+= pipdfxi .* gradlogpdf(csi, x)
+            end
+        end
+    end
+    if !iszero(pdfx) # else glp is already zero
+        glp ./= pdfx
+    end 
+    return glp
+end
+```
+
+```@setup scoreandlangevin2d
+function solve_sde!(rng, xt, x0, tt, f, g, params)
+    @assert axes(xt) == (axes(x0)..., eachindex(tt))
+    # in particular, this implies firstindex(xt, 3) == firstindex(tt)
+
+    dt = Float64(tt.step)
+    sqrtdt = √dt
+
+    xt[:, :, 1] .= x0
+    k1 = firstindex(tt)
+    kend = lastindex(tt)
+    @inbounds for k in Iterators.drop(eachindex(tt), 1)
+        randn!(rng, view(xt, :, :, lastindex(tt)))
+        for j in axes(xt, 2)
+            xt[:, j, k] .= view(xt, :, j, k1) .+ f(tt[k1], view(xt, :, j, k1), params) .* dt .+ g(tt[k1], view(xt, :, j, k1), params) .* sqrtdt .* view(xt, :, j, kend)
+        end
+        k1 = k
+    end
+    return xt
+end
+
+function solve_sde(rng, x0, tt, f, g, params)
+    
+    xt = zeros(size(initial_sample)..., length(tt))
+
+    solve_sde!(rng, xt, x0, tt, f, g, params)
+
+    return xt
+end
+```
+
+Here is a visualization of the distribution and its score vector field.
+
+```@setup scoreandlangevin2d
+xrange = range(-8, 8, 120)
+yrange = range(-8, 8, 120)
+dx = Float64(xrange.step)
+dy = Float64(yrange.step)
+
+target_prob = MixtureModel([MvNormal([-3, -3], [1 0; 0 1]), MvNormal([3, 3], [1 0; 0 1]), MvNormal([-1, 1], [1 0; 0 1])], [0.4, 0.4, 0.2])
+
+target_pdf = [pdf(target_prob, [x, y]) for y in yrange, x in xrange]
+target_score = reduce(hcat, gradlogpdf(target_prob, [x, y]) for y in yrange, x in xrange)
+```
+
+```@setup scoreandlangevin2d
+meshgrid(x, y) = (repeat(x, outer=length(y)), repeat(y, inner=length(x)))
+xx, yy = meshgrid(xrange[begin:8:end], yrange[begin:8:end])
+uu = reduce(hcat, gradlogpdf(target_prob, [x, y]) for (x, y) in zip(xx, yy))
+```
+
+```@example scoreandlangevin2d
+heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf (heatmap) and score function (vector field)", titlefont=10, legend=false, color=:vik) # hide
+quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5) # hide
+```
+
+```@setup scoreandlangevin2d
+gamma = 1/2
+t0 = 0
+tf = 20
+nt = 128
+tt = range(t0, tf, length=nt+1)
+```
+
+```@setup scoreandlangevin2d
+params = (prob=target_prob, gamma=gamma)
+f(t, x, params) = params.gamma .* gradlogpdf(params.prob, x)
+g(t, x, params) = sqrt(2 * params.gamma)
+```
+
+```@setup scoreandlangevin2d
+initial_prob = MvNormal([0, 0], [1 0; 0 1])
+initial_sample = rand(rng, initial_prob, 256)
+```
+
+```@example scoreandlangevin2d
+Markdown.parse("""Now we draw samples from it using the overdamped Langevin equation with ``\\gamma = $gamma``, and starting with samples from a standard normal distribution, evolving the particles from the initial time ``t_0 = $t0`` up to time ``t_f = $tf``.\n""") # hide
+```
+
+```@setup scoreandlangevin2d
+xt = solve_sde(rng, initial_sample, tt, f, g, params)
+```
+
+```@example scoreandlangevin2d
+heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf (heatmap), score function (vector field)and particle sample", titlefont=10, legend=false, color=:vik) # hide
+quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5) # hide
+scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white) # hide
+```
+
+Observe how many particles get trapped near the smallest modal point in the middle.
+
+Let us see a animation for fun.
+```@setup scoreandlangevin2d
+anim = @gif for k in axes(xt, 3)
+    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf, score function, and particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
+    quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
+    scatter!(xt[1, :, k], xt[2, :, k], markersize=2, markercolor=:white)
+end
+```
+
+```@example scoreandlangevin2d
+anim # hide
+```
+
+Now we draw samples starting from a uniform distribution of points.
+
+```@setup scoreandlangevin2d
+initial_sample = 12 .* (rand(rng, 2, 256) .- [0.5, 0.5])
+```
+
+```@setup scoreandlangevin2d
+xt = solve_sde(rng, initial_sample, tt, f, g, params)
+```
+
+Here is what we get.
+
+```@example scoreandlangevin2d
+heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf (heatmap), score function (vector field)and particle sample", titlefont=10, legend=false, color=:vik) # hide
+quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5) # hide
+scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white) # hide
+```
+
+Again, let us see a animation.
+```@setup scoreandlangevin2d
+anim = @gif for k in axes(xt, 3)
+    heatmap(xrange, yrange, (x, y) -> pdf(target_prob, [x, y]), title="pdf, score function, and particles at t = $(round(tt[k],digits=2))", titlefont=10, legend=false, color=:vik)
+    quiver!(xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
+    scatter!(xt[1, :, k], xt[2, :, k], markersize=2, markercolor=:white)
+end
+```
+
+```@example scoreandlangevin2d
 anim # hide
 ```
 
