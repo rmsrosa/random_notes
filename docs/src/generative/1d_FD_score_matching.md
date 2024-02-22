@@ -246,19 +246,6 @@ function loss_function_FDSM_over_sample(model, ps, st, data)
 end
 ```
 
-### Empirical implicit score matching loss function $J_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}})$
-
-We can implement the actual implicit loss function with the derivative of the model score function using some automatic differentiation tool, as follows, but we do not optimize with it here. We do this in a separate note, not to render this note too slowly.
-```@example onedimscorematching
-function loss_function_EISM_Zygote(model, ps, st, data)
-    x, y, target_pdf, sample_points = data
-    y_pred, st = Lux.apply(model, sample_points, ps, st)
-    dy_pred = Zygote.gradient(s -> sum(model(s, ps, st)[1]), sample_points)[1]
-    loss = mean(dy_pred .+ y_pred .^2 / 2)
-    return loss, st, ()
-end
-```
-
 ## Optimization setup
 
 ### Optimization method

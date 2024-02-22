@@ -12,11 +12,11 @@ The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https
 
 ### Background
 
-Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the objective function given by the expected square distance between the score of the model and score of the unkown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unkown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
+Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable **implicit score matching** loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the **explicit score matching** objective function given by the expected square distance between the score of the model and score of the unknown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unkown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
 
 It is worth noticing, in light of the main objective of score-matching diffusion, that the original work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has no diffusion. It is a direct modeling of the score function in the original probability space. But this is a fundamental work.
 
-We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD). We illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
+We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD) (those were proposed in subsequent works, as we will see). We illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
 
 ## The score function
 
@@ -73,7 +73,7 @@ Notice the two functions have the same gradient, hence the minimization is, theo
 
 **3. Approximate it with the empirical implicit score matching**
 
-In practice, the implicit score-matching loss function, which depends on the unknown $p_\mathbf{X}(\mathbf{x})$, is estimated via the empirical distribution, obtained from the sample data $(\mathbf{x}_n)_n$. Thus, we minimize
+In practice, the implicit score-matching loss function, which depends on the unknown $p_\mathbf{X}(\mathbf{x})$, is estimated via the empirical distribution, obtained from the sample data $(\mathbf{x}_n)_{n=1}^N$. Thus, we minimize
 ```math
     {\tilde J}_{\mathrm{ISM}{\tilde p}_0} =  \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
