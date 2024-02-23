@@ -74,11 +74,11 @@ Notice that the empirical distribution is not a further approximation to this ob
 
 We do need, however, for the sake of implementation, to approximate the (inner) expectation with respect to the conditional distribution. This is achieved by drawing a certain number of sample points from the conditional distribution associated with ${\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}_n)$.
 
-At this point, choosing the kernel $K(\cdot)$ to be the standard Gaussian kernel
+At this point, choosing the kernel, in the Parzen estimation, to be the standard Gaussian kernel
 ```math
     G(\mathbf{x}) = \frac{1}{\sqrt{2\pi}} e^{-\frac{1}{2} \mathbf{x}^2},
 ```
-the conditional distribution is a Normal distribution with mean $\mathbf{x}_n$ and variance $\sigma^2$. Hence, we draw $M$ samples points $\tilde{\mathbf{x}}_{n,m}$, for each $n=1, \ldots, N$, according to
+the conditional distribution is a Normal distribution with mean $\mathbf{x}_n$ and variance $\sigma^2$. Hence, for each $n=1, \ldots, N$, we draw $M$ sample points $\tilde{\mathbf{x}}_{n,m}$, $m=1, \ldots, M$, according to
 ```math
     \tilde{\mathbf{x}}_{n,m} \sim \mathcal{N}(\mathbf{x}_n, \sigma^2), \quad m=1, \ldots, M.
 ```
@@ -317,12 +317,32 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ### Loss function
 
-Here it is how we implement the objective ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
+Here it is how we implement the **empirical denoising score matching** objective
+```math
+    {\tilde J}_{\mathrm{DSM{\tilde p}_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{NM}\sum_{n=1}^N \sum_{m=1}^M \left\| \boldsymbol{\psi}(\mathbf{x}_{n, m}; {\boldsymbol{\theta}}) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2} \right\|^2 \mathrm{d}\tilde{\mathbf{x}}.
+```
+First we precompute the matrix $(\mathbf{a}_{n,m})_{n,m}$ given by
+```math
+    \mathbf{a}_{n,m} = \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2}.
+```
+Then, at each iteration of the optimization process, we take the current parameters $\boldsymbol{\theta}$ and apply the model to the perturbed points $\tilde{\mathbf{x}}_{n, m}$ to obtain the predicted scores $\{\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}}\}$ with values
+```math
+    \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} = \boldsymbol{\psi}(\tilde{\mathbf{x}}_{n,m}, \boldsymbol{\theta}),
+```
+and then compute half the mean square distance between the two matrices:
+```math
+    \frac{1}{2}\sum_{m=1}^M \sum_{n=1}^N \left\| \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} - \mathbf{a}_{n,m}\right|^2.
+```
+
+In the implementation below, we just use $M=1$, so the matrices $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are actually just vectors. Besides, this is a scalar example, i.e. with $d=1$, so they are indeed plain real-valued vectors $(\psi_{n,1})_n$ and $(a_{n,1})_n$.
+
+In general, though, these objects $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are $\mathbb{R}^d$-vector-valued matrices.
+
 ```@example denoisingscorematching
 function loss_function_dsm(model, ps, st, data)
     noised_sample_points, dsm_target = data
     y_score_pred, st = Lux.apply(model, noised_sample_points, ps, st)
-    loss = mean(abs2, y_score_pred .- dsm_target)
+    loss = mean(abs2, y_score_pred .- dsm_target) / 2
     return loss, st, ()
 end
 ```
