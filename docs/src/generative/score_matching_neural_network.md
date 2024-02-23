@@ -1,14 +1,10 @@
 # Score matching a neural network
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
 
-Apply the score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) to fit a neural network to a univariate Gaussian distribution, for illustrative purposes.
+Apply the score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) to fit a neural network to a univariate Gaussian distribution, similarly to how it was done by [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html), via automatic differentiation.
 
 ### Motivation
 
@@ -20,7 +16,7 @@ The idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.htm
 
 The implicit score matching method requires, however, the derivative of the model score function, which is costly to compute in general. In Hyvärinen's original work, all the examples considered models for which the gradient can be computed somewhat more explicitly. There was no artificial neural network involved.
 
-In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to a small two-layer model.
+In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to fit the score function from a model probability with log-likelyhood obtained from a two-layer neural network, so that the gradient of the score function could still be expressed somehow explicitly.
 
 After that, [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html) considered a larger artificial neural network and used automatic differentiation to optimize the model. They also proposed a penalization term in the loss function, to regularize and stabilize the optimization process.
 

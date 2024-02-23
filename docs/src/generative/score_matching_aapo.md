@@ -16,7 +16,11 @@ Generative score-matching diffusion methods use Langevin dynamics to draw sample
 
 It is worth noticing, in light of the main objective of score-matching diffusion, that the original work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has no diffusion. It is a direct modeling of the score function in the original probability space. But this is a fundamental work.
 
-We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD) (those were proposed in subsequent works, as we will see). We illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
+We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD) (those were proposed in subsequent works, as we will see).
+
+In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to fit the score function from a model probability with log-likelyhood obtained from a two-layer neural network, but in this case the gradient of the score function could still be expressed somehow explicitly.
+
+With that in mind, we illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
 
 ## The score function
 
@@ -301,3 +305,4 @@ As we mentioned earlier, our interest, however, is on modeling the score-functio
 ## References
 
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
+1. [U. Köster, A. Hyvärinen (2010), "A two-layer model of natural stimuli estimated with score matching", Neural. Comput. 22 (no. 9), 2308-33, doi: 10.1162/NECO_a_00010](https://doi.org/10.1162/neco_a_00010)
