@@ -20,9 +20,11 @@ The motivation is to continue building a solid background on score-matching diff
 
 The **implicit score matching** method requires, however, the derivative of the model score function, which is costly to compute in general.
 
-Then, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using *non-parametric Parzen density estimation* to directly approximate the explicit score matching objective, making a connection with denoising autoenconders, and proposing the **denoising score matching** method.
+Then, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using *non-parametric Parzen density estimation* to directly approximate the explicit score matching objective, making a connection with denoising autoenconders (proposed earlir by Pascal himself, as a co-author in [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html)), and proposing the **denoising score matching** method.
 
 ## Objetive function for denoising score matching
+
+### The original explicit and implicit score matching
 
 The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the model score function $\psi(\mathbf{x}; {\boldsymbol{\theta}})$ to the score function $\psi_X(\mathbf{x})$ of a random variable $\mathbf{X}$ by minimizing the 
 **implicit score matching** objective
@@ -48,6 +50,8 @@ so the implemented implicit score matching objective is
     {\tilde J}_{\mathrm{ISM{\tilde p}_0}}({\boldsymbol{\theta}}) = \frac{1}{N}\sum_{n=1}^N \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}_n; {\boldsymbol{\theta}}) \right).
 ```
 
+### Using Parzen estimation
+
 [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentions that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismisses it for the "simple trick of partial integration to compute the objective function very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes computationally expensive.
 
 A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) considered the idea of using a Parzel kernel density estimation
@@ -59,7 +63,11 @@ where $\sigma > 0$ is a kernel window parameter and $K(\mathbf{x})$ is a kernel 
     {\tilde J}_{\mathrm{ESM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} {\tilde p}_\sigma(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\mathbf{x}}\log {\tilde p}_\sigma(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x}.
 ```
 
-However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma}}({\boldsymbol{\theta}})$ by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, and switching the order of integration. In this way, Pascal arrived at the **(Parzen) denoising score matching** objective function
+### Denoising autoencoder
+
+However, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) did not use this as a final objective function. Pascal further simplified the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma}}({\boldsymbol{\theta}})$ by expanding the gradient of the logpdf of the Parzen estimator, writing a double integral with a conditional probability, simplifying the computation of the gradient of the logarithm of the Parzen estimation, which involves the log of a sum, to the gradient of the logarithm of the conditional probability, which involves the log of a single kernel.
+
+In this way, Pascal arrived at the **(Parzen) denoising score matching** objective function
 ```math
     {\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} \int_{\mathbb{R}^d} {\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}) {\tilde p}_0(\mathbf{x})\left\| \boldsymbol{\psi}(\tilde{\mathbf{x}}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}}\log {\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}) \right\|^2 \mathrm{d}\mathbf{x}\,\mathrm{d}\tilde{\mathbf{x}}
 ```
@@ -67,14 +75,16 @@ where ${\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x})$ is the conditional dens
 ```math
     {\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}) = \frac{1}{\sigma^d}K\left(\frac{\tilde{\mathbf{x}} - \mathbf{x}}{\sigma}\right).
 ```
-Notice that the empirical distribution is not a further approximation to this objective function (yet). It comes directly from the Parzen estimator. So, we can write
+Notice that the empirical distribution is not a further approximation to this objective function. It comes directly from the Parzen estimator. So, we can write
 ```math
     {\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{N}\sum_{n=1}^N \int_{\mathbb{R}^d} {\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}_n) \left\| \boldsymbol{\psi}(\tilde{\mathbf{x}}; {\boldsymbol{\theta}}) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}}\log {\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}_n) \right\|^2 \mathrm{d}\tilde{\mathbf{x}}.
 ```
 
 We do need, however, for the sake of implementation, to approximate the (inner) expectation with respect to the conditional distribution. This is achieved by drawing a certain number of sample points from the conditional distribution associated with ${\tilde p}_\sigma(\tilde{\mathbf{x}}|\mathbf{x}_n)$.
 
-At this point, choosing the kernel, in the Parzen estimation, to be the standard Gaussian kernel
+### Denoising autoencoder with the standard Gaussian kernel
+
+At this point, choosing the kernel of the Parzen estimation to be the standard Gaussian kernel
 ```math
     G(\mathbf{x}) = \frac{1}{\sqrt{2\pi}} e^{-\frac{1}{2} \mathbf{x}^2},
 ```
@@ -104,6 +114,58 @@ Thus, in this case, the **empirical denoising score matching** objective reads
 ```math
     {\tilde J}_{\mathrm{DSM{\tilde p}_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{NM}\sum_{n=1}^N \sum_{m=1}^M \left\| \boldsymbol{\psi}(\mathbf{x}_{n, m}; {\boldsymbol{\theta}}) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2} \right\|^2 \mathrm{d}\tilde{\mathbf{x}}.
 ```
+
+Often, with $N$ sufficiently large, it suffices to take $M=1$, i.e. a single "corrupted" sample $\tilde{\mathbf{x}}_n$, for each "clean" sample point $\mathbf{x}_n$. In this way, the double summation becomes a single summation and the computation is just as fast as the one with the score of the unconditional Parzen estimation, with the benefit similar to the denosing autoencoders.
+
+### Connection with denoising autoencoder
+
+This brings us to the connection, discussed by [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142),  with denoising autoencoders, which were proposed a bit earlier by [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html).
+
+In an **autoencoder**, as introduced by [Kramer (1991)](https://doi.org/10.1002/AIC.690370209), one has two models, an *encoder* model $\mathbf{y} = \mathbf{f}_{\boldsymbol{\xi}}(\mathbf{x})$ and a *decoder* $\mathbf{x} = \mathbf{g}_{\boldsymbol{\eta}}(\mathbf{y})$, and the objective is to be able to encode and decode the sample, and recover the original sample as close as possible, i.e.
+```math
+    J(\boldsymbol{\xi}, \boldsymbol{\eta}) = \frac{1}{N} \sum_{n=1}^N \left\|\mathbf{x}_n - \mathbf{g}_{\boldsymbol{\eta}}(\mathbf{f}_{\boldsymbol{\xi}}(\mathbf{x}_n))\right\|.
+```
+Of course, this is useful when the *latent* space of the encoded information $\mathbf{y}$ is much smaller than the sample space, otherwise we just need to model the identity operator.
+
+In a **denoising autoencoder**, proposed by [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html), one first "corrupts" the sample points according to some distribution law, say
+```math
+    \tilde{\mathbf{x}}_n \sim \mathcal{P}(\tilde{\mathbf{x}}|\mathbf{x}_n),
+```
+and then use the corrupted sample to train the encoder/decoder pair with the objective function
+```math
+    J_{\mathcal{P}}(\boldsymbol{\xi}, \boldsymbol{\eta}) = \frac{1}{N} \sum_{n=1}^N \left\|\mathbf{x}_n - \mathbf{g}_{\boldsymbol{\eta}}(\mathbf{f}_{\boldsymbol{\xi}}(\tilde{\mathbf{x}}_n)) \right\|.
+```
+
+The idea is that the encoder/decoder model learns to better "reconstruct" the information even from "imperfect" information. Think about the case of encoding/decoding a handwritten message, where the letters are not "perfect" according to any font style.
+
+In [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142), by choosing the score model of the form
+```math
+    \boldsymbol{\psi}(\mathbf{x}, \boldsymbol{\theta}) = \frac{1}{\sigma^2}\left( \mathbf{W}^{\mathrm{tr}} s\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right) + \mathbf{c} - \mathbf{x}\right),
+```
+where $\boldsymbol{\theta} = (\mathbf{W}, \mathbf{b}, \mathbf{c})$ are the parameters and $s()$ is an activation function such as the sigmoid function, and choosing the noise according to
+```math
+    \mathcal{P}(\tilde{\mathbf{x}}|\mathbf{x}_n) = \mathcal{N}(\mathbf{x}_n, \sigma^2),
+```
+one obtains the connection
+```math
+    {\tilde J}_{\mathrm{DSM{\tilde p}_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2\sigma^4} {\tilde J}_{\mathcal{P}}(\boldsymbol{\theta}),
+```
+where ${\tilde J}_{\mathcal{P}}(\boldsymbol{\theta})$ is similar to the denoising autoencoder objective $J_{\mathcal{P}}(\boldsymbol{\xi}, \boldsymbol{\eta})$, and is defined by
+```math
+    {\tilde J}_{\mathcal{P}}(\boldsymbol{\theta}) = \frac{1}{N} \sum_{n=1}^N \left\|\mathbf{x}_n - \mathbf{h}_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_n) \right\|,
+```
+where $\mathbf{h}_{\boldsymbol{\theta}}(\mathbf{x})$ is almost of the form of an encoder/decoder, namely
+```math
+    \mathbf{h}_{\boldsymbol{\theta}}(\mathbf{x}) = \mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\theta}}(\mathbf{x})) - \mathbf{x},
+```
+with
+```math
+    {f}_{\boldsymbol{\theta}}(\mathbf{x}) = \mathrm{sigmoid}\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right), \quad \mathbf{g}_{\boldsymbol{\theta}}(\mathbf{y}) = \mathbf{W}^{\mathrm{tr}}\mathbf{y} + \mathbf{c}.
+```
+
+Remember that here we are not trying to encode/decode the variate $\mathbf{x}$ itself, but its score function, so the above structure is compatible with that.
+
+[Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) does not mention explicitly that what we denoted above by $\mathbf{h}_{\boldsymbol{\theta}}(\mathbf{x})$ is not exactly of the form $\mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\theta}}(\mathbf{x}))$ and actually seems to suggest they are of the same form, for the sake of the connection with a denoising autoenconder. But we see here that it is not. Let us not freak out about that, though. This is good enough to draw some connection between denoising score matching and denoising autoencoder and to have this as an inspiration.
 
 ## Proof that ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) + C_\sigma$
 
@@ -490,3 +552,5 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 
 1. [Pascal Vincent (2011), "A connection between score matching and denoising autoencoders," Neural Computation, 23 (7), 1661-1674, doi:10.1162/NECO_a_00142](https://doi.org/10.1162/NECO_a_00142)
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
+1. [P. Vincent, H. Larochelle, I. Lajoie, Y. Bengio, and P.-A. Manzagol (2010), "Stacked Denoising Autoencoders: Learning Useful Representations in a Deep Network with a Local Denoising Criterion". Journal of Machine Learning Research. 11 (110), 3371-3408](https://www.jmlr.org/papers/v11/vincent10a.html)
+1. [M. A. Kramer (1991), "Nonlinear principal component analysis using autoassociative neural networks", AIChE Journal. 37 (2), 233--243. doi:10.1002/aic.690370209.](https://doi.org/10.1002/AIC.690370209)
