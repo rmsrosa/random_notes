@@ -462,7 +462,9 @@ This lead to a sampling method to draw samples from a distribution using its sco
 
 As mentioned above, questions about the conditions for the convergence, rate of converge and convergence metric are of great importance, and they are also important for sampling purposes. Other relevant question concern the stability of the equilibrium solution, when for instance an approximate score function is used. This is also relevant when the modeled score function (say via a neural network) might even not be exactly the gradient of a potential. We will leave these questions for another opportunity.
 
-## One-dimensional numerical example
+## Numerical example
+
+### One-dimensional numerical example
 
 We first illustrate the Langevin sampling by drawing samples for a univariate Gaussian mixture distribution.
 
@@ -546,7 +548,7 @@ end
 anim # hide
 ```
 
-## Two-dimensional numerical example
+### Two-dimensional numerical example
 
 Let's do a two-dimensional example, now. We consider a trimodel bivariate normal distribution and use the two-dimensional overdamped Langevin equations to obtain samples from the score function of the distribution.
 

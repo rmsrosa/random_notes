@@ -10,7 +10,9 @@ Draft = true
 
 ### Motivation
 
-## Julia language setup
+## Numerical Example
+
+### Julia language setup
 
 We use the [Julia programming language](https://julialang.org) with suitable packages.
 
@@ -69,7 +71,7 @@ function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
 end
 ```
 
-## Data
+### Data
 
 Now we build the target model and draw samples from it.
 
@@ -112,7 +114,7 @@ plot!(xrange, s -> gradlogpdf(target_prob, s), label="score function", markersiz
 scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 ```
 
-## The neural network model
+### The neural network model
 
 The neural network we consider is a simple feed-forward neural network made of a single hidden layer, obtained as a chain of a couple of dense layers. This is implemented with the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package.
 
@@ -126,9 +128,9 @@ model = f64(Chain(Dense(1 => 8, relu), Dense(8 => 1)))
 ps = Flux.params(model)
 ```
 
-## Loss functions for score-matching
+### Loss functions for score-matching
 
-### Mean squared error loss function
+#### Mean squared error loss function
 
 For educational purposes, since we have the pdf and the score function, one of the ways we may train the model is directly on $J({\boldsymbol{\theta}})$ itself. This is also useful to make sure that our network is able to model the desired score function.
 
@@ -148,7 +150,7 @@ function loss_function_mse(model, x, y)
 end
 ```
 
-### Loss function
+#### Loss function
 
 ```@example kdescorematching
 function loss_function_kde_old(model, ps, st, data)
@@ -177,9 +179,9 @@ mean(abs2, y_pred_tst[i] + (s - xi) / sigma ^ 2 for xi in sample_points for (i, 
 Flux.gradient(m -> loss_function_kse(m(sample_points), y_score_kse), model)
 ```
 
-## Optimization setup
+### Optimization setup
 
-### Optimization method
+#### Optimization method
 
 We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.semanticscholar.org/paper/Adam%3A-A-Method-for-Stochastic-Optimization-Kingma-Ba/a6cb366736791bcccc5c8639de5a8f9636bf87e8)), which is a stochastic gradient-based optimization method.
 
@@ -187,9 +189,9 @@ We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.sema
 opt = Flux.setup(Adam(), model)
 ```
 
-## Training
+### Training
 
-### Preparing the data
+#### Preparing the data
 
 ```@example kdescorematching
 data = (sample_points, gradlogpdf.(target_prob, sample_points))
@@ -200,7 +202,7 @@ data = (sample_points, y_score_kse)
 Flux.gradient(m -> loss_function_kse(m(sample_points), y_score_kse), model)
 ```
 
-### Training with $J({\boldsymbol{\theta}})$
+#### Training with $J({\boldsymbol{\theta}})$
 
 Now we attempt to train the model, starting with $J({\boldsymbol{\theta}})$.
 ```@example kdescorematching
