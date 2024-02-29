@@ -32,7 +32,7 @@ The initial random variable $\mathbf{X}_0$ is evolved in time as a Markov chain 
 ```math
     \mathbf{X}_k = \sqrt{1 - \beta_k}\mathbf{X}_{k-1} + \sqrt{\beta_k}\mathbf{Z}_k, \quad \mathbf{Z}_k \sim \mathcal{N}(\mathbf{0}, \mathbf{I}),
 ```
-where $\boldsymbol{\beta}=\{\beta_k\}_{k\in \mathbb{N}}$ is given, with $0 < \beta_k < 1$, for every $k$.
+where $\boldsymbol{\beta}=\{\beta_k\}_{k\in \mathbb{N}}$ is given, with $0 < \beta_k < 1$, for every $k$. In practice, we will stop at some $K\in\mathbb{N}$, so that $k=1, 2, \ldots, K$.
 
 The marginal probability density function of the step $k$ conditioned on the step $k-1$ satisfies
 ```math
@@ -58,11 +58,11 @@ and
 ```
 Thus,
 ```math
-    \left|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right|^2 = (1 - \beta_k)\left|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right|^2 + 2\sqrt{1 - \beta_k}\left(\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right)\sqrt{\beta_k}\mathbf{Z}_k + \beta_k \mathbf{Z}_k^2.
+    \left\|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right\|^2 = (1 - \beta_k)\left\|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right\|^2 + 2\sqrt{1 - \beta_k}\left(\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right)\sqrt{\beta_k}\mathbf{Z}_k + \beta_k \mathbf{Z}_k^2.
 ```
 Taking the expectation, we find that
 ```math
-    \mathbb{E}\left[ \left\|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right\|^2 \right] = (1 - \beta_k) \mathbb{E}\left[ \left|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right\|^2 \right] + \beta_k.
+    \mathbb{E}\left[ \left\|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right\|^2 \right] = (1 - \beta_k) \mathbb{E}\left[ \left\|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right\|^2 \right] + \beta_k.
 ```
 This means that the variance satisfies
 ```math
@@ -277,6 +277,21 @@ Using, again, that $\beta_k = 1 - \alpha_k$, we find
 ```math
     \tilde{\boldsymbol{\mu}}_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
+In this way, we *reparametrize* the mean in terms of $\mathbf{x}_k$ and $\bar{\boldsymbol{\epsilon}}_k$, instead of $\mathbf{x}_k$ and $\mathbf{x}_0$.
+
+Defining
+```math
+    \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{1}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_k - \frac{\sqrt{\bar\alpha}_k}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_0, \qquad
+    \tilde{\mathbf{x}}_0(\mathbf{x}_k, \bar\epsilon_k) = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k,
+```
+and
+```math
+    {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \bar{\boldsymbol{\epsilon}}_k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k,
+```
+we can write
+```math
+    \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0)).
+```
 
 ### The model
 
@@ -297,12 +312,26 @@ We have
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K) = p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)p_{\boldsymbol{\theta}}(\mathbf{x}_1|\mathbf{x}_2)\cdots p_{\boldsymbol{\theta}}(\mathbf{x}_{K-1}|\mathbf{x}_K).
 ```
-
-
-... at some point we use the empirical distribution
+The key step is to model $\tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0)$ by a map
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) \approx \frac{1}{N}\sum_{n=1}^N p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0^n\right).
+    \hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}(\mathbf{x}_k, k),
 ```
+and use it to complete the definition of the model $p_{\boldsymbol{\theta}}$ with
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\mathbf{x}_{k-1}; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_t, k), \tilde\beta_k),
+```
+with
+```math
+    \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_t, k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}(\mathbf{x}_k, k).
+```
+
+### The loss function
+
+Ideally, one would maximize the (log-)likelyhood of the model, by minimizing the loss function
+```math
+    \mathbb{E}_{\mathbf{X}_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0 \approx -\frac{1}{N}\sum_{n=1}^N \log p_{\boldsymbol{\theta}}(\mathbf{x}_0^n).
+```
+
 ## Numerical example
 
 We illustrate the method, numerically, to model a synthetic univariate Gaussian mixture distribution.
