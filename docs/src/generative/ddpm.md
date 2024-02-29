@@ -1,7 +1,7 @@
 # Denoising diffusion probabilistic models
 
 ```@meta
-Draft = false
+Draft = true
 ```
 
 ## Introduction
@@ -17,6 +17,218 @@ Build a solid foundation on generative diffusion models, for which DDPM is an in
 ### Background
 
 The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) is to embed the random variable we want to model into a Markov chain and model the whole Markov chain. This is a much more complex task and greatly enlarge the dimension of the problem, but which yields more stability to the training and the generative processes. The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain converging to a simple and tractable distribution, usually a normal distribution. The training process fits a model to the whole Markov chain. Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the tractable distribution. The tractable final distribution becomes the initial distribution of the reverse process, and the initial desired target distribution becomes the final distribution.
+
+## Details of the method
+
+We consider the unknown target distribution to be an initial distribution for a Markov process, so we denote it by $\mathbb{P}_0$, with the associated random variable denoted by $\mathbf{X}_0$ in $\mathbb{R}^d$, $d\in\mathbb{N}$. The probability density function is denoted by $p_0(\mathbf{x})$.
+
+The idea is to define a forward Markov process to add noise to the initial random variable and drive the distribution close to a standard Gaussian distribution. This forward process is pretty well defined and straightforward to implement. From the initial sample points we obtain samples of the Markov process. The idea then is to use those sample trajectories to learn the reverse Markov process. With this model of the reverse process, we can build new sample points out of (new) samples of the standard Gaussian distribution.
+
+Since the approximate reverse process is made of a initial standard Gaussian distribution and the process just adds Gaussian noises, the approximate reverse process is a Gaussian process. Thus we can just parametrized it by its (time-dependent) mean and variance. The problem is that ... 
+
+### The forward Markov chain
+
+The initial random variable $\mathbf{X}_0$ is evolved in time as a Markov chain $\{\mathbf{X}_k\}_{k\in \mathbb{Z}_0^+}$ according to
+```math
+    \mathbf{X}_k = \sqrt{1 - \beta_k}\mathbf{X}_{k-1} + \sqrt{\beta_k}\mathbf{Z}_k, \quad \mathbf{Z}_k \sim \mathcal{N}(\mathbf{0}, \mathbf{I}),
+```
+where $\boldsymbol{\beta}=\{\beta_k\}_{k\in \mathbb{N}}$ is given, with $0 < \beta_k < 1$, for every $k$.
+
+The marginal probability density function of the step $k$ conditioned on the step $k-1$ satisfies
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}\left(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k\right).
+```
+
+By taking the expectation of the recurrence relation of the Markov chain, we see that the means ${\bar{\mathbf{X}}}_k = \mathbb{E}[\mathbf{X}_k]$ evolve according to
+```math
+    {\bar{\mathbf{X}}}_k = \sqrt{1 - \beta_k}{\bar{\mathbf{X}}}_{k-1},
+```
+With $0 < \beta_k < 1$, we see that the mean value decays to zero exponentially,
+```math
+    {\bar{\mathbf{X}}}_k \rightarrow 0, \qquad k \rightarrow \infty.
+```
+
+Notice that
+```math
+    {\bar{\mathbf{X}}}_k^2 = (1 - \beta_k){\bar{\mathbf{X}}}_{k-1}^2,
+```
+and
+```math
+    \mathbf{X}_k - {\bar{\mathbf{X}}}_k = \sqrt{1 - \beta_k}\left(\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right) + \sqrt{\beta_k}\mathbf{Z}_k.
+```
+Thus,
+```math
+    \left|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right|^2 = (1 - \beta_k)\left|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right|^2 + 2\sqrt{1 - \beta_k}\left(\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right)\sqrt{\beta_k}\mathbf{Z}_k + \beta_k \mathbf{Z}_k^2.
+```
+Taking the expectation, we find that
+```math
+    \mathbb{E}\left[ \left\|\mathbf{X}_k - {\bar{\mathbf{X}}}_k\right\|^2 \right] = (1 - \beta_k) \mathbb{E}\left[ \left|\mathbf{X}_{k-1} - {\bar{\mathbf{X}}}_{k-1}\right\|^2 \right] + \beta_k.
+```
+This means that the variance satisfies
+```math
+    \operatorname{Var}(\mathbf{X}_k) = (1 - \beta_k)\operatorname{Var}(\mathbf{X}_{k-1}) + \beta_k.
+```
+The parameters $\boldsymbol{\beta}=\{\beta_k\}_k$ are said to be a **variance schedule**.
+
+At the limit $k\rightarrow \infty$, with $0 < \beta_k < 1$, we see that the variance converges exponentially to one,
+```math
+    \operatorname{Var}(\mathbf{X}_k) \rightarrow 1, \qquad k \rightarrow \infty.
+```
+Thus, $\{\mathbf{X}_k\}_k$ converges to the standard Gaussian distribution.
+
+We can also write
+```math
+    \operatorname{Var}(\mathbf{X}_k) - \operatorname{Var}(\mathbf{X}_{k-1}) = - \beta_k\operatorname{Var}(\mathbf{X}_{k-1}) + \beta_k
+```
+and
+```math
+    \frac{\operatorname{Var}(\mathbf{X}_k) - \operatorname{Var}(\mathbf{X}_{k-1})}{\beta_k} = -\operatorname{Var}(\mathbf{X}_{k-1}) + 1,
+```
+so that the variance schedule $\boldsymbol{\beta}=\{\beta_k\}_k$ is also interpreted as **step sizes**.
+
+The probability density functions $p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = p_{\boldsymbol{\beta}}(\mathbf{x}_0, \ldots, \mathbf{x}_K)$ of the Markov chain, where $\mathbf{x}_{0:K} = (\mathbf{x}_0, \dots, \mathbf{x}_K)$ is a portion of a trajectory, satisfies the conditional marginal relation
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k),
+```
+Then,
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_{K}|\mathbf{x}_{K-1})\cdots p_{\boldsymbol{\beta}}(\mathbf{x}_1|\mathbf{x}_0) = \prod_{k=1}^{K}p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}).
+```
+
+Thus,
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} \prod_{k=1}^K p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1})p_0(\mathbf{x_0})\;\mathrm{d}\mathbf{x_0}.
+```
+
+An approximate distribution is obtained with the empirical distribution based on samples of the initial random variable $\mathbf{X}_0$, which we denote by
+```math
+    {\tilde p}_{\delta_0}(\mathbf{x}_0) = \frac{1}{N}\sum_{n=1}^N \delta(\mathbf{x}_0 - \mathbf{x}_0^n),
+```
+where the samples are denoted now by $\{\mathbf{x}_0^n\}_{n=1}^N$.
+
+We can iterate the Markov transition formula and write
+```math
+    \begin{align*}
+        \mathbf{X}_k & = \sqrt{1 - \beta_{k}}\mathbf{X}_{k-1} + \sqrt{\beta_{k}}\mathbf{Z}_{k} \\
+        & = \sqrt{1 - \beta_{k}}\left( \sqrt{1 - \beta_{k-1}}\mathbf{X}_{k-2} + \sqrt{\beta_{k-1}}\mathbf{Z}_{k-1} \right) + \sqrt{\beta_{k}}\mathbf{Z}_{k} \\
+        & = \sqrt{1 - \beta_{k}}\sqrt{1 - \beta_{k-1}}\mathbf{X}_{k-2} + \sqrt{1 - \beta_{k}}\sqrt{\beta_{k-1}}\mathbf{Z}_{k-1} + \sqrt{\beta_{k}}\mathbf{Z}_{k} \\
+        & = \sqrt{1 - \beta_{k}}\sqrt{1 - \beta_{k-1}}\left( \sqrt{1 - \beta_{k-2}}\mathbf{X}_{k-3} + \sqrt{\beta_{k-2}}\mathbf{Z}_{k-2} \right) + \sqrt{1 - \beta_{k}}\sqrt{\beta_{k-1}}\mathbf{Z}_{k-1} + \sqrt{\beta_{k}}\mathbf{Z}_{k} \\
+        & = \cdots \\
+        & = \sqrt{1 - \beta_{k}} \cdots \sqrt{1 - \beta_1}\mathbf{X}_0 + \sqrt{1 - \beta_{k}}\cdots \sqrt{1 - \beta_1}\mathbf{Z}_1 + \cdots + \sqrt{1 - \beta_{k}}\sqrt{\beta_{k-1}}\mathbf{Z}_{k-1} + \sqrt{\beta_{k}}\mathbf{Z}_{k}.
+    \end{align*}
+```
+By defining
+```math
+    \alpha_k = 1 - \beta_k,
+```
+we rewrite this as
+```math
+    \mathbf{X}_k = \sqrt{\alpha_{k}\cdots \alpha_1}\mathbf{X}_0 + \sqrt{\alpha_{k}\cdots\alpha_2}\sqrt{1 - \alpha_1}\mathbf{Z}_1 + \cdots + \sqrt{\alpha_{k}}\sqrt{1 - \alpha_{k-1}}\mathbf{Z}_{k-1} + \sqrt{1 - \alpha_{k}}\mathbf{Z}_{k}.
+```
+
+Since the $\mathbf{Z}_k$ are standard Gaussian random variables, thus with zero mean and variance one, their linear combination is also a Gaussian with zero mean, while the variance is given by the sum of the variances which end up simplifying to
+```math
+\alpha_{k}\cdots\alpha_2 (1 - \alpha_1) + \cdots + \alpha_{k}(1 - \alpha_{k-1}) + (1 - \alpha_{k}) = 1 - \alpha_{k}\cdots \alpha_1.
+```
+
+Defining now
+```math
+    \bar\alpha_k = \alpha_k\cdots\alpha_1,
+```
+we obtain
+```math
+    \mathbf{X}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{X}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\mathbf{Z}}_k, \qquad \bar{\mathbf{Z}}_k \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
+```
+
+### The backward Markov chain
+
+Now we want to be able to revert the Markov chain. But what would be $\mathbf{X}_{k-1}$ given $\mathbf{X}_k = \mathbf{x}_k?$
+
+When also conditioned on the initial sample, we can use Bayes' rule and write
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right) = \frac{p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right)}{p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_0\right)}
+```
+
+Using the Markovian property on the first term of the nominator and ignoring the normalization constant, we know that
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) = p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k}\right),
+```
+while
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}}\right),
+```
+and
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k}\right).
+```
+Thus,
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\left( - \frac{1}{2}\left(\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k} + \frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}} - \frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k} \right)\right).
+```
+We separate the dependence on the variable $\mathbf{x}_{k-1}$ from that on the conditioned variables $\mathbf{x}_k$ and $\mathbf{x}_0$.
+```math
+    \begin{align*}
+        p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) & \propto \exp\bigg( - \frac{1}{2}\bigg(\frac{\mathbf{x}_k^2 - 2\mathbf{x}_k \sqrt{\alpha_k}\mathbf{x}_{k-1} + \alpha_k\mathbf{x}_{k-1}^2}{\beta_k} \\
+        & \qquad \qquad \qquad + \frac{\mathbf{x}_{k-1}^2 - 2\mathbf{x}_{k-1}\sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0 + \bar{\alpha}_{k-1}\mathbf{x}_0^2}{1 - \bar{\alpha}_{k-1}} \\
+        & \qquad \qquad \qquad \qquad \qquad - \frac{\mathbf{x}_k^2 - \mathbf{x}_k\sqrt{\bar{\alpha}_k}\mathbf{x}_0 + \bar{\alpha}_k\mathbf{x}_0^2}{1 - \bar{\alpha}_k} \bigg)\bigg) \\
+        & = \exp\bigg( -\frac{1}{2}\bigg( \left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)\mathbf{x}_{k-1}^2 \\
+        & \qquad \qquad \qquad - \left(\frac{2\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{2\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right)\mathbf{x}_{k-1} \\
+        & \qquad \qquad \qquad + \left( \frac{1}{\beta_k} - \frac{1}{1 - \bar{\alpha}_k}\right)\mathbf{x}_{k}^2 + \frac{\sqrt{\bar{\alpha}_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k\mathbf{x}_0 \\
+        & \qquad \qquad \qquad \qquad \qquad + \left( \frac{\bar{\alpha}_{k-1}}{1 - \bar{\alpha}_{k-1}} - \frac{\bar{\alpha}_k}{1 - \bar{\alpha}_k} \right)\mathbf{x}_0^2\bigg)\bigg).
+    \end{align*}
+```
+Completing the squares, we write
+```math
+    \left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)\mathbf{x}_{k-1}^2 - \left(\frac{2\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{2\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right)\mathbf{x}_{k-1} = \frac{\left(\mathbf{x}_{k-1} - \tilde\mu_k\right)^2}{\tilde{\beta}_k} - \frac{{\tilde \mu}_k^2}{\tilde \beta_k},
+```
+with
+```math
+    \begin{align*}
+        \tilde\beta_k & = \frac{1}{\left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)}, \\
+        \frac{\tilde\mu_k}{\tilde\beta_k} & = \frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0.
+    \end{align*}
+```
+Using that $\beta_k = 1 - \alpha_k$, we find the variance of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ to be
+```math
+    \tilde\beta_k = \frac{1}{\left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)} = \frac{\beta_k(1 - \bar{\alpha}_{k-1})}{\alpha_k(1 - \bar{\alpha}_{k-1}) + \beta_k} = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k,
+```
+With that, we rewrite the mean of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ as
+```math
+    \begin{align*}
+        \tilde\mu_k & = \tilde\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) \\
+        & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0.
+    \end{align*}
+```
+Then, we obtain
+```math
+    \begin{align*}
+        \frac{{\tilde\mu}_k^2}{\tilde \beta_k} & = \frac{1 - \bar{\alpha}_k}{(1 - \bar{\alpha}_{k-1})\beta_k}\left(\frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0\right) \\
+        & = \frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{(1 - \bar{\alpha}_{k-1})}\mathbf{x}_0.
+    \end{align*}
+```
+
+Now, from the relation $\mathbf{X}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{X}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\mathbf{Z}}_k$, where $\bar{\mathbf{Z}}_k \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, we find that
+```math
+    \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\mathbf{z}}_k,
+```
+for some sample $\mathbf{z}_k$ of the standard normal distribution. We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
+```math
+    \mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k.
+```
+Plugging this into the formula for the mean $\tilde\mu_k$, we obtain
+```math
+    \begin{align*}
+        \tilde\mu_k & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\left(\frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k\right) \\
+        & = \left(\frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k} + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{(1 - \bar{\alpha}_k)\sqrt{\bar\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k \\
+        & = \left(\frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k} + \frac{\beta_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k \\
+        & = \left(\frac{(1 - \bar{\alpha}_{k-1})\alpha_k + \beta_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k \\
+        & = \left(\frac{\alpha_k - \bar{\alpha}_k + \beta_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k
+    \end{align*}
+```
+Using, again, that $\beta_k = 1 - \alpha_k$, we find
+```math
+    \tilde\mu_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k
+```
 
 ## Numerical example
 
@@ -140,21 +352,52 @@ data = (sample_points, score_parzen_points)
 
 ### Markov chain
 
-Now we evolve the sample as a initial time of a Markov chain $\{\mathbf{X}_k\}_{k=0, 1, \ldots, k_f}$
+Now we evolve the sample as the initial state of a Markov chain $\{\mathbf{X}_k\}_{k=0, 1, \ldots, k_f}$, with
 
 ```math
-    X_{k+1} \sim \mathcal{N}(\sqrt{1 - \beta_k} X_k, \beta_k \mathbf{I}),
+    \mathbf{X}_{k+1} \sim \mathcal{N}(\sqrt{1 - \beta_k} \mathbf{X}_k, \beta_k \mathbf{I}),
 ```
-where $\{\beta_k\}_{k=0}^{k_f}$.
+where $\{\beta_k\}_{k=0}^{k_f}$ is a given schedule, which we take to be...
 
-```math
-    X_{k+1}^2 = (1 - \beta_k)X_k^2
+```@example ddpmscorematching
+
+function ddpm_chain!(rng, xt, beta_schedule)
+    @assert axes(xt, 1) == only(axes(beta_schedule))
+    i1 = firstindex(axes(xt, 1))
+    randn!(rng, xt)
+    xt[i1, :] .= x0
+    for i in Iterators.drop(axes(xt, 1), 1)
+        xt[i, :] .= sqrt(1 - beta_schedule[i1]) .* view(xt, i1, :) .+ beta_schedule[i1] .* view(xt, i, :)
+        i1 = i
+    end
+    return xt
+end
+
+function ddpm_chain(rng, x0, beta_schedule)
+    xt = beta_schedule .* x0'
+    ddpm_chain!(rng, xt, beta_schedule)
+    return xt
+end
 ```
-Assuming $\Delta k = 1$, we can write
-```math
-    \frac{X_{k+1}^2 - X_k^2}{\Delta k} = - \beta_k X_k^2,
+
+```@example ddpmscorematching
+beta_init = 0.1
+beta_final = 0.5
+beta_len = 40
+beta_schedule = range(beta_init, beta_final, beta_len)
 ```
-which is like an exponential energy decay.
+
+```@example ddpmscorematching
+x0 = vec(sample_points)
+```
+
+```@example ddpmscorematching
+xt = ddpm_chain(rng, x0, beta_schedule)
+```
+
+```@example ddpmscorematching
+plot(xt)
+```
 
 ### The neural network model
 
