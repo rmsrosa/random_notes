@@ -1,9 +1,5 @@
 # Denoising score matching of Pascal Vincent
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
