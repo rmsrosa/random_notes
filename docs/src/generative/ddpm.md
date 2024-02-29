@@ -86,7 +86,7 @@ and
 ```
 so that the variance schedule $\boldsymbol{\beta}=\{\beta_k\}_k$ is also interpreted as **step sizes**.
 
-The probability density functions $p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = p_{\boldsymbol{\beta}}(\mathbf{x}_0, \ldots, \mathbf{x}_K)$ of the Markov chain, where $\mathbf{x}_{0:K} = (\mathbf{x}_0, \dots, \mathbf{x}_K)$ is a portion of a trajectory, satisfies the conditional marginal relation
+The probability density functions $p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = p_{\boldsymbol{\beta}}(\mathbf{x}_0, \ldots, \mathbf{x}_K)$ of the Markov chain, where $\mathbf{x}_{0:K} = (\mathbf{x}_0, \dots, \mathbf{x}_K)$ is a portion of a trajectory up to some sufficiently large step $K\in\mathbb{N}$, satisfies the conditional marginal relation
 ```math
     p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k),
 ```
@@ -179,13 +179,13 @@ We separate the dependence on the variable $\mathbf{x}_{k-1}$ from that on the c
 ```
 Completing the squares, we write
 ```math
-    \left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)\mathbf{x}_{k-1}^2 - \left(\frac{2\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{2\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right)\mathbf{x}_{k-1} = \frac{\left(\mathbf{x}_{k-1} - \tilde\mu_k\right)^2}{\tilde{\beta}_k} - \frac{{\tilde \mu}_k^2}{\tilde \beta_k},
+    \left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)\mathbf{x}_{k-1}^2 - \left(\frac{2\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{2\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right)\mathbf{x}_{k-1} = \frac{\left(\mathbf{x}_{k-1} - \tilde{\boldsymbol{\mu}}_k\right)^2}{\tilde{\beta}_k} - \frac{{\tilde{\boldsymbol{\mu}}}_k^2}{\tilde \beta_k},
 ```
 with
 ```math
     \begin{align*}
         \tilde\beta_k & = \frac{1}{\left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)}, \\
-        \frac{\tilde\mu_k}{\tilde\beta_k} & = \frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0.
+        \frac{\tilde{\boldsymbol{\mu}}_k}{\tilde\beta_k} & = \frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0.
     \end{align*}
 ```
 Using that $\beta_k = 1 - \alpha_k$, we find the variance of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ to be
@@ -195,7 +195,7 @@ Using that $\beta_k = 1 - \alpha_k$, we find the variance of $p_{\boldsymbol{\be
 With that, we rewrite the mean of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ as
 ```math
     \begin{align*}
-        \tilde\mu_k & = \tilde\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) \\
+        \tilde{\boldsymbol{\mu}}_k & = \tilde\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) \\
         & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0.
     \end{align*}
 ```
@@ -211,14 +211,14 @@ Now, from the relation $\mathbf{X}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{X}_0 + \sq
 ```math
     \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\mathbf{z}}_k,
 ```
-for some sample $\mathbf{z}_k$ of the standard normal distribution. We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
+for $\mathbf{z}_k = $ of the standard normal distribution. We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
 ```math
     \mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k.
 ```
-Plugging this into the formula for the mean $\tilde\mu_k$, we obtain
+Plugging this into the formula for the mean $\tilde{\boldsymbol{\mu}}_k$, we obtain
 ```math
     \begin{align*}
-        \tilde\mu_k & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\left(\frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k\right) \\
+        \tilde{\boldsymbol{\mu}}_k & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\left(\frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k\right) \\
         & = \left(\frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k} + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{(1 - \bar{\alpha}_k)\sqrt{\bar\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\mathbf{z}}_k \\
         & = \left(\frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k} + \frac{\beta_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k \\
         & = \left(\frac{(1 - \bar{\alpha}_{k-1})\alpha_k + \beta_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\right)\mathbf{x}_k - \frac{\beta_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k \\
@@ -227,9 +227,76 @@ Plugging this into the formula for the mean $\tilde\mu_k$, we obtain
 ```
 Using, again, that $\beta_k = 1 - \alpha_k$, we find
 ```math
-    \tilde\mu_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k
+    \tilde{\boldsymbol{\mu}}_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\mathbf{z}}_k.
 ```
 
+Thus, we write
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\bigg( -\frac{1}{2}\bigg( \frac{\left(\mathbf{x}_{k-1} - \tilde{\boldsymbol{\mu}}_k\right)^2}{\tilde{\beta}_k} + \tilde\gamma_k \bigg)\bigg),
+```
+where
+```math
+    \tilde\gamma_k = \left( \frac{1}{\beta_k} - \frac{1}{1 - \bar{\alpha}_k}\right)\mathbf{x}_{k}^2 + \frac{\sqrt{\bar{\alpha}_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k\mathbf{x}_0 + \left( \frac{\bar{\alpha}_{k-1}}{1 - \bar{\alpha}_{k-1}} - \frac{\bar{\alpha}_k}{1 - \bar{\alpha}_k} \right)\mathbf{x}_0^2 - \frac{{\tilde{\boldsymbol{\mu}}}_k^2}{\tilde \beta_k}.
+```
+Hence, we find that
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
+```
+
+With that, we can write
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) = \int_{\mathbb{R}^d} p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0\right)p_{\boldsymbol{\beta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
+```
+which we eventually approximate with the empirical distribution to train our model.
+
+
+Notice we can write the (initial) target distribution as
+```math
+    p_0(\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_0) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K},
+```
+and then
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
+```
+with
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_0|\mathbf{x}_1, \mathbf{x}_0)p_{\boldsymbol{\beta}}(\mathbf{x}_1|\mathbf{x}_2, \mathbf{x}_0)\cdots p_{\boldsymbol{\beta}}(\mathbf{x}_{K-1}|\mathbf{x}_K, \mathbf{x}_0),
+```
+and
+```math
+    p_{\boldsymbol{\beta}}(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = G(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)),
+```
+where $G(\mathbf{x}; \boldsymbol{\mu}, \beta)$ is the Gaussian kernel
+```math
+    G(\mathbf{x}; \boldsymbol{\mu}, \beta) = G\left(\frac{\mathbf{x} - \boldsymbol{\mu}}{\sqrt{\beta}}\right) = \frac{1}{\sqrt{2\pi\beta}}e^{-\frac{1}{2}\frac{\|\mathbf{x} - \boldsymbol{\mu}\|^2}{\beta}},
+```
+with $G(\mathbf{x})$ being the standard Gaussian kernel.
+
+### The model
+
+We want to approximate the distribution of the Markov process with some model pdf $p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})$, which yields an approximation of the target pdf $p_0(\mathbf{x}_0)$ via
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{0}) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K}.
+```
+where
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K)p_{\boldsymbol{\theta}}(\mathbf{x}_K)\;\mathrm{d}\mathbf{x}_K,
+```
+and with
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_K) \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
+```
+
+We have
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K) = p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)p_{\boldsymbol{\theta}}(\mathbf{x}_1|\mathbf{x}_2)\cdots p_{\boldsymbol{\theta}}(\mathbf{x}_{K-1}|\mathbf{x}_K).
+```
+
+
+... at some point we use the empirical distribution
+```math
+    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) \approx \frac{1}{N}\sum_{n=1}^N p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0^n\right).
+```
 ## Numerical example
 
 We illustrate the method, numerically, to model a synthetic univariate Gaussian mixture distribution.
