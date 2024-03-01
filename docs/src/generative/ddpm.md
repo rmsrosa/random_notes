@@ -8,15 +8,17 @@ Draft = true
 
 ### Aim
 
-Review the **denoising diffusion probabilistic models** introduced in [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and further improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html).
+Review the **denoising diffusion probabilistic models (DDPM)** introduced in [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and further improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html).
 
 ### Motivation
 
-Build a solid foundation on generative diffusion models, for which DDPM is an integral part as a discretized analog of the SDE model.
+Build a solid foundation on score-based generative diffusion models, for which DDPM, although not initially seen as score-based, is related to, as a discretized analog of the SDE model.
 
 ### Background
 
-The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) is to embed the random variable we want to model into a Markov chain and model the whole Markov chain. This is a much more complex task and greatly enlarge the dimension of the problem, but which yields more stability to the training and the generative processes. The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain converging to a simple and tractable distribution, usually a normal distribution. The training process fits a model to the whole Markov chain. Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the tractable distribution. The tractable final distribution becomes the initial distribution of the reverse process, and the initial desired target distribution becomes the final distribution.
+The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and improved in []() is to embed the random variable we want to model into a Markov chain and model the whole Markov chain. This is a much more complex task and greatly increase the dimension of the problem, but which yields more stability to the training and the generative processes. The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain converging to a simple and tractable distribution, usually a normal distribution. The training process fits a model to the whole Markov chain. Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the tractable distribution. The tractable final distribution becomes the initial distribution of the reverse process, and the initial desired target distribution becomes the final distribution.
+
+Another source which greatly helped me understand the main ideas of the foundational articles in the blog post [What are diffusion models? Lil’Log by Lilian Weng (2021)](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/), which I recommend.
 
 ## Details of the method
 
@@ -36,7 +38,7 @@ where $\boldsymbol{\beta}=\{\beta_k\}_{k\in \mathbb{N}}$ is given, with $0 < \be
 
 The marginal probability density function of the step $k$ conditioned on the step $k-1$ satisfies
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}\left(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k\right).
+    p(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}\left(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k\right).
 ```
 
 By taking the expectation of the recurrence relation of the Markov chain, we see that the means ${\bar{\mathbf{X}}}_k = \mathbb{E}[\mathbf{X}_k]$ evolve according to
@@ -86,18 +88,18 @@ and
 ```
 so that the variance schedule $\boldsymbol{\beta}=\{\beta_k\}_k$ is also interpreted as **step sizes**.
 
-The probability density functions $p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = p_{\boldsymbol{\beta}}(\mathbf{x}_0, \ldots, \mathbf{x}_K)$ of the Markov chain, where $\mathbf{x}_{0:K} = (\mathbf{x}_0, \dots, \mathbf{x}_K)$ is a portion of a trajectory up to some sufficiently large step $K\in\mathbb{N}$, satisfies the conditional marginal relation
+The probability density functions $p(\mathbf{x}_{0:K}) = p(\mathbf{x}_0, \ldots, \mathbf{x}_K)$ of the Markov chain, where $\mathbf{x}_{0:K} = (\mathbf{x}_0, \dots, \mathbf{x}_K)$ is a portion of a trajectory up to some sufficiently large step $K\in\mathbb{N}$, satisfies the conditional marginal relation
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k),
+    p(\mathbf{x}_k|\mathbf{x}_{k-1}) \sim \mathcal{N}(\sqrt{1 - \beta_k}\mathbf{x}_{k-1}, \beta_k),
 ```
 Then,
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_{K}|\mathbf{x}_{K-1})\cdots p_{\boldsymbol{\beta}}(\mathbf{x}_1|\mathbf{x}_0) = \prod_{k=1}^{K}p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1}).
+    p(\mathbf{x}_{0:K}|\mathbf{x}_0) = p(\mathbf{x}_{K}|\mathbf{x}_{K-1})\cdots p(\mathbf{x}_1|\mathbf{x}_0) = \prod_{k=1}^{K}p(\mathbf{x}_k|\mathbf{x}_{k-1}).
 ```
 
 Thus,
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} \prod_{k=1}^K p_{\boldsymbol{\beta}}(\mathbf{x}_k|\mathbf{x}_{k-1})p_0(\mathbf{x_0})\;\mathrm{d}\mathbf{x_0}.
+    p(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} \prod_{k=1}^K p(\mathbf{x}_k|\mathbf{x}_{k-1})p_0(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0.
 ```
 
 An approximate distribution is obtained with the empirical distribution based on samples of the initial random variable $\mathbf{X}_0$, which we denote by
@@ -146,29 +148,29 @@ Now we want to be able to revert the Markov chain. But what would be $\mathbf{X}
 
 When also conditioned on the initial sample, we can use Bayes' rule and write
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right) = \frac{p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right)}{p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_0\right)}
+    p\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right) = \frac{p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)p\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right)}{p\left(\mathbf{x}_k|\mathbf{x}_0\right)}
 ```
 
 Using the Markovian property on the first term of the nominator and ignoring the normalization constant, we know that
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) = p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k}\right),
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) = p\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k}\right),
 ```
 while
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}}\right),
+    p\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}}\right),
 ```
 and
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k}\right).
+    p\left(\mathbf{x}_k|\mathbf{x}_0\right) \propto \exp\left(-\frac{1}{2}\frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k}\right).
 ```
 Thus,
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\left( - \frac{1}{2}\left(\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k} + \frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}} - \frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k} \right)\right).
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\left( - \frac{1}{2}\left(\frac{\left(\mathbf{x}_k - \sqrt{\alpha_k}\mathbf{x}_{k-1}\right)^2}{\beta_k} + \frac{\left(\mathbf{x}_{k-1} - \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_{k-1}} - \frac{\left(\mathbf{x}_k - \sqrt{\bar{\alpha}_k}\mathbf{x}_0\right)^2}{1 - \bar{\alpha}_k} \right)\right).
 ```
 We separate the dependence on the variable $\mathbf{x}_{k-1}$ from that on the conditioned variables $\mathbf{x}_k$ and $\mathbf{x}_0$.
 ```math
     \begin{align*}
-        p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) & \propto \exp\bigg( - \frac{1}{2}\bigg(\frac{\mathbf{x}_k^2 - 2\mathbf{x}_k \sqrt{\alpha_k}\mathbf{x}_{k-1} + \alpha_k\mathbf{x}_{k-1}^2}{\beta_k} \\
+        p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) & \propto \exp\bigg( - \frac{1}{2}\bigg(\frac{\mathbf{x}_k^2 - 2\mathbf{x}_k \sqrt{\alpha_k}\mathbf{x}_{k-1} + \alpha_k\mathbf{x}_{k-1}^2}{\beta_k} \\
         & \qquad \qquad \qquad + \frac{\mathbf{x}_{k-1}^2 - 2\mathbf{x}_{k-1}\sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0 + \bar{\alpha}_{k-1}\mathbf{x}_0^2}{1 - \bar{\alpha}_{k-1}} \\
         & \qquad \qquad \qquad \qquad \qquad - \frac{\mathbf{x}_k^2 - \mathbf{x}_k\sqrt{\bar{\alpha}_k}\mathbf{x}_0 + \bar{\alpha}_k\mathbf{x}_0^2}{1 - \bar{\alpha}_k} \bigg)\bigg) \\
         & = \exp\bigg( -\frac{1}{2}\bigg( \left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)\mathbf{x}_{k-1}^2 \\
@@ -188,11 +190,11 @@ with
         \frac{\tilde{\boldsymbol{\mu}}_k}{\tilde\beta_k} & = \frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0.
     \end{align*}
 ```
-Using that $\beta_k = 1 - \alpha_k$, we find the variance of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ to be
+Using that $\beta_k = 1 - \alpha_k$, we find the variance of $p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ to be
 ```math
     \tilde\beta_k = \frac{1}{\left( \frac{\alpha_k}{\beta_k} + \frac{1}{1 - \bar{\alpha}_{k-1}}\right)} = \frac{\beta_k(1 - \bar{\alpha}_{k-1})}{\alpha_k(1 - \bar{\alpha}_{k-1}) + \beta_k} = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k,
 ```
-With that, we rewrite the mean of $p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ as
+With that, we rewrite the mean of $p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)$ as
 ```math
     \begin{align*}
         \tilde{\boldsymbol{\mu}}_k & = \tilde\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k\left(\frac{\sqrt{\alpha_k}}{\beta_k}\mathbf{x}_k + \frac{\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_{k-1}}\mathbf{x}_0\right) \\
@@ -209,7 +211,7 @@ Then, we obtain
 
 Thus, we write
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\bigg( -\frac{1}{2}\bigg( \frac{\left(\mathbf{x}_{k-1} - \tilde{\boldsymbol{\mu}}_k\right)^2}{\tilde{\beta}_k} + \tilde\gamma_k \bigg)\bigg),
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \propto \exp\bigg( -\frac{1}{2}\bigg( \frac{\left(\mathbf{x}_{k-1} - \tilde{\boldsymbol{\mu}}_k\right)^2}{\tilde{\beta}_k} + \tilde\gamma_k \bigg)\bigg),
 ```
 where
 ```math
@@ -222,30 +224,30 @@ where
 ```
 Hence, we find that
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
 ```
 
 With that, we can write
 ```math
-    p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) = \int_{\mathbb{R}^d} p_{\boldsymbol{\beta}}\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0\right)p_{\boldsymbol{\beta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) = \int_{\mathbb{R}^d} p\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0\right)p(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
 ```
 which we eventually approximate with the empirical distribution to train our model.
 
 Notice we can write the (initial) target distribution as
 ```math
-    p_0(\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_0) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K},
+    p_0(\mathbf{x}_0) = p(\mathbf{x}_0) = \int_{(\mathbf{R}^d)^{K}} p(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K},
 ```
 and then
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
+    p(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p(\mathbf{x}_{0:K}|\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
 ```
 with
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_{0:K}|\mathbf{x}_0) = p_{\boldsymbol{\beta}}(\mathbf{x}_0|\mathbf{x}_1, \mathbf{x}_0)p_{\boldsymbol{\beta}}(\mathbf{x}_1|\mathbf{x}_2, \mathbf{x}_0)\cdots p_{\boldsymbol{\beta}}(\mathbf{x}_{K-1}|\mathbf{x}_K, \mathbf{x}_0),
+    p(\mathbf{x}_{0:K}|\mathbf{x}_0) = p(\mathbf{x}_0|\mathbf{x}_1, \mathbf{x}_0)p(\mathbf{x}_1|\mathbf{x}_2, \mathbf{x}_0)\cdots p(\mathbf{x}_{K-1}|\mathbf{x}_K, \mathbf{x}_0),
 ```
 and
 ```math
-    p_{\boldsymbol{\beta}}(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = G(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)),
+    p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = G(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)),
 ```
 where $G(\mathbf{x}; \boldsymbol{\mu}, \beta)$ is the Gaussian kernel
 ```math
@@ -279,18 +281,18 @@ Using, again, that $\beta_k = 1 - \alpha_k$, we find
 ```
 In this way, we *reparametrize* the mean in terms of $\mathbf{x}_k$ and $\bar{\boldsymbol{\epsilon}}_k$, instead of $\mathbf{x}_k$ and $\mathbf{x}_0$.
 
-Defining
-```math
-    \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{1}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_k - \frac{\sqrt{\bar\alpha}_k}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_0, \qquad
-    \tilde{\mathbf{x}}_0(\mathbf{x}_k, \bar\epsilon_k) = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k,
-```
-and
+In view of that, we define
 ```math
     {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \bar{\boldsymbol{\epsilon}}_k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k,
 ```
-we can write
+and we have the relation
 ```math
     \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0)).
+```
+with $\mathbf{x}_k$, $\tilde{\boldsymbol{\epsilon}}_k$ and $\mathbf{x}_0$ related via
+```math
+    \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{1}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_k - \frac{\sqrt{\bar\alpha}_k}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_0, \qquad
+    \tilde{\mathbf{x}}_0(\mathbf{x}_k, {\boldsymbol{\epsilon}}_k) = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
 
 ### The model
@@ -327,10 +329,113 @@ with
 
 ### The loss function
 
-Ideally, one would maximize the (log-)likelyhood of the model, by minimizing the loss function
+Ideally, one would maximize the (log-)likelyhood of the model, by minimizing the **cross-entropy loss** function
 ```math
-    \mathbb{E}_{\mathbf{X}_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0 \approx -\frac{1}{N}\sum_{n=1}^N \log p_{\boldsymbol{\theta}}(\mathbf{x}_0^n).
+    L_{\mathrm{CE}}(\boldsymbol{\theta}) = H(p_0, p_{\boldsymbol{\theta}}) = \mathbb{E}_{p_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0 \approx -\frac{1}{N}\sum_{n=1}^N \log p_{\boldsymbol{\theta}}(\mathbf{x}_0^n).
 ```
+But $p_{\boldsymbol{\theta}}(\mathbf{x}_{0})$, given as
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{0}) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K},
+```
+is *intractable*. We substitute for $p_{\boldsymbol{\theta}}(\mathbf{x}_{0})$ and multiply and divide by $p(\mathbf{x}_{1:K}|\mathbf{x}_0)$ to find 
+```math
+    \begin{align*}
+        L_{\mathrm{CE}}(\boldsymbol{\theta}) & = \mathbb{E}_{p_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] \\
+        & = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0 \\
+        & = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log \left(\int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K}\right)\mathrm{d}\mathbf{x}_0 \\
+        & = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log \left(\int_{(\mathbf{R}^d)^{K}} p(\mathbf{x}_{1:K}|\mathbf{x}_0) \frac{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})}{p(\mathbf{x}_{1:K}|\mathbf{x}_0)} \;\mathrm{d}\mathbf{x}_{1:K}\right)\mathrm{d}\mathbf{x}_0.
+    \end{align*}
+```
+Now we use Jensen's inequality to obtain the following upper bound for the cross-entropy loss,
+```math
+    \begin{align*}
+        L_{\mathrm{CE}}(\boldsymbol{\theta}) & \leq -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\int_{(\mathbf{R}^d)^{K}} p(\mathbf{x}_{1:K}|\mathbf{x}_0) \log \left(\frac{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})}{p(\mathbf{x}_{1:K}|\mathbf{x}_0)} \right)\mathrm{d}\mathbf{x}_{1:K}\,\mathrm{d}\mathbf{x}_0 \\
+        & = -\int_{(\mathbf{R}^d)^{K+1}} p(\mathbf{x}_{0:K}) \log \left(\frac{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})}{p(\mathbf{x}_{1:K}|\mathbf{x}_0)} \right)\mathrm{d}\mathbf{x}_{0:K} \\
+        & = \int_{(\mathbf{R}^d)^{K+1}} p(\mathbf{x}_{0:K}) \log \left(\frac{p(\mathbf{x}_{1:K}|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})} \right)\mathrm{d}\mathbf{x}_{0:K}
+    \end{align*}
+```
+This expression defines what is called the **variational lower bound** loss
+```math
+    L_{\mathrm{VLB}}(\boldsymbol{\theta}) = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{1:K}|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})} \right] = \int_{(\mathbf{R}^d)^{K+1}} p(\mathbf{x}_{0:K}) \log \left(\frac{p(\mathbf{x}_{1:K}|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})} \right)\mathrm{d}\mathbf{x}_{0:K}.
+```
+
+[Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) manipulated this loss to a more tractable form as follows
+```math
+    \begin{align*}
+        L_{\mathrm{VLB}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{1:K}|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K})} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{\prod_{k=1}^K p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)\prod_{k=1}^K p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \prod_{k=1}^K \frac{p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \sum_{k=1}^K \log \frac{p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right].
+    \end{align*}
+```
+From Bayes' rule and the Markovian property of $\{X_k\}_k$ (as we derived earlier for $p\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right)$), we have
+```math
+    p\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right) = \frac{p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right)p\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right)}{p\left(\mathbf{x}_k|\mathbf{x}_0\right)} = \frac{p\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right)p\left(\mathbf{x}_{k-1}|\mathbf{x}_0\right)}{p\left(\mathbf{x}_k|\mathbf{x}_0\right)},
+```
+which we can write as
+```math
+    p(\mathbf{x}_k|\mathbf{x}_{k-1}) = \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)p(\mathbf{x}_k|\mathbf{x}_0)}{p(\mathbf{x}_{k-1}|\mathbf{x}_0)}.
+```
+Thus,
+```math
+    \begin{align*}
+        L_{\mathrm{VLB}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \frac{p(\mathbf{x}_k|\mathbf{x}_0)}{p(\mathbf{x}_{k-1}|\mathbf{x}_0)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_k|\mathbf{x}_0)}{p(\mathbf{x}_{k-1}|\mathbf{x}_0)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} + \log \prod_{k=2}^K  \frac{p(\mathbf{x}_k|\mathbf{x}_0)}{p(\mathbf{x}_{k-1}|\mathbf{x}_0)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} + \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p(\mathbf{x}_1|\mathbf{x}_0)} \right].
+    \end{align*}
+```
+The first, second and fourth terms combine to yield
+```math
+    \begin{align*}
+        -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p(\mathbf{x}_1|\mathbf{x}_0)} & = -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} \\
+        & = \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)} - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)
+    \end{align*}
+```
+Thus,
+```math
+    \begin{align*}
+        L_{\mathrm{VLB}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) + \sum_{k=2}^K \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} + \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)} \right].
+    \end{align*}
+```
+This can be written as
+```math
+    L_{\mathrm{VLB}}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, 0}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K}(\boldsymbol{\theta}),
+```
+where
+```math
+    \begin{align*}
+        L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) \right], \\
+        L_{\mathrm{VLB}, k}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right], \quad k = 1, \ldots, K-1, \\
+        L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)} \right].
+    \end{align*}
+```
+Notice the terms starting with $k=1$ envolve Kullback-Leibler divergences.
+
+In the model, the last marginal is taken to be a standard normal distribution, and hence this term is constant and has no parameter to learn. Writing $p_{\boldsymbol{\theta}} = G$ for the Gaussian kernel,
+```math
+    L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{G(\mathbf{x}_K)} \right].
+```
+
+Thus, we only need to minimize 
+```math
+    L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
+```
+
+For $L_{\mathrm{VLB}, k}(\boldsymbol{\theta})$, $k=1, \ldots, K-1$, we use that
+```math
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
+```
+where
+```math
+    \begin{align*}
+        \tilde{\boldsymbol{\mu}}_k & = \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0, \\
+        \tilde\beta_k & = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k.
+    \end{align*}
+```
+
 
 ## Numerical example
 
@@ -669,3 +774,4 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 
 1. [J. Sohl-Dickstein, E. A. Weiss, N. Maheswaranathan, S. Ganguli (2015), "Deep unsupervised learning using nonequilibrium thermodynamics", ICML'15: Proceedings of the 32nd International Conference on International Conference on Machine Learning - Volume 37, 2256-2265](https://dl.acm.org/doi/10.5555/3045118.3045358)
 1. [J. Ho, A. Jain, P. Abbeel (2020), "Denoising diffusion probabilistic models", in Advances in Neural Information Processing Systems 33, NeurIPS2020](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html)
+1. [L. Weng (2021), "What are diffusion models?" Lil’Log. lilianweng.github.io/posts/2021-07-11-diffusion-models/](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)
