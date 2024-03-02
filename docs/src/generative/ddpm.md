@@ -424,7 +424,7 @@ Thus, we only need to minimize
     L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
 ```
 
-For $L_{\mathrm{VLB}, k}(\boldsymbol{\theta})$, $k=1, \ldots, K-1$, we use that
+For $L_{\mathrm{VLB}, k}(\boldsymbol{\theta})$, with $k=1, \ldots, K-1$, we use that
 ```math
     p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
 ```
@@ -432,9 +432,14 @@ where
 ```math
     \begin{align*}
         \tilde{\boldsymbol{\mu}}_k & = \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0, \\
-        \tilde\beta_k & = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k.
+        \tilde\beta_k & = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k,
     \end{align*}
 ```
+and we model $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ with
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) \sim \mathcal{N}(\boldsymbol{\mu}(\boldsymbol{\theta}, k), \tilde\beta(\mathbf{x}_k,k)),
+```
+for models $\boldsymbol{\mu}(\boldsymbol{\theta}, k)$ and $\tilde\beta(\mathbf{x}_k,k)$.
 
 
 ## Numerical example
