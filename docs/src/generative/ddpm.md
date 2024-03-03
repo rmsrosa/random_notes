@@ -229,9 +229,8 @@ Hence, we find that
 
 With that, we can write
 ```math
-    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) = \int_{\mathbb{R}^d} p\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0\right)p(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0,
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}\right) = \int_{\mathbb{R}^d} p\left(\mathbf{x}_k|\mathbf{x}_{k-1},\mathbf{x}_0\right)p(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0.
 ```
-which we eventually approximate with the empirical distribution to train our model.
 
 Notice we can write the (initial) target distribution as
 ```math
@@ -301,33 +300,64 @@ We want to approximate the distribution of the Markov process with some model pd
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0}) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K}.
 ```
-where
+The distribution at step $K$ is assumed to be a standard normal distribution, so the model is written as
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K)p_{\boldsymbol{\theta}}(\mathbf{x}_K)\;\mathrm{d}\mathbf{x}_K,
 ```
-and with
+with
 ```math
-    p_{\boldsymbol{\theta}}(\mathbf{x}_K) \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
+    p_{\boldsymbol{\theta}}(\mathbf{x}_K) = \mathcal{N}(\mathbf{x}_K; \mathbf{0}, \mathbf{I}).
 ```
 
-We have
+We also have
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K) = p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)p_{\boldsymbol{\theta}}(\mathbf{x}_1|\mathbf{x}_2)\cdots p_{\boldsymbol{\theta}}(\mathbf{x}_{K-1}|\mathbf{x}_K).
 ```
-The key step is to model $\tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0)$ by a map
+
+For $k=1, \ldots, K-1$, we assume this is a Gaussian process, so each $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ is a Gaussian distribution. Thus, the model is parametrized by the mean and the variance of each of these conditional distributions:
 ```math
-    \hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}(\mathbf{x}_k, k),
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\mathbf{x}_{k-1}; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k), \beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)).
 ```
-and use it to complete the definition of the model $p_{\boldsymbol{\theta}}$ with
+
+Due to the reparametrization trick used in the target Markov chain, we also reparametrize $\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ in a similar way:
 ```math
-    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\mathbf{x}_{k-1}; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_t, k), \tilde\beta_k),
+    \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k).
+```
+
+Although $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ are also learnable, they are set to constants, for the sake of simplicity of the loss function:
+```math
+    \beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k) = \sigma_k,
+```
+for pre-determined constants $\sigma_k$, $k=1, \ldots, K$.
+
+It remains to consider the step $k=0$. For this one, [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) bases the final step of the reverse trajectory according to the first step of the forward trajectory, in order to "remove the edge effect at $k=0$" (see Appendix B.2):
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) = p(\mathbf{x}_1, \mathbf{x}_0)\frac{G(\mathbf{x}_0)}{G(\mathbf{x}_1)},
+```
+where $G(\cdot)$ is the standard Gaussian kernel. In [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html), however, this is setup differently, and is based on the previous (reverse) step determined by $\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_1, 1)$ and truncated to the support of the original distribution, which is assumed to represent an image, with data in $\{0, 1, \ldots, 255\}$ scaled to $[-1, 1]$, i.e. each coordinate $x_i$, $i=1, \ldots, d$, in $\{(a - 127.5) / 127.5; \;a=0, \ldots, 255\}$, so that
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) = \prod_{i=1}^d \int_{\delta_-(x_{0i})}^{\delta_+(x_{0i})} \mathcal{N}(x_i; \mu_{\boldsymbol{\theta}, i}(\mathbf{x}_1, 1), \sigma_1^2)\; \mathbf{x}_i,
 ```
 with
 ```math
-    \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_t, k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}(\mathbf{x}_k, k).
+    \delta_-(x_{0i}) = \begin{cases}
+        -\infty, & x = -1, \\
+        x - 1/255, & x > -11,
+    \end{cases}
+    \qquad 
+    \delta_+(x_{0i}) = \begin{cases}
+        \infty, & x = 1, \\
+        x + 1/255, & x < 1.
+    \end{cases}
 ```
 
+Thus, our model is completely defined by the functions $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ and $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ and the conditional probability relations above.
+
 ### The loss function
+
+Now we need a loss function to train the parametrizations $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ and $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ of our model.
+
+#### The cross-entropy loss
 
 Ideally, one would maximize the (log-)likelyhood of the model, by minimizing the **cross-entropy loss** function
 ```math
@@ -337,7 +367,11 @@ But $p_{\boldsymbol{\theta}}(\mathbf{x}_{0})$, given as
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0}) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K},
 ```
-is *intractable*. We substitute for $p_{\boldsymbol{\theta}}(\mathbf{x}_{0})$ and multiply and divide by $p(\mathbf{x}_{1:K}|\mathbf{x}_0)$ to find 
+is *intractable*.
+
+#### The variational lower bound loss
+
+We substitute for $p_{\boldsymbol{\theta}}(\mathbf{x}_{0})$ and multiply and divide by $p(\mathbf{x}_{1:K}|\mathbf{x}_0)$ to find 
 ```math
     \begin{align*}
         L_{\mathrm{CE}}(\boldsymbol{\theta}) & = \mathbb{E}_{p_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] \\
@@ -412,14 +446,29 @@ where
         L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)} \right].
     \end{align*}
 ```
-Notice the terms starting with $k=1$ envolve Kullback-Leibler divergences.
+Notice the terms starting with $k=1$ involve Kullback-Leibler divergences.
 
-In the model, the last marginal is taken to be a standard normal distribution, and hence this term is constant and has no parameter to learn. Writing $p_{\boldsymbol{\theta}} = G$ for the Gaussian kernel,
+In the model, the last marginal is taken to be a standard normal distribution, and hence this term is constant and has no parameter to learn. Writing $p_{\boldsymbol{\theta}} = G$ for the Gaussian kernel, we have
 ```math
     L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{G(\mathbf{x}_K)} \right].
 ```
 
-Thus, we only need to minimize 
+Thus, the variational lower bound becomes
+```math
+    L_{\mathrm{VLB}}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, 0}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K},
+```
+where
+```math
+    \begin{align*}
+        L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) \right], \\
+        L_{\mathrm{VLB}, k}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right], \quad k = 1, \ldots, K-1, \\
+        L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) & = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{G(\mathbf{x}_K)} \right].
+    \end{align*}
+```
+
+#### Simplifications
+
+Since the last term in $L_{\mathrm{VLB}}(\boldsymbol{\theta})$ is constant, we only need to minimize 
 ```math
     L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
 ```
@@ -437,9 +486,9 @@ where
 ```
 and we model $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ with
 ```math
-    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) \sim \mathcal{N}(\boldsymbol{\mu}(\boldsymbol{\theta}, k), \tilde\beta(\mathbf{x}_k,k)),
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) \sim \mathcal{N}(\boldsymbol{\mu}(\boldsymbol{\theta}, k), \beta(\mathbf{x}_k,k)),
 ```
-for models $\boldsymbol{\mu}(\boldsymbol{\theta}, k)$ and $\tilde\beta(\mathbf{x}_k,k)$.
+for models $\boldsymbol{\mu}(\boldsymbol{\theta}, k)$ and $\beta(\mathbf{x}_k,k)$.
 
 
 ## Numerical example
