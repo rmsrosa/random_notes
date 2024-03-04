@@ -260,7 +260,25 @@ Now, from the relation $\mathbf{X}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{X}_0 + \sq
 ```math
     \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k,
 ```
-for a sample $\boldsymbol{\epsilon}_k$ of the standard normal distribution. We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
+for a sample $\boldsymbol{\epsilon}_k$ of the standard normal distribution. We use that to rewrite $\tilde{\boldsymbol{\mu}}_k$ in terms of $\mathbf{x}_0$ and $\boldsymbol{\epsilon}_k$,
+```math
+    \begin{align*}
+        \tilde{\boldsymbol{\mu}}_k & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 \\
+        & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\left(\sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k\right) + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 \\
+        & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}\sqrt{\bar{\alpha}_{k}} + \beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 + \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k \\
+        & = \frac{((1 - \bar{\alpha}_{k-1})\alpha_k + \beta_k)\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 + \frac{(1 - \bar{\alpha}_{k-1})\alpha_k}{\sqrt{1 - \bar{\alpha}_k}\sqrt{\alpha_k}}\bar{\boldsymbol{\epsilon}}_k \\
+        & = \frac{(\alpha_k - \bar{\alpha}_k + \beta_k)\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 + \frac{(1 - \bar{\alpha}_{k-1})\alpha_k}{\sqrt{1 - \bar{\alpha}_k}\sqrt{\alpha_k}}\bar{\boldsymbol{\epsilon}}_k \\
+    \end{align*}
+```
+Using that $\beta_k = 1 - \alpha_k$, we find
+```math
+    \begin{align*}
+        \tilde{\boldsymbol{\mu}}_k & = \frac{(1 - \bar{\alpha}_k)\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0 + \frac{\alpha_k - \bar{\alpha}_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k \\
+        & = \sqrt{\bar{\alpha}_{k-1}}\mathbf{x}_0 + \frac{\alpha_k - \bar{\alpha}_k}{(1 - \bar{\alpha}_k)\sqrt{\alpha_k}}\sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k \\
+    \end{align*}
+```
+
+We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
 ```math
     \mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
