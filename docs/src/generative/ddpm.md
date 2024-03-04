@@ -224,8 +224,13 @@ where
 ```
 Hence, we find that
 ```math
-    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
+    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) = \mathcal{N}\left(\mathbf{x}_k; \tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right),
 ```
+where $\mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \beta\mathbf{I})$ is the Gaussian kernel
+```math
+    \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \beta\mathbf{I}) = \frac{1}{\sqrt{2\pi\beta^d}}e^{-\frac{1}{2}\frac{\|\mathbf{x} - \boldsymbol{\mu}\|^2}{\beta}},
+```
+with $\mathcal{N}(\mathbf{x}; \mathbf{0}, \mathbf{I})$ being the standard Gaussian kernel.
 
 With that, we can write
 ```math
@@ -246,13 +251,8 @@ with
 ```
 and
 ```math
-    p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = G(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)),
+    p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)\mathbf{I}).
 ```
-where $G(\mathbf{x}; \boldsymbol{\mu}, \beta)$ is the Gaussian kernel
-```math
-    G(\mathbf{x}; \boldsymbol{\mu}, \beta) = \frac{1}{\beta^{d/2}}G\left(\frac{\mathbf{x} - \boldsymbol{\mu}}{\beta^{1/2}}\right) = \frac{1}{\sqrt{2\pi\beta^d}}e^{-\frac{1}{2}\frac{\|\mathbf{x} - \boldsymbol{\mu}\|^2}{\beta}},
-```
-with $G(\mathbf{x})$ being the standard Gaussian kernel.
 
 ### Reparametrization trick
 
@@ -300,7 +300,8 @@ We want to approximate the distribution of the Markov process with some model pd
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0}) = \int_{(\mathbf{R}^d)^{K}} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) \;\mathrm{d}\mathbf{x}_{1:K}.
 ```
-The distribution at step $K$ is assumed to be a standard normal distribution, so the model is written as
+
+One of the key points in the forward Markov chain is  that the limit distribution of $\mathbf{X}_k$ as $k\rightarrow \infty$ is a standard normal distribution. Thus, for our model, we assume that the distribution at step $K$, with $K$ taken relatively large, is precisely a standard normal distribution. With that, the model is written as
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}) = \int_{\mathbb{R}^d} p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K)p_{\boldsymbol{\theta}}(\mathbf{x}_K)\;\mathrm{d}\mathbf{x}_K,
 ```
@@ -314,7 +315,7 @@ We also have
     p_{\boldsymbol{\theta}}(\mathbf{x}_{0:K}|\mathbf{x}_K) = p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)p_{\boldsymbol{\theta}}(\mathbf{x}_1|\mathbf{x}_2)\cdots p_{\boldsymbol{\theta}}(\mathbf{x}_{K-1}|\mathbf{x}_K).
 ```
 
-For $k=1, \ldots, K-1$, we assume this is a Gaussian process, so each $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ is a Gaussian distribution. Thus, the model is parametrized by the mean and the variance of each of these conditional distributions:
+As in the reverse Markov process, we assume each $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ is a Gaussian distribution. Hence, each conditional distribution is parametrized by its mean and its variance,
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\mathbf{x}_{k-1}; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k), \beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)).
 ```
@@ -330,11 +331,11 @@ Although $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ are also learnable, they
 ```
 for pre-determined constants $\sigma_k$, $k=1, \ldots, K$.
 
-It remains to consider the step $k=0$. For this one, [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) bases the final step of the reverse trajectory according to the first step of the forward trajectory, in order to "remove the edge effect at $k=0$" (see Appendix B.2):
+Actually, for the final step $p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)$ of the reverse process,  [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) bases it on the first step of the forward trajectory, in order to "remove the edge effect" (see Appendix B.2):
 ```math
-    p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) = p(\mathbf{x}_1, \mathbf{x}_0)\frac{G(\mathbf{x}_0)}{G(\mathbf{x}_1)},
+    p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) = p(\mathbf{x}_1, \mathbf{x}_0)\frac{\mathcal{N}(\mathbf{x}_0; \mathbf{0}, \mathbf{I})}{\mathcal{N}(\mathbf{x}_1; \mathbf{0}, \mathbf{I})}.
 ```
-where $G(\cdot)$ is the standard Gaussian kernel. In [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html), however, this is setup differently, and is based on the previous (reverse) step determined by $\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_1, 1)$ and truncated to the support of the original distribution, which is assumed to represent an image, with data in $\{0, 1, \ldots, 255\}$ scaled to $[-1, 1]$, i.e. each coordinate $x_i$, $i=1, \ldots, d$, in $\{(a - 127.5) / 127.5; \;a=0, \ldots, 255\}$, so that
+In [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html), however, this is setup differently, being truncated to the support of the original distribution, which is assumed to represent an image, with data in $\{0, 1, \ldots, 255\}$ scaled to $[-1, 1]$, i.e. each coordinate $x_i$, $i=1, \ldots, d$, in $\{(a - 127.5) / 127.5; \;a=0, \ldots, 255\}$, so that
 ```math
     p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) = \prod_{i=1}^d \int_{\delta_-(x_{0i})}^{\delta_+(x_{0i})} \mathcal{N}(x_i; \mu_{\boldsymbol{\theta}, i}(\mathbf{x}_1, 1), \sigma_1^2)\; \mathbf{x}_i,
 ```
@@ -351,7 +352,7 @@ with
     \end{cases}
 ```
 
-Thus, our model is completely defined by the functions $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ and $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ and the conditional probability relations above.
+In any case, our model is completely defined by $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$, $k=1, \ldots, K$, the parameters $\sigma_1, \ldots, \sigma_K$, and the (final) conditional distribution $p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)$.
 
 ### The loss function
 
@@ -411,7 +412,7 @@ which we can write as
 ```math
     p(\mathbf{x}_k|\mathbf{x}_{k-1}) = \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)p(\mathbf{x}_k|\mathbf{x}_0)}{p(\mathbf{x}_{k-1}|\mathbf{x}_0)}.
 ```
-Thus,
+Hence,
 ```math
     \begin{align*}
         L_{\mathrm{VLB}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ -\log p_{\boldsymbol{\theta}}(\mathbf{x}_K) + \log \frac{p(\mathbf{x}_1|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1)} + \sum_{k=2}^K \log \frac{p(\mathbf{x}_k|\mathbf{x}_{k-1})}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
@@ -442,28 +443,20 @@ where
 ```math
     \begin{align*}
         L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) \right], \\
-        L_{\mathrm{VLB}, k}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right], \quad k = 1, \ldots, K-1, \\
+        L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right], \quad k = 2, \ldots, K, \\
         L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_K)} \right].
     \end{align*}
 ```
-Notice the terms starting with $k=1$ involve Kullback-Leibler divergences.
+Notice the terms with $k>0$ involve Kullback-Leibler divergences.
 
-In the model, the last marginal is taken to be a standard normal distribution, and hence this term is constant and has no parameter to learn. Writing $p_{\boldsymbol{\theta}} = G$ for the Gaussian kernel, we have
+In the model, the last marginal is taken to be a standard normal distribution, and hence this term is constant and has no parameter to learn:
 ```math
-    L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{G(\mathbf{x}_K)} \right].
+    L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{\mathcal{N}(\mathbf{x}_K; \mathbf{0}, \mathbf{I})} \right].
 ```
 
 Thus, the variational lower bound becomes
 ```math
-    L_{\mathrm{VLB}}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, 0}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K},
-```
-where
-```math
-    \begin{align*}
-        L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ - \log p_{\boldsymbol{\theta}}(\mathbf{x}_0|\mathbf{x}_1) \right], \\
-        L_{\mathrm{VLB}, k}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right], \quad k = 1, \ldots, K-1, \\
-        L_{\mathrm{VLB}, K}(\boldsymbol{\theta}) & = L_{\mathrm{VLB}, K} = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_K|\mathbf{x}_0)}{G(\mathbf{x}_K)} \right].
-    \end{align*}
+    L_{\mathrm{VLB}}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, 0}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K}.
 ```
 
 #### Simplifications
@@ -473,22 +466,41 @@ Since the last term in $L_{\mathrm{VLB}}(\boldsymbol{\theta})$ is constant, we o
     L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
 ```
 
-For $L_{\mathrm{VLB}, k}(\boldsymbol{\theta})$, with $k=1, \ldots, K-1$, we use that
+For $L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta})$, with $k=2, \ldots, K$, we use that
 ```math
-    p\left(\mathbf{x}_k|\mathbf{x}_{k-1}, \mathbf{x}_0\right) \sim \mathcal{N}\left(\tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
+    p\left(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0\right) = \mathcal{N}\left(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k, \tilde \beta_k\mathbf{I}\right).
 ```
 where
 ```math
     \begin{align*}
         \tilde{\boldsymbol{\mu}}_k & = \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0, \\
-        \tilde\beta_k & = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k,
+        \tilde\beta_k & = \frac{1 - \bar{\alpha}_{k-1}}{1 - \bar{\alpha}_k}\beta_k.
     \end{align*}
 ```
-and we model $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ with
+
+We have also modeled $p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)$ with
 ```math
-    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) \sim \mathcal{N}(\boldsymbol{\mu}(\boldsymbol{\theta}, k), \beta(\mathbf{x}_k,k)),
+    p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k), \sigma_k\mathbf{I}).
 ```
-for models $\boldsymbol{\mu}(\boldsymbol{\theta}, k)$ and $\beta(\mathbf{x}_k,k)$.
+
+Moreover,
+```math
+    \begin{align*}
+        L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) & = \mathbb{E}_{p(\mathbf{x}_{0:K})}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)p(\mathbf{x}_{k-1}|\mathbf{x}_0, \mathbf{x}_k)}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)}\left[\mathbb{E}_{p(\mathbf{x}_{k-1}|\mathbf{x}_0, \mathbf{x}_k)}\left[ \log \frac{p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0)}{p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)} \right]\right] \\
+        & = \mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)} \left[D_{\mathrm{KL}}\left(p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) \| p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k)\right)\right].
+    \end{align*}
+```
+
+The Kullback-Leibler divergence between two multivariate normals can be computed explicitly. In general, we have
+```math
+    D_{\mathrm{KL}}(\mathcal{N}(\boldsymbol{\mu}_1, \boldsymbol{\Sigma}_1) \| \mathcal{N}(\boldsymbol{\mu}_2, \boldsymbol{\Sigma}_2)) = \frac{1}{2}\left( (\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1) \cdot \boldsymbol{\Sigma}_2^{-1}(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)  + \operatorname{tr}(\boldsymbol{\Sigma}_2^{-1}\boldsymbol{\Sigma}_1) - \log \frac{\det\boldsymbol{\Sigma}_1}{\det\boldsymbol{\Sigma}_2} - d\right).
+```
+Thus,
+```math
+    L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) = \frac{1}{2}\mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)} \left[\frac{\|\tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) - \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \|^2}{\sigma_k^2} + \frac{\tilde \beta_k}{\sigma_k^2} - \log\frac{{\tilde\beta_k}^d}{\sigma_k^{2d}} - d\right].
+```
 
 
 ## Numerical example
