@@ -499,7 +499,17 @@ The Kullback-Leibler divergence between two multivariate normals can be computed
 ```
 Thus,
 ```math
-    L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) = \frac{1}{2}\mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)} \left[\frac{\|\tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) - \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \|^2}{\sigma_k^2} + \frac{\tilde \beta_k}{\sigma_k^2} - \log\frac{{\tilde\beta_k}^d}{\sigma_k^{2d}} - d\right].
+    \begin{align*}
+        L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) & = \frac{1}{2}\mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)} \left[\frac{\|\tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) - \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \|^2}{\sigma_k^2} + \frac{\tilde \beta_k}{\sigma_k^2} - \log\frac{{\tilde\beta_k}^d}{\sigma_k^{2d}} - d\right] \\
+        & = \frac{1}{2}\mathbb{E}_{p(\mathbf{x}_0, \mathbf{x}_k)} \left[\frac{\|\tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) - \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \|^2}{\sigma_k^2}\right] + C_k,
+    \end{align*}
+```
+for a constant $C_k$ (with respect to the trainable parameters $\boldsymbol{\theta}$), where
+```math
+    \begin{align*}
+        \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) & = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \\
+        \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0.
+    \end{align*}
 ```
 
 
