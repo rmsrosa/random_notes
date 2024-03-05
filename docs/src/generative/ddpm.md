@@ -1,7 +1,7 @@
 # Denoising diffusion probabilistic models
 
 ```@meta
-Draft = true
+Draft = false
 ```
 
 ## Introduction
@@ -278,7 +278,7 @@ Using that $\beta_k = 1 - \alpha_k$, we find
     \end{align*}
 ```
 
-We use that to rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
+We can also rewrite $\mathbf{x}_0$ in terms of $\mathbf{x}_k$, i.e.
 ```math
     \mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
@@ -297,20 +297,6 @@ Using, again, that $\beta_k = 1 - \alpha_k$, we find
     \tilde{\boldsymbol{\mu}}_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
 In this way, we *reparametrize* the mean in terms of $\mathbf{x}_k$ and $\bar{\boldsymbol{\epsilon}}_k$, instead of $\mathbf{x}_k$ and $\mathbf{x}_0$.
-
-In view of that, we define
-```math
-    {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \bar{\boldsymbol{\epsilon}}_k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k,
-```
-and we have the relation
-```math
-    \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) = {\tilde{\tilde{\boldsymbol{\mu}}}}_k(\mathbf{x}_k, \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0)).
-```
-with $\mathbf{x}_k$, $\tilde{\boldsymbol{\epsilon}}_k$ and $\mathbf{x}_0$ related via
-```math
-    \tilde{\boldsymbol{\epsilon}}_k(\mathbf{x}_k, \mathbf{x}_0) = \frac{1}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_k - \frac{\sqrt{\bar\alpha}_k}{\sqrt{1 - \bar\alpha_k}}\mathbf{x}_0, \qquad
-    \tilde{\mathbf{x}}_0(\mathbf{x}_k, {\boldsymbol{\epsilon}}_k) = \frac{1}{\sqrt{\bar{\alpha}_{k}}}\mathbf{x}_k - \frac{\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\bar{\alpha}_{k}}}\bar{\boldsymbol{\epsilon}}_k.
-```
 
 ### The model
 
@@ -481,7 +467,7 @@ Thus, the variational lower bound becomes
 
 Since the last term in $L_{\mathrm{VLB}}(\boldsymbol{\theta})$ is constant, we only need to minimize 
 ```math
-    L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
+    L_{\mathrm{VLB}}^*(\boldsymbol{\theta}) = L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta}).
 ```
 
 For $L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta})$, with $k=2, \ldots, K$, we use that
@@ -529,7 +515,44 @@ for a constant $C_k$ (with respect to the trainable parameters $\boldsymbol{\the
         \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) & = \frac{(1 - \bar{\alpha}_{k-1})\sqrt{\alpha_k}}{1 - \bar{\alpha}_k}\mathbf{x}_k + \frac{\beta_k\sqrt{\bar{\alpha}_{k-1}}}{1 - \bar{\alpha}_k}\mathbf{x}_0.
     \end{align*}
 ```
+Thanks to the reparametrization,
+```math
+    \tilde{\boldsymbol{\mu}}_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k.
+```
+Thus,
+```math
+    \begin{align*}
+        \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0) - \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) & = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k - \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k + \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \\
+        & = \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\left(\bar{\boldsymbol{\epsilon}}_k - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)\right).
+    \end{align*}
+```
+Now we reparametrize the loss in terms of $\mathbf{x}_0$ and $\bar{\boldsymbol{\epsilon}}_k \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, by writing $\mathbf{x}_k$ as
+```math
+    \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k.
+```
+With this reparametrization, the expectation also becomes in terms of $\mathbf{x}_0$ and $\bar{\boldsymbol{\epsilon}}_k$, so the loss becomes
+```math
+    L_{\mathrm{VLB}}^*(\boldsymbol{\theta}) = L_{\mathrm{VLB, 0}}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K-1}(\boldsymbol{\theta})
+```
+with
+```math
+    L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) = \frac{1}{2\sigma_k^2}\frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\mathbb{E}_{p_0(\mathbf{x}_0)\mathcal{N}(\bar{\boldsymbol{\epsilon}}_k; \mathbf{0}, \mathbf{I})} \left[\left\|\bar{\boldsymbol{\epsilon}}_k - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k, k\right) \right\|^2\right],
+```
+for $k=1, \ldots, K$.
 
+At this point, a stochastic gradient descent approach is taken, and instead of descend along the gradient of the sum of all $L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta})$, only one of them is randomly selected at each step, i.e. one considers
+```math
+    L_{\mathrm{VLB},\mathrm{unif}}^*(\boldsymbol{\theta}) = \mathbb{E}_{k \sim \operatorname{Uniform}(1, \ldots, K)}\left[ L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) \right].
+```
+
+A further simplification proposed by [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html), which was found to perform better in practice, is to simply drop the weighting term and minimize
+```math
+    L_{\mathrm{VLB}, k-1}^{\mathrm{simple}}(\boldsymbol{\theta}) = \mathbb{E}_{p_0(\mathbf{x}_0)\mathcal{N}(\bar{\boldsymbol{\epsilon}}_k; \mathbf{0}, \mathbf{I})} \left[\left\|\bar{\boldsymbol{\epsilon}}_k - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k, k\right) \right\|^2\right],
+```
+yielding the loss
+```math
+    L_{\mathrm{VLB,unif}}^{\mathrm{simple}, *}(\boldsymbol{\theta}) = \mathbb{E}_{k \sim \operatorname{Uniform}(1, \ldots, K),p_0(\mathbf{x}_0)\mathcal{N}(\bar{\boldsymbol{\epsilon}}_k; \mathbf{0}, \mathbf{I})} \left[\left\|\bar{\boldsymbol{\epsilon}}_k - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k, k\right) \right\|^2\right].
+```
 
 ## Numerical example
 
@@ -613,6 +636,17 @@ target_score = gradlogpdf.(target_prob, xrange')
 sample_points = permutedims(rand(rng, target_prob, 1024))
 ```
 
+```@setup ddpmscorematching
+beta_init = 0.02
+beta_final = 0.1
+beta_len = 40
+beta_schedule = range(beta_init, beta_final, beta_len)
+alpha_schedule = 1 .- beta_schedule
+alpha_tilde = cumprod(alpha_schedule)
+coeffs = [map(√, alpha_tilde) map(x -> √(1 - x), alpha_tilde)]
+data = (sample_points, coeffs)
+```
+
 Visualizing the sample data drawn from the distribution and the PDF.
 ```@setup ddpmscorematching
 plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
@@ -637,20 +671,6 @@ scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", mar
 plt # hide
 ```
 
-```@example ddpmscorematching
-G(x) = exp(-x^2 / 2) / √(2π)
-
-psigma(x, sigma, sample_points) = mean(G( (x - xn) / sigma ) for xn in sample_points) / sigma
-
-score_parzen(x, sigma, sample_points) = mean(G( (x - xn) / sigma ) * (xn - x) / sigma^2 for xn in sample_points) / psigma(x, sigma, sample_points) / sigma
-```
-
-```@example ddpmscorematching
-sigma = 0.5
-score_parzen_points = map(x -> score_parzen(x, sigma, sample_points), sample_points)
-data = (sample_points, score_parzen_points)
-```
-
 ### Markov chain
 
 Now we evolve the sample as the initial state of a Markov chain $\{\mathbf{X}_k\}_{k=0, 1, \ldots, k_f}$, with
@@ -661,7 +681,6 @@ Now we evolve the sample as the initial state of a Markov chain $\{\mathbf{X}_k\
 where $\{\beta_k\}_{k=0}^{k_f}$ is a given schedule, which we take to be...
 
 ```@example ddpmscorematching
-
 function ddpm_chain!(rng, xt, beta_schedule)
     @assert axes(xt, 1) == only(axes(beta_schedule))
     i1 = firstindex(axes(xt, 1))
@@ -682,13 +701,6 @@ end
 ```
 
 ```@example ddpmscorematching
-beta_init = 0.1
-beta_final = 0.5
-beta_len = 40
-beta_schedule = range(beta_init, beta_final, beta_len)
-```
-
-```@example ddpmscorematching
 x0 = vec(sample_points)
 ```
 
@@ -705,7 +717,7 @@ plot(xt)
 The neural network we consider is a again a feed-forward neural network made, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $n$, to account for the evolution of the Markov chain.
 
 ```@example ddpmscorematching
-model = Chain(Dense(1 => 8, sigmoid), Dense(8 => 1))
+model = Chain(Dense(2 => 16, relu), Dense(16 => 1))
 ```
 
 We initialize the *parameters* and the *state* of the model.
@@ -717,10 +729,12 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 Here it is how we implement the objective ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example ddpmscorematching
-function loss_function_parzen(model, ps, st, data)
-    sample_points, score_parzen_points = data
-    y_score_pred, st = Lux.apply(model, sample_points, ps, st)
-    loss = mean(abs2, y_score_pred .- score_parzen_points)
+function loss_function_uniform_simple(model, ps, st, data)
+    sample_points, coeffs = data
+    epsilons = randn(size(sample_points))
+    ks = rand(axes(coeffs, 1), size(sample_points))
+    epsilons_pred, st = Lux.apply(model, [coeffs[:, 1][ks] .* sample_points .+ coeffs[:, 2][ks] .* epsilons; ks], ps, st)
+    loss = mean(abs2, epsilons_pred .- epsilons)
     return loss, st, ()
 end
 ```
@@ -756,7 +770,7 @@ dev_cpu = cpu_device()
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
 ```@example ddpmscorematching
-Lux.Training.compute_gradients(vjp_rule, loss_function_parzen, data, tstate_org)
+Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tstate_org)
 ```
 
 #### Training loop
@@ -786,83 +800,11 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example ddpmscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_parzen, 500, 20, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_uniform_simple, 5000, 20, 125)
 nothing # hide
 ```
 
 ### Results
-
-Testing out the trained model.
-```@example ddpmscorematching
-y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
-```
-
-Visualizing the result.
-```@example ddpmscorematching
-plot(title="Fitting", titlefont=10)
-
-plot!(xrange, target_score', linewidth=4, label="score function")
-
-scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-
-plot!(xx', y_pred', linewidth=2, label="predicted MLP")
-```
-
-Just for the fun of it, let us see an animation of the optimization process.
-```@setup ddpmscorematching
-ymin, ymax = extrema(target_score)
-epsilon = (ymax - ymin) / 10
-anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
-    plot(title="Fitting evolution", titlefont=10)
-
-    plot!(xrange, target_score', linewidth=4, label="score function")
-
-    scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-
-    plot!(xrange, y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
-end
-```
-
-```@example ddpmscorematching
-gif(anim, fps = 20) # hide
-```
-
-Recovering the PDF of the distribution from the trained score function.
-```@example ddpmscorematching
-paux = exp.(accumulate(+, y_pred) .* dx)
-pdf_pred = paux ./ sum(paux) ./ dx
-plot(title="Original PDF and PDF from predicted score function", titlefont=10)
-plot!(xrange, target_pdf', label="original")
-plot!(xrange, pdf_pred', label="recoverd")
-```
-
-And the animation of the evolution of the PDF.
-```@setup ddpmscorematching
-ymin, ymax = extrema(target_pdf)
-epsilon = (ymax - ymin) / 10
-anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
-    paux = exp.(accumulate(+, y_pred) * dx)
-    pdf_pred = paux ./ sum(paux) ./ dx
-    plot(title="Fitting evolution", titlefont=10, legend=:topleft)
-
-    plot!(xrange, target_pdf', linewidth=4, fill=true, alpha=0.3, label="PDF")
-
-    scatter!(sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
-
-    plot!(xrange, pdf_pred', linewidth=2, fill=true, alpha=0.3, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
-end
-```
-
-```@example ddpmscorematching
-gif(anim, fps = 10) # hide
-```
-
-We also visualize the evolution of the losses.
-```@example ddpmscorematching
-plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
-```
 
 ## References
 
