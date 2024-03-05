@@ -16,9 +16,12 @@ Build a solid foundation on score-based generative diffusion models, for which D
 
 ### Background
 
-The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and improved in []() is to embed the random variable we want to model into a Markov chain and model the whole Markov chain. This is a much more complex task and greatly increase the dimension of the problem, but which yields more stability to the training and the generative processes. The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain converging to a simple and tractable distribution, usually a normal distribution. The training process fits a model to the whole Markov chain. Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the tractable distribution. The tractable final distribution becomes the initial distribution of the reverse process, and the initial desired target distribution becomes the final distribution.
+The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) is to embed the random variable we want to model into a Markov chain and model the whole Markov chain. This is a much more complex task which greatly increases the dimension of the problem, but which yields more stability to both training and generative processes.
 
-Another source which greatly helped me understand the main ideas of the foundational articles in the blog post [What are diffusion models? Lil’Log by Lilian Weng (2021)](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/), which I recommend.
+The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain converging to a simple and tractable distribution, usually a normal distribution. The training process fits a model to the Markov chain up to a relatively large time step. Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the tractable distribution. The tractable asymptotic distribution of the forward process becomes the initial distribution of the model reverse process, and the (initial) desired target distribution is approximated by the final distribution of the reverse model process.
+
+Besides the original articles [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html),
+another source, which in the beginning helped me understand the main ideas of the foundational articles, was the blog post [What are diffusion models? Lil’Log by Lilian Weng (2021)](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).
 
 ## Details of the method
 
@@ -620,11 +623,9 @@ end
 
 ### Data
 
-We build the target model and draw samples from it.
+We build the target model, draw samples from it, and prepare all the parameters for training.
 
-The target model is a univariate random variable denoted by $X$ and defined by a probability distribution. Associated with that we consider its PDF and its score-function.
-
-```@setup ddpmscorematching
+```@example ddpmscorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
 
 xrange = range(-10, 10, 200)
@@ -636,18 +637,21 @@ target_score = gradlogpdf.(target_prob, xrange')
 sample_points = permutedims(rand(rng, target_prob, 1024))
 ```
 
-```@setup ddpmscorematching
+```@example ddpmscorematching
 beta_init = 0.02
-beta_final = 0.1
+beta_final = 0.4
 beta_len = 40
 beta_schedule = range(beta_init, beta_final, beta_len)
 alpha_schedule = 1 .- beta_schedule
 alpha_tilde = cumprod(alpha_schedule)
-coeffs = [map(√, alpha_tilde) map(x -> √(1 - x), alpha_tilde)]
+coeffs = (
+    krange=1:beta_len,
+    sqrtx = map(√, alpha_tilde),
+    sqrt1mx = map(x -> √(1 - x), alpha_tilde)
+)
 data = (sample_points, coeffs)
 ```
 
-Visualizing the sample data drawn from the distribution and the PDF.
 ```@setup ddpmscorematching
 plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
 histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
@@ -659,7 +663,6 @@ scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="samp
 plt # hide
 ```
 
-Visualizing the score function.
 ```@setup ddpmscorematching
 plt = plot(title="The score function and the sample", titlefont=10)
 
@@ -673,14 +676,18 @@ plt # hide
 
 ### Markov chain
 
-Now we evolve the sample as the initial state of a Markov chain $\{\mathbf{X}_k\}_{k=0, 1, \ldots, k_f}$, with
+Now we evolve the sample as the initial state of a Markov chain $\{\mathbf{X}_k\}_{k=1, \ldots, K}$, with
 
 ```math
-    \mathbf{X}_{k+1} \sim \mathcal{N}(\sqrt{1 - \beta_k} \mathbf{X}_k, \beta_k \mathbf{I}),
+    \mathbf{X}_k \sim \mathcal{N}(\sqrt{1 - \beta_k} \mathbf{X}_1, \beta_k \mathbf{I}),
 ```
-where $\{\beta_k\}_{k=0}^{k_f}$ is a given schedule, which we take to be...
+where $\{\beta_k\}_{k=1}^{K}$ is a given schedule.
 
 ```@example ddpmscorematching
+Markdown.parse("""We choose the schedule to be a linear schedule from ``\\beta_1 = $beta_init`` to ``\\beta_K = $beta_final`` in ``K = $beta_len`` steps.""") # hide
+```
+
+```@setup ddpmscorematching
 function ddpm_chain!(rng, xt, beta_schedule)
     @assert axes(xt, 1) == only(axes(beta_schedule))
     i1 = firstindex(axes(xt, 1))
@@ -700,24 +707,32 @@ function ddpm_chain(rng, x0, beta_schedule)
 end
 ```
 
-```@example ddpmscorematching
+```@setup ddpmscorematching
 x0 = vec(sample_points)
 ```
 
-```@example ddpmscorematching
+```@setup ddpmscorematching
 xt = ddpm_chain(rng, x0, beta_schedule)
 ```
 
 ```@example ddpmscorematching
-plot(xt)
+plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10) # hide
+```
+
+The final histogram and the asymptotic standard normal distribution.
+
+```@setup ddpmscorematching
+plt = plot(title="PDF and histogram of the chain state at \$K=$beta_len", titlefont=10)
+histogram!(plt, xt[end, :], normalize=:pdf, nbins=80, label="sample histogram")
+plot!(plt, xrange, x -> pdf(Normal(), x), linewidth=4, label="pdf")
 ```
 
 ### The neural network model
 
-The neural network we consider is a again a feed-forward neural network made, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $n$, to account for the evolution of the Markov chain.
+The neural network we consider is a again a feed-forward neural network made, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $k$, to account for the evolution of the Markov chain.
 
 ```@example ddpmscorematching
-model = Chain(Dense(2 => 16, relu), Dense(16 => 1))
+model = Chain(Dense(2 => 32, relu), Dense(32 => 32, relu), Dense(32 => 1))
 ```
 
 We initialize the *parameters* and the *state* of the model.
@@ -727,13 +742,14 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ### Loss function
 
-Here it is how we implement the objective ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
+Here it is how we implement the objective $L_{\mathrm{VLB,unif}}^{\mathrm{simple}, *}(\boldsymbol{\theta})$.
 ```@example ddpmscorematching
 function loss_function_uniform_simple(model, ps, st, data)
     sample_points, coeffs = data
     epsilons = randn(size(sample_points))
-    ks = rand(axes(coeffs, 1), size(sample_points))
-    epsilons_pred, st = Lux.apply(model, [coeffs[:, 1][ks] .* sample_points .+ coeffs[:, 2][ks] .* epsilons; ks], ps, st)
+    ks = rand(coeffs.krange, size(sample_points))
+    model_input = [coeffs.sqrtx[ks] .* sample_points .+ coeffs.sqrt1mx[ks] .* epsilons; ks]
+    epsilons_pred, st = Lux.apply(model, model_input, ps, st)
     loss = mean(abs2, epsilons_pred .- epsilons)
     return loss, st, ()
 end
@@ -775,8 +791,9 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tst
 
 #### Training loop
 
-Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```@example ddpmscorematching
+We repeat the usual training loop considered in the previous notes.
+
+```@setup ddpmscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
