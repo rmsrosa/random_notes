@@ -577,12 +577,6 @@ using Markdown
 nothing # hide
 ```
 
-There are several Julia libraries for artificial neural networks and for automatic differentiation (AD). The most established package for artificial neural networks is the [FluxML/Flux.jl](https://github.com/FluxML/Flux.jl) library, which handles the parameters implicitly, but it is moving to explicit parameters. A newer library that handles the parameters explicitly is the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library, which is taylored to the differential equations [SciML](https://sciml.ai) ecosystem.
-
-Since we aim to combine score-matching with neural networks and, eventually, with stochastic differential equations, we thought it was a reasonable idea to experiment with the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library.
-
-As we mentioned, the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) library is a newer package and not as well developed. In particular, it seems the only AD that works with it is the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library. Unfortunately, the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library is not so much fit to do AD on top of AD, as one can see from e.g. [Zygote: Design limitations](https://fluxml.ai/Zygote.jl/dev/limitations/#Second-derivatives-1). Thus we only illustrate this with a small network on a simple univariate problem.
-
 #### Reproducibility
 
 We set the random seed for reproducibility purposes.
@@ -680,7 +674,7 @@ xt = ddpm_forward_chain(rng, x0, beta_schedule)
 ```
 
 ```@example ddpmscorematching
-plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10) # hide
+plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.1) # hide
 ```
 
 The final histogram and the asymptotic standard normal distribution.
@@ -697,10 +691,10 @@ plt # hide
 
 ### The neural network model
 
-The neural network we consider is a again a feed-forward neural network made, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $k$, to account for the evolution of the Markov chain.
+The neural network we consider is a again a feed-forward neural network made, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $k$, to account for the evolution of the Markov chain, so we need to bump it up a little bit.
 
 ```@example ddpmscorematching
-model = Chain(Dense(2 => 32, relu), Dense(32 => 32, relu), Dense(32 => 1))
+model = Chain(Dense(2 => 64, relu), Dense(64 => 1))
 ```
 
 We initialize the *parameters* and the *state* of the model.
@@ -726,7 +720,7 @@ end
 This is how the points used for training look like at a given epoch:
 
 ```@setup ddpmscorematching
-function chain_scatter(rng, data)
+function chain_scatter(data)
     rng, sample_points, coeffs_train = data
     epsilons = randn(rng, size(sample_points))
     ks = rand(rng, coeffs_train.krange, size(sample_points))
@@ -735,8 +729,8 @@ function chain_scatter(rng, data)
 end
 ```
 
-```@setup
-ks, xts = chain_scatter(rng, data)
+```@setup ddpmscorematching
+ks, xts = chain_scatter(data)
 ```
 
 ```@example ddpmscorematching
@@ -789,7 +783,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tst
 ```
 
 ```@example ddpmscorematching
-Lux.Training.compute_gradients(vjp_rule, loss_function_whole_simple, data, tstate_org)
+Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tstate_org)
 ```
 
 #### Training loop
@@ -820,15 +814,17 @@ end
 
 ### Training
 
-Now we train the model with the objective function ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
+Now we train the model. Since this is stochastic, it takes some more epochs than the previous ones.
 ```@example ddpmscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_whole_simple, 100, 20, 25)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_uniform_simple, 1000, 20, 25)
 nothing # hide
 ```
 
 ```@example ddpmscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
 ```
+
+As one can see, it did not generate spurious samples, but it was concentrated near the highest modal of the target distribution.
 
 ### Results
 
@@ -863,7 +859,7 @@ xbwt = ddpm_backward_chain(rng, xbwK, coeffs_sample, tstate)
 ```
 
 ```@example ddpmscorematching
-plot(xbwt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10) # hide
+plot(xbwt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.2) # hide
 ```
 
 The final histogram and the asymptotic standard normal distribution.
