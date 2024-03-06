@@ -602,7 +602,7 @@ sample_points = permutedims(rand(rng, target_prob, 1024))
 ```
 
 ```@example ddpmscorematching
-beta_init = 0.002
+beta_init = 0.02
 beta_final = 0.8
 beta_len = 80
 beta_schedule = range(beta_init, beta_final, beta_len)
@@ -674,7 +674,7 @@ xt = ddpm_forward_chain(rng, x0, beta_schedule)
 ```
 
 ```@example ddpmscorematching
-plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.1) # hide
+plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.2) # hide
 ```
 
 The final histogram and the asymptotic standard normal distribution.
@@ -734,7 +734,7 @@ ks, xts = chain_scatter(data)
 ```
 
 ```@example ddpmscorematching
-scatter(ks, xts, legend=false, title="points used for training", titlefont=10) # hide
+scatter(ks, xts, color=1, alpha=0.4, legend=false, title="points used for training", titlefont=10) # hide
 ```
 
 ```@example ddpmscorematching
