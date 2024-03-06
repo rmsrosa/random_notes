@@ -254,7 +254,7 @@ with
 ```
 and
 ```math
-    p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k(\mathbf{x}_k, \mathbf{x}_0)\mathbf{I}).
+    p(\mathbf{x}_{k-1}|\mathbf{x}_k, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{k-1}; \tilde{\boldsymbol{\mu}}_k(\mathbf{x}_k, \mathbf{x}_0), \tilde \beta_k\mathbf{I}).
 ```
 
 ### Reparametrization trick
@@ -299,7 +299,7 @@ Using, again, that $\beta_k = 1 - \alpha_k$, we find
 ```math
     \tilde{\boldsymbol{\mu}}_k = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\bar{\boldsymbol{\epsilon}}_k.
 ```
-In this way, we *reparametrize* the mean in terms of $\mathbf{x}_k$ and $\bar{\boldsymbol{\epsilon}}_k$, instead of $\mathbf{x}_k$ and $\mathbf{x}_0$.
+In this way, we *reparametrize* the mean in terms of $\mathbf{x}_k$ and $\bar{\boldsymbol{\epsilon}}_k$, instead of $\mathbf{x}_k$ and $\mathbf{x}_0$. This is the form that serves as an inspiration to the model of the reverse process. With that, the reparametrization of $\mathbf{x}_k$ in terms of $\mathbf{x}_0$ and $\bar{\boldsymbol{epsilon}}_k$ is then used for training, as we will see in what follows.
 
 ### The model
 
@@ -592,38 +592,9 @@ rng = Xoshiro(12345)
 nothing # hide
 ```
 
-```@setup ddpmscorematching
-function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
-    ps = probs(d)
-    cs = components(d)
-    ps1 = first(ps)
-    cs1 = first(cs)
-    pdfx1 = pdf(cs1, x)
-    pdfx = ps1 * pdfx1
-    glp = pdfx * gradlogpdf(cs1, x)
-    if iszero(ps1)
-        glp = zero(glp)
-    end
-    @inbounds for (psi, csi) in Iterators.drop(zip(ps, cs), 1)
-        if !iszero(psi)
-            pdfxi = pdf(csi, x)
-            if !iszero(pdfxi)
-                pipdfxi = psi * pdfxi
-                pdfx += pipdfxi
-                glp += pipdfxi * gradlogpdf(csi, x)
-            end
-        end
-    end
-    if !iszero(pdfx) # else glp is already zero
-        glp /= pdfx
-    end 
-    return glp
-end
-```
-
 ### Data
 
-We build the target model, draw samples from it, and prepare all the parameters for training.
+We build the target model, draw samples from it, and prepare all the parameters for training and sampling.
 
 ```@example ddpmscorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
@@ -632,24 +603,28 @@ xrange = range(-10, 10, 200)
 dx = Float64(xrange.step)
 xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
-target_score = gradlogpdf.(target_prob, xrange')
 
 sample_points = permutedims(rand(rng, target_prob, 1024))
 ```
 
 ```@example ddpmscorematching
-beta_init = 0.02
-beta_final = 0.4
-beta_len = 40
+beta_init = 0.002
+beta_final = 0.8
+beta_len = 80
 beta_schedule = range(beta_init, beta_final, beta_len)
 alpha_schedule = 1 .- beta_schedule
 alpha_tilde = cumprod(alpha_schedule)
-coeffs = (
-    krange=1:beta_len,
-    sqrtx = map(√, alpha_tilde),
-    sqrt1mx = map(x -> √(1 - x), alpha_tilde)
+coeffs_train = (
+    krange = 1:beta_len,
+    sqrtalphatilde = map(√, alpha_tilde),
+    sqrtoneminusalphatilde = map(x -> √(1 - x), alpha_tilde)
 )
-data = (sample_points, coeffs)
+coeffs_sample = (
+    sqrtalpha = map(√, alpha_schedule),
+    alpharatio = (1 .- alpha_schedule) ./ map(x -> √(1 - x), alpha_tilde),
+    sigmaschedule = copy(beta_schedule)
+)
+data = (rng, sample_points, coeffs_train)
 ```
 
 ```@setup ddpmscorematching
@@ -657,17 +632,6 @@ plt = plot(title="PDF and histogram of sample data from the distribution", title
 histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
 plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
 scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
-```
-
-```@example ddpmscorematching
-plt # hide
-```
-
-```@setup ddpmscorematching
-plt = plot(title="The score function and the sample", titlefont=10)
-
-plot!(plt, xrange, target_score', label="score function", markersize=2)
-scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 ```
 
 ```@example ddpmscorematching
@@ -688,7 +652,7 @@ Markdown.parse("""We choose the schedule to be a linear schedule from ``\\beta_1
 ```
 
 ```@setup ddpmscorematching
-function ddpm_chain!(rng, xt, beta_schedule)
+function ddpm_forward_chain!(rng, xt, x0, beta_schedule)
     @assert axes(xt, 1) == only(axes(beta_schedule))
     i1 = firstindex(axes(xt, 1))
     randn!(rng, xt)
@@ -700,9 +664,9 @@ function ddpm_chain!(rng, xt, beta_schedule)
     return xt
 end
 
-function ddpm_chain(rng, x0, beta_schedule)
+function ddpm_forward_chain(rng, x0, beta_schedule)
     xt = beta_schedule .* x0'
-    ddpm_chain!(rng, xt, beta_schedule)
+    ddpm_forward_chain!(rng, xt, x0, beta_schedule)
     return xt
 end
 ```
@@ -712,7 +676,7 @@ x0 = vec(sample_points)
 ```
 
 ```@setup ddpmscorematching
-xt = ddpm_chain(rng, x0, beta_schedule)
+xt = ddpm_forward_chain(rng, x0, beta_schedule)
 ```
 
 ```@example ddpmscorematching
@@ -722,9 +686,13 @@ plot(xt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=
 The final histogram and the asymptotic standard normal distribution.
 
 ```@setup ddpmscorematching
-plt = plot(title="PDF and histogram of the chain state at \$K=$beta_len", titlefont=10)
+plt = plot(title="PDF and histogram of the chain state at \$K=$beta_len\$", titlefont=10)
 histogram!(plt, xt[end, :], normalize=:pdf, nbins=80, label="sample histogram")
 plot!(plt, xrange, x -> pdf(Normal(), x), linewidth=4, label="pdf")
+```
+
+```@example ddpmscorematching
+plt # hide
 ```
 
 ### The neural network model
@@ -745,10 +713,41 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 Here it is how we implement the objective $L_{\mathrm{VLB,unif}}^{\mathrm{simple}, *}(\boldsymbol{\theta})$.
 ```@example ddpmscorematching
 function loss_function_uniform_simple(model, ps, st, data)
-    sample_points, coeffs = data
-    epsilons = randn(size(sample_points))
-    ks = rand(coeffs.krange, size(sample_points))
-    model_input = [coeffs.sqrtx[ks] .* sample_points .+ coeffs.sqrt1mx[ks] .* epsilons; ks]
+    rng, sample_points, coeffs_train = data
+    epsilons = randn(rng, size(sample_points))
+    ks = rand(rng, coeffs_train.krange, size(sample_points))
+    model_input = [coeffs_train.sqrtalphatilde[ks] .* sample_points .+ coeffs_train.sqrtoneminusalphatilde[ks] .* epsilons; ks]
+    epsilons_pred, st = Lux.apply(model, model_input, ps, st)
+    loss = mean(abs2, epsilons_pred .- epsilons)
+    return loss, st, ()
+end
+```
+
+This is how the points used for training look like at a given epoch:
+
+```@setup ddpmscorematching
+function chain_scatter(rng, data)
+    rng, sample_points, coeffs_train = data
+    epsilons = randn(rng, size(sample_points))
+    ks = rand(rng, coeffs_train.krange, size(sample_points))
+    xts = coeffs_train.sqrtalphatilde[ks] .* sample_points .+ coeffs_train.sqrtoneminusalphatilde[ks] .* epsilons
+    return ks, xts
+end
+```
+
+```@setup
+ks, xts = chain_scatter(rng, data)
+```
+
+```@example ddpmscorematching
+scatter(ks, xts, legend=false, title="points used for training", titlefont=10) # hide
+```
+
+```@example ddpmscorematching
+function loss_function_whole_simple(model, ps, st, data)
+    rng, sample_points, coeffs_train = data
+    epsilons = randn(rng, 1, length(sample_points) * length(coeffs_train.krange))
+    model_input = reduce(hcat, [[coeffs_train.sqrtalphatilde[k] .* sample_points .+ coeffs_train.sqrtoneminusalphatilde[k] .* epsilons[(k-1) * length(sample_points) + 1:k * length(sample_points)]'; zero(sample_points) .+ k] for k in coeffs_train.krange])
     epsilons_pred, st = Lux.apply(model, model_input, ps, st)
     loss = mean(abs2, epsilons_pred .- epsilons)
     return loss, st, ()
@@ -762,7 +761,7 @@ end
 We use the Adam optimiser.
 
 ```@example ddpmscorematching
-opt = Adam(0.01)
+opt = Adam(0.001)
 
 tstate_org = Lux.Training.TrainState(rng, model, opt)
 ```
@@ -789,6 +788,10 @@ Check if Zygote via Lux is working fine to differentiate the loss functions for 
 Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tstate_org)
 ```
 
+```@example ddpmscorematching
+Lux.Training.compute_gradients(vjp_rule, loss_function_whole_simple, data, tstate_org)
+```
+
 #### Training loop
 
 We repeat the usual training loop considered in the previous notes.
@@ -797,6 +800,8 @@ We repeat the usual training loop considered in the previous notes.
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
+    loss = first(loss_function_uniform_simple(model, ps, st, data))
+    println("Epoch: 0 || Loss: $(loss)")
     for epoch in 1:epochs
         grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp,
             loss_function, data, tstate)
@@ -817,11 +822,61 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{P_\sigma ESM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example ddpmscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_uniform_simple, 5000, 20, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_whole_simple, 100, 20, 25)
 nothing # hide
 ```
 
+```@example ddpmscorematching
+plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
+```
+
 ### Results
+
+```@setup ddpmscorematching
+function ddpm_backward_chain!(rng, xbwt, xbwK, coeffs_sample, tstate, aux = xbwt[1:2, :])
+    @assert axes(xbwt, 1) == only(axes(alpha_schedule))
+    i1 = lastindex(axes(xbwt, 1))
+    randn!(rng, xbwt)
+    xbwt[i1, :] .= xbwK
+    for i in Iterators.drop(Iterators.reverse(axes(xbwt, 1)), 1)
+        aux[1, :] .= view(xbwt, i1, :)
+        aux[2, :] .= i1
+        xbwt[i:i, :] .= ( view(xbwt, i1:i1, :) .- coeffs_sample.alpharatio[i1] .* first(tstate.model(aux, tstate.parameters, tstate.states)) ) ./ coeffs_sample.sqrtalpha[i1] .+ coeffs_sample.sigmaschedule[i1] .* view(xbwt, i:i, :)
+        i1 = i
+    end
+    return xbwt
+end
+
+function ddpm_backward_chain(rng, xbwK, coeffs_sample, tstate)
+    xbwt = alpha_schedule .* xbwK'
+    ddpm_backward_chain!(rng, xbwt, xbwK, coeffs_sample, tstate)
+    return xbwt
+end
+```
+
+```@setup ddpmscorematching
+xbwK = randn(rng, size(x0))
+```
+
+```@setup ddpmscorematching
+xbwt = ddpm_backward_chain(rng, xbwK, coeffs_sample, tstate)
+```
+
+```@example ddpmscorematching
+plot(xbwt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10) # hide
+```
+
+The final histogram and the asymptotic standard normal distribution.
+
+```@setup ddpmscorematching
+plt = plot(title="PDF and histogram of the chain state at \$K=$beta_len\$", titlefont=10)
+histogram!(plt, xbwt[begin, :], normalize=:pdf, nbins=80, label="sample histogram")
+plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
+```
+
+```@example ddpmscorematching
+plt # hide
+```
 
 ## References
 
