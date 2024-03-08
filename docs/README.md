@@ -19,7 +19,15 @@
 1. Have `LiveServer.jl` installed in the global environment or in `/docs`;
 2. Activate `docs` project with e.g. `pkg> activate docs` from the root directory
 3. Do `julia> using LiveServer`;
-4. Do `julia> servedocs()`;
+4. If you want to develop a specific page and not have the julia code be executed in other pages, add `"draft"` to the global `ARGS` variable with `push!(ARGS, "draft")` and add the meta block
+````{verbatim}
+```@meta
+    Draft = false
+```
+````
+
+to the specific page you want to work on. Otherwise, if you want to execute the `@example` and `@setup` blocks on all files, just don't do anything with `ARGS`.
+5. Do `julia> servedocs()`;
 5. Wait for the browser to pop-up with the local documentation page.
 
 ## Development
