@@ -49,7 +49,7 @@ makedocs(
     sitename = "Random notes",
     pages = allpages,
     pagesonly = true,
-    draft = true,
+    draft = false,
     authors = "Ricardo Rosa",
     format = Documenter.HTML(;
         assets = [
