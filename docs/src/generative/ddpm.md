@@ -8,7 +8,7 @@ Draft = false
 
 ### Aim
 
-Review **denoising diffusion probabilistic models (DDPM)** introduced in [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and further improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html).
+Review **denoising diffusion probabilistic models (DDPM)** introduced in [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and further improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) (and slightly more in [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ)).
 
 ### Motivation
 
@@ -16,12 +16,15 @@ Build a solid foundation on score-based generative diffusion models, for which D
 
 ### Background
 
-The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and improved in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) is to embed the random variable we want to model into a Markov chain and model the whole reverse process of the Markov chain. This is a much more complex task which greatly increases the dimension of the problem, but which yields more stability to both training and generative processes.
+The main idea in [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) is to embed the random variable we want to model into a Markov chain and model the whole reverse process of the Markov chain. This is a much more complex task which greatly increases the dimension of the problem, but which yields more stability to both training and generative processes.
 
 The desired random variable, for which we only have access to a sample, is considered as an initial condition to a Markov chain which gradually adds noise to the process so that it converges to a simple and tractable distribution, such as a normal or a binomial distribution. The training process fits a model to the reverse process of the Markov chain (starting back from a relatively large time step, where it will be close to the tractable distribution). Then, the model is used to reverse the process and generate (aproximate) samples of our target distribution from samples of the idealized tractable distribution. The tractable asymptotic distribution of the forward process becomes the initial distribution of the model reverse process, and the (initial) desired target distribution is approximated by the final distribution of the reverse model process.
 
-Besides the original articles [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html),
-another source, which in the beginning helped me understand the main ideas of the foundational articles, was the blog post [What are diffusion models? Lil’Log by Lilian Weng (2021)](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).
+The original work of [Sohl-Dickstein, Weiss, Maheswaranathan, and Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) had great results but the model was a bit complex and training was costly. [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) improved the model by fixing the variance of the model reverse process and simplifying the loss function in a stochastic gradient way, turning the method into an efficient one with great performance.
+
+Further on, [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ) showed improvements to the method by changing the linear variance schedule for the forward process proposed in the previous two works into a nonlinear one, which adds noise more gradually in the beginning and at the end. Another improvement was to learn the variance of the model reverse process in a very specific form, which allowed more flexibility in a way that did not hinder the training impractical.
+
+Besides the original articles, another source, which in the beginning helped me understand the main ideas of the foundational articles, was the blog post [What are diffusion models? Lil’Log by Lilian Weng (2021)](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/).
 
 In a subsequent work, [Song, Meng, Ermon (2021)](https://openreview.net/forum?id=St1giarCHLP) improved the idea and introduced **denoising diffusion implicit models**, which is based on non-Markovian processes but amounts to the same training strategy and model. The advantage, then, is that sampling is greatly expedited with a non-Markovian reverse process that can sample directly from the tractable distribution. We do not detail this method here, though.
 
@@ -337,7 +340,9 @@ As in the reverse Markov process, we assume each $p_{\boldsymbol{\theta}}(\mathb
     p_{\boldsymbol{\theta}}(\mathbf{x}_{k-1}|\mathbf{x}_k) = \mathcal{N}(\mathbf{x}_{k-1}; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k), \beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)).
 ```
 
-Due to the reparametrization trick used in the target Markov chain, we also reparametrize $\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ in a similar way:
+[Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) modeled the mean and the covariance kernel of each reverse step and actually used a modified distribution multiplying it by a function $r(\mathbf{x}_k)$, but we do not consider this and go on model implemented in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html).
+
+Indeed, due to the reparametrization trick used in the target Markov chain, we also reparametrize $\boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ in a similar way:
 ```math
     \boldsymbol{\mu}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) = \frac{1}{\sqrt{\alpha_k}}\mathbf{x}_k - \frac{1-\alpha_k}{\sqrt{1 - \bar{\alpha}_{k}}\sqrt{\alpha_{k}}}\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k).
 ```
@@ -346,7 +351,7 @@ Although $\beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ are also learnable, they
 ```math
     \beta_{\boldsymbol{\theta}}(\mathbf{x}_k, k) = \sigma_k,
 ```
-for pre-determined constants $\sigma_k,$ $k=1, \ldots, K.$
+for pre-determined constants $\sigma_k,$ $k=1, \ldots, K.$ [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) experimented with some choices and found out that choosing $\sigma_k^2 = \beta_k$ or $\sigma_k^2 = \tilde\beta_k$ yields about the same results. They correspond to opposite extremes, with $\sigma_k^2 = \beta_k$ being optimal for $\mathbf{X}_0 \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, while $\sigma_k^2 = \tilde\beta_k$ being optimal for a delta distribution $\mathbf{X}_0 = \mathbf{x}_0$, for a given deterministic $\mathbf{x}_0$.
 
 In this way, the modeled reverse process, once $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$ is properly trained, is given by
 ```math
@@ -481,6 +486,8 @@ Thus, the variational lower bound becomes
     L_{\mathrm{VLB}}(\boldsymbol{\theta}) = L_{\mathrm{VLB}, 0}(\boldsymbol{\theta}) + L_{\mathrm{VLB}, 1}(\boldsymbol{\theta}) + \cdots + L_{\mathrm{VLB}, K}.
 ```
 
+[Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) went on to model the mean and the covariance kernel of each reverse step and modifying the distributions by a function $r(\mathbf{x}_k)$, but we do not consider this here and go on with the simplifications and improvements carried on by [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html).
+
 #### Simplifications
 
 Since the last term in $L_{\mathrm{VLB}}(\boldsymbol{\theta})$ is constant, we only need to minimize 
@@ -572,6 +579,21 @@ A further simplification proposed by [Ho, Jain, and Abbeel (2020)](https://proce
     {\tilde L}_{\mathrm{VLB}}^{\mathrm{simple}}(\boldsymbol{\theta}) = \frac{1}{N} \sum_{n=1}^N \left\|\bar{\boldsymbol{\epsilon}}_{k_n, n} - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k_n}}\mathbf{x}_0^n + \sqrt{1 - \bar{\alpha}_{k_n}}\bar{\boldsymbol{\epsilon}}_{k_n, n}, k_n\right) \right\|^2.
 ```
 
+## More improvements
+
+[Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ) modified a little more the simplifications in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and improved even more some of the benchmark results for DDPM.
+
+While [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) pre-determined the variance $\sigma_k^2$ of the reverse model to either one of the extreme values $\beta_k$ and $\tilde\beta_k$, [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ) found best to learn this variance, but in a very specific form, namely, as a combination
+```math
+    \log \sigma_k^2 = v \log\beta_k + (1 - v)\log\tilde\beta_k.
+```
+
+Another improvement was to use a nonlinear cosine variance schedule $\beta_k$ changing very little near the extremes $k=1$ and $k=K$ and with a linear dropoff of $\tilde\alpha_k$ in the middle.
+
+The motivation was that while DDPM had showed very good results with CIFAR-10 and LSUN datasets, it did not achieve log-likelyhood competitiveness with other likelyhood based models. This casted doubts whether DDPM would capture all the modes of a distribution and perform well on a more diverse datasets.
+
+With the improvements above, [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ), showed that log-likelyhood competitiveness could indeed be achieved with DDPM.
+
 ## Numerical example
 
 We illustrate the method numerically, modeling a synthetic univariate Gaussian mixture distribution.
@@ -620,6 +642,7 @@ beta_len = 80
 beta_schedule = range(beta_init, beta_final, beta_len)
 alpha_schedule = 1 .- beta_schedule
 alpha_tilde = cumprod(alpha_schedule)
+beta_tilde = ( 1 .- [0; alpha_tilde[begin:end-1]]) ./ ( 1 .- alpha_tilde ) .* beta_schedule
 coeffs_train = (
     krange = 1:beta_len,
     sqrtalphatilde = map(√, alpha_tilde),
@@ -632,6 +655,14 @@ coeffs_sample = (
 )
 data = (rng, sample_points, coeffs_train)
 nothing # hide
+```
+
+```@setup ddpmscorematching
+plt = plot(title="Schedules", titlefont=10)
+plot!(plt, alpha_tilde, label="\$\\tilde\\alpha_k\$")
+plot!(plt, alpha_schedule, label="\$\\alpha_k\$")
+plot!(plt, beta_schedule, label="\$\\beta_k\$")
+plot!(plt, beta_tilde, label="\$\\tilde\\beta_k\$")
 ```
 
 ```@setup ddpmscorematching
@@ -860,7 +891,7 @@ nothing # hide
 
 Here is the resulting backward trajectories.
 ```@example ddpmscorematching
-plot(xbwt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.2) # hide
+plot(xbwt, label=nothing, title="Sample paths of the reverse sampling process", titlefont=10, color=1, alpha=0.2) # hide
 ```
 
 We then visualize the histogram of the generated samples and compare it with the pdf of the synthetic target distribution.
@@ -874,7 +905,7 @@ plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
 plt # hide
 ```
 
-As one can see, it did not generate spurious samples, but it was concentrated near the highest modal of the target distribution. Different linear variance schedules, more training, and different network architectures resulted in somewhat the same pattern. Maybe a nonlinear schedule improves the result? I guess not even that...
+As one can see, it did not generate spurious samples, but it was concentrated near the highest modal of the target distribution. Different linear variance schedules, more training, and different network architectures resulted in somewhat the same pattern. Maybe a nonlinear schedule improves the result? Let's try.
 
 ```@setup ddpmscorematching
 s = 0.1
@@ -882,6 +913,7 @@ alpha_tilde = cos.(((1:beta_len) ./ (beta_len + 1) .+ s) ./ (1 .+ s) .* pi ./ 2)
 
 alpha_schedule = [alpha_tilde[1]; alpha_tilde[2:end] ./ alpha_tilde[1:end-1]]
 beta_schedule = 1 .- alpha_schedule
+beta_tilde = ( 1 .- [0; alpha_tilde[begin:end-1]]) ./ ( 1 .- alpha_tilde ) .* beta_schedule
 
 coeffs_train = (
     krange = 1:beta_len,
@@ -911,6 +943,8 @@ beta_schedule = 0.75 * beta_curve.(brange, p) / beta_curve(bmax, p)
 # beta_schedule = range(beta_init, beta_final, beta_len) # previously
 alpha_schedule = 1 .- beta_schedule
 alpha_tilde = cumprod(alpha_schedule)
+beta_tilde = ( 1 .- [0; alpha_tilde[begin:end-1]]) ./ ( 1 .- alpha_tilde ) .* beta_schedule
+
 coeffs_train = (
     krange = 1:beta_len,
     sqrtalphatilde = map(√, alpha_tilde),
@@ -930,10 +964,11 @@ plt = plot(title="Schedules", titlefont=10)
 plot!(plt, alpha_tilde, label="\$\\tilde\\alpha_k\$")
 plot!(plt, alpha_schedule, label="\$\\alpha_k\$")
 plot!(plt, beta_schedule, label="\$\\beta_k\$")
+plot!(plt, beta_tilde, label="\$\\tilde\\beta_k\$")
 ```
 
 ```@example ddpmscorematching
-plt
+plt # hide
 ```
 
 ```@setup ddpmscorematching
@@ -974,7 +1009,7 @@ nothing # hide
 ```
 
 ```@example ddpmscorematching
-plot(xbwt, label=nothing, title="Sample paths of the Markov diffusion", titlefont=10, color=1, alpha=0.2) # hide
+plot(xbwt, label=nothing, title="Sample paths of the reverse sampling process", titlefont=10, color=1, alpha=0.2) # hide
 ```
 
 ```@setup ddpmscorematching
@@ -987,10 +1022,12 @@ plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
 plt # hide
 ```
 
+I guess not even that... We need to try harder.
 
 ## References
 
 1. [J. Sohl-Dickstein, E. A. Weiss, N. Maheswaranathan, S. Ganguli (2015), "Deep unsupervised learning using nonequilibrium thermodynamics", ICML'15: Proceedings of the 32nd International Conference on International Conference on Machine Learning - Volume 37, 2256-2265](https://dl.acm.org/doi/10.5555/3045118.3045358)
 1. [J. Ho, A. Jain, P. Abbeel (2020), "Denoising diffusion probabilistic models", in Advances in Neural Information Processing Systems 33, NeurIPS2020](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html)
 1. [L. Weng (2021), "What are diffusion models?" Lil’Log. lilianweng.github.io/posts/2021-07-11-diffusion-models/](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)
+1. [A. Q. Nichol and P. Dhariwal (2021), "Improved denoising diffusion probabilistic models", ICLR 2021 Conference](https://openreview.net/forum?id=-NEXDKk8gZ)
 1. [J. Song, C. Meng, S. Ermon (2021), "Denoising diffusion implicit models", ICLR 2021 Conference](https://openreview.net/forum?id=St1giarCHLP)
