@@ -734,7 +734,17 @@ plt # hide
 
 ### The neural network model
 
-The neural network we consider is a again a feed-forward neural network, but now it is a two-dimensional model, since it takes both the variate $x$ and the discrete time $k,$ to account for the evolution of the Markov chain, so we need to bump it up a little bit.
+There are two natural ways to model $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)$, where $\mathbf{x}_k\in \mathbb{R}$ and $k\in \{1, 2, \ldots, K\}.$ One is to embed it into a two-dimensional function
+```math
+    \mathbb{R}^2 \ni (\mathbf{x}_k, k) \mapsto \boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k) \in \mathbb{R},
+```
+and the other is as a vector-valued function
+```math
+    \mathbb{R} \ni \mathbf{x}_k \mapsto \left(\boldsymbol{\epsilon}_{\boldsymbol{\theta}}(\mathbf{x}_k, k)\right)_{k=1}^K \in \mathbb{R}^K.
+```
+The first one is in a framework compatible with the limit case of a stochastic differential equations, where $k$ becomes a time variable $t\in [0, T]$, $T > 0$. The second one is compatible with the fact that we do have a finite number $K$ of steps and this also gives a more flexible network. In practice, though, the second case, even increasing the width and depth of the neural network, did not improve the results. So we decide to present here only the first option.
+
+Thus, the neural network we consider is a two-dimensional feed-forward neural network with scalar values. Since we model the steps of the whole Markov chain, not only, a single random variable, we need to bump it up a little bit.
 
 ```@example ddpmscorematching
 model = Chain(Dense(2 => 64, relu), Dense(64 => 1))
