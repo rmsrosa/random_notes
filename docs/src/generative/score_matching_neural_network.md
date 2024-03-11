@@ -4,23 +4,33 @@
 
 ### Aim
 
-Apply the score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) to fit a neural network to a univariate Gaussian distribution, similarly to how it was done by [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html), via automatic differentiation.
+Apply the score-matching method of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) to fit a neural network model of the score function to a univariate Gaussian distribution. This borrows ideas from [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html), of using automatic differentiation to differentiate the neural network, and from [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354), of modeling directly the score function, instead of the pdf or an energy potential for the pdf.
 
 ### Motivation
 
-The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and see how it performs for training a neural network.
+The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and see how it performs for training a neural network to model the score function.
 
 ### Background
 
-The idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) is to directly model the score function from the sample data, using a suitable **implicit score matching** loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the **explicit score matching** objective function given by the expected square distance between the score of the model and the score of the unknown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unkown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
+The idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) is to directly fit the score function from the sample data, using a suitable **implicit score matching** loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the **explicit score matching** objective function given by the expected square distance between the score of the model and the score of the unknown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unknown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
 
-The implicit score matching method requires, however, the derivative of the model score function, which is costly to compute in general. In Hyvärinen's original work, all the examples considered models for which the gradient can be computed somewhat more explicitly. There was no artificial neural network involved.
+The implicit score matching method requires, however, the derivative of the score function of the model pdf, which is costly to compute in general. In Hyvärinen's original work, all the examples considered models for which the gradient can be computed somewhat more explicitly. There was no artificial neural network involved.
 
 In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to fit the score function from a model probability with log-likelyhood obtained from a two-layer neural network, so that the gradient of the score function could still be expressed somehow explicitly.
 
-After that, [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html) considered a larger artificial neural network and used automatic differentiation to optimize the model. They also proposed a penalization term in the loss function, to regularize and stabilize the optimization process.
+After that, [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html) considered a larger artificial neural network and used automatic differentiation to optimize the model. They also proposed a penalization term in the loss function, to regularize and stabilize the optimization process, yielding a **regularized implicit score matching** method. The model in [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html) was not of the pdf directly, but of an energy potential, i.e. with
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}) = \frac{1}{Z(\boldsymbol{\theta})} e^{-U(\mathbf{x}; \boldsymbol{\theta})},
+```
+where $U(\mathbf{x}; \boldsymbol{\theta})$ is modeled after a neural network.
 
-Our aim is to illustrate the use of automatic differentiation to allow the application of the **implicit score matching** method to fit neural networks.
+Finally, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) proposed modeling directly the score function as a neural network $s(\mathbf{x}; \boldsymbol{\theta})$, i.e.
+```math
+    \boldsymbol{\nabla}_{\mathbf{x}}p_{\boldsymbol{\theta}}(\mathbf{x}) = s(\mathbf{x}; \boldsymbol{\theta}).
+```
+[Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354), however, went further and proposed a different method (based on several perturbations of the data, each of which akin to denoising score matching). At this point, we do not address the main method proposed in [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354), we only borrow the idea of modeling directly the score function instead of the pdf or an energy potential of the pdf.
+
+In a sense, we do an analysis in hindsight, combining ideas proposed in subsequent articles, to implement the **implicit score matching** method in a different way. In summary, we illustrate the use of automatic differentiation to allow the application of the **implicit score matching** and the **regularized implicit score matching** methods to directly fit the score function as modeled by a neural networks.
 
 ## Loss function for implicit score matching
 
@@ -173,6 +183,8 @@ function loss_function_EISM_Zygote(model, ps, st, sample_points)
     return loss, st, ()
 end
 ```
+
+We also implement a regularized version as proposed by [Kingma and LeCun (2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html).
 
 ```@example adscorematching
 function loss_function_EISM_Zygote_regularized(model, ps, st, data)
@@ -426,3 +438,4 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
 1. [U. Köster, A. Hyvärinen (2010), "A two-layer model of natural stimuli estimated with score matching", Neural. Comput. 22 (no. 9), 2308-33, doi: 10.1162/NECO_a_00010](https://doi.org/10.1162/neco_a_00010)
 1. [Durk P. Kingma, Yann Cun (2010), "Regularized estimation of image statistics by Score Matching", Advances in Neural Information Processing Systems 23 (NIPS 2010)](https://papers.nips.cc/paper_files/paper/2010/hash/6f3e29a35278d71c7f65495871231324-Abstract.html)
+1. [Y. Song and S. Ermon (2019), "Generative modeling by estimating gradients of the data distribution", NIPS'19: Proceedings of the 33rd International Conference on Neural Information Processing Systems, no. 1067, 11918-11930](https://dl.acm.org/doi/10.5555/3454287.3455354)

@@ -12,7 +12,7 @@ The motivation is to revisit the original idea of [Aapo Hyvärinen (2005)](https
 
 ### Background
 
-Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly model the score function from the sample data, using a suitable **implicit score matching** loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the **explicit score matching** objective function given by the expected square distance between the score of the model and score of the unknown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unkown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
+Generative score-matching diffusion methods use Langevin dynamics to draw samples from a modeled score function. It rests on the idea of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) that one can directly *fit* the score function from the sample data, using a suitable **implicit score matching** loss function not depending on the unknown score function of the random variable. This loss function is obtained by a simple integration by parts on the **explicit score matching** objective function given by the expected square distance between the score of the model and score of the unknown target distribution, also known as the *Fisher divergence.* The integration by parts separates the dependence on the unknown target score function from the parameters of the model, so the fitting process (minimization over the parameters of the model) does not depend on the unknown distribution.
 
 It is worth noticing, in light of the main objective of score-matching diffusion, that the original work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has no diffusion. It is a direct modeling of the score function in the original probability space. But this is a fundamental work.
 
@@ -51,7 +51,7 @@ More precisly, the idea of the score-matching method is as follows.
 
 **1. Start with the explicit score matching**
 
-Fit the model by minimizing the expected square distance between the model score function $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is termed **explicit score matching (ESM),**
+Fit the model by minimizing the expected square distance between the score function of the model, $\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}),$ and the actual score function $\boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})$, which is termed **explicit score matching (ESM),**
 ```math
     J_{\mathrm{ESM}}({\boldsymbol{\theta}}) = \frac{1}{2}\int_{\mathbb{R}^d} p_{\mathbf{X}}(\mathbf{x}) \left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) - \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})\right\|^2\;\mathrm{d}\mathbf{x}.
 ```
@@ -139,11 +139,11 @@ For this proof to be justified, we need the constant to be finite,
 ```math
     C = \frac{1}{2}\int_{\mathbb{R}} p_X(x) \psi_X(x)^2\;\mathrm{d}x < \infty;
 ```
-the model score function not to grow too fast at infinity,
+the score function of the model not to grow too fast at infinity,
 ```math
     \psi(x; {\boldsymbol{\theta}}) p_X(x) \rightarrow 0, \quad |x| \rightarrow \infty,
 ```
-for every value ${\boldsymbol{\theta}}$ of the parameter; and the model score function to be smooth everywhere on the support of the distribution, again for every value of the parameter.
+for every value ${\boldsymbol{\theta}}$ of the parameter; and the score function of the model to be smooth everywhere on the support of the distribution, again for every value of the parameter.
 
 #### Multi-dimensional case
 
@@ -185,15 +185,15 @@ Similarly to the one-dimensional case, for this proof to be justified, we need t
 ```math
     C = \frac{1}{2}\int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \boldsymbol{\psi}_{\mathbf{X}}(\mathbf{x})^2\;\mathrm{d}\mathbf{x} < \infty;
 ```
-the model score function not to grow too fast at infinity,
+the score function of the model not to grow too fast at infinity,
 ```math
     \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) p_{\mathbf{X}}(\mathbf{x}) \rightarrow \mathbf{0}, \quad |\mathbf{x}| \rightarrow \infty,
 ```
-for every value ${\boldsymbol{\theta}}$ of the parameter; and the model score function to be smooth everywhere on the support of the distribution, again for every value of the parameter.
+for every value ${\boldsymbol{\theta}}$ of the parameter; and the score function of the model to be smooth everywhere on the support of the distribution, again for every value of the parameter.
 
 #### About the conditions on the model function
 
-The conditions on the smoothness and on the growth of the model score function are usually fine for the common neural network models when using smooth and uniformly bounded activation functions. Piecewise smooth and/or growing activation functions might fail these requirements, depending on the unkown target distribution.
+The conditions on the smoothness and on the growth of the score function of the model distribution are usually fine for the common neural network models when using smooth and uniformly bounded activation functions. Piecewise smooth and/or growing activation functions might fail these requirements, depending on the unkown target distribution.
 
 ## Numerical example
 
@@ -249,7 +249,7 @@ The approximation with the empirical distribution is
     {\tilde J}_{\mathrm{ISM}{\tilde p}_0}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{ISM}{\tilde p}_0}(\mu, \sigma) = \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{2}\left(\frac{x_n - \mu}{\sigma^2}\right)^2 - \frac{1}{\sigma^2} \right).
 ```
 
-Implementing this loss for the given model score function yields the following graph over a reasonable range of values for $\mu$ and $\sigma$.
+Computing this loss for the given model yields the following plot over a reasonable range of values for $\mu$ and $\sigma$.
 
 ```@example aaposcorematching
 loss_function(mu, sigma) = mean( (xn - mu)^2 / sigma^4 / 2 - 1 / sigma^2 for xn in sample_points) # hide
@@ -298,9 +298,9 @@ plot(plt) # hide
 
 This concludes our review of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) and illustrates the use of *empirical implicit score matching* to model a univariate random variable by a closed-form model.
 
-The work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has some more elaborate models, namely a (i) multivariate Gaussian model; a (ii) basic independent component analysis model; and an (iii) overcomplete model for image data.
+The work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) has some more elaborate models, namely a i) multivariate Gaussian model; a ii) basic independent component analysis model; and an iii) overcomplete model for image data.
 
-As we mentioned earlier, our interest, however, is on modeling the score-function using a neural network and for which the gradient needs to be handled properly. For that, other techniques were developed, which will be examined next.
+As we mentioned earlier, our interest, however, is on modeling directly the score function using a neural network and for which the gradient needs to be handled properly. For that, other techniques were developed, which will be examined next.
 
 ## References
 

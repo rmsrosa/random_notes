@@ -12,18 +12,17 @@ The motivation is to continue building a solid background on score-matching diff
 
 ### Background
 
-[Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) proposed modeling directly the score of a distribution. This is obtained, in theory, by minimizing an **explicit score matching** objective function. However, this function requires knowing the supposedly unknown target score function. The trick used by [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) was then to do an integration by parts and rewrite the optimization problem in terms of an **implicit score matching** objective function, which yields the same minima and does not require further information from the target distribution other than some sample points.
+[Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) proposed fitting directly the score of a model distribution. This is obtained, in theory, by minimizing an **explicit score matching** objective function. However, this function requires knowing the supposedly unknown target score function. The trick used by [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) was then to do an integration by parts and rewrite the optimization problem in terms of an **implicit score matching** objective function, which yields the same minima and does not require further information from the target distribution other than some sample points.
 
-The **implicit score matching** method requires, however, the derivative of the model score function, which is costly to compute in general.
+The **implicit score matching** method requires, however, the derivative of the score function of the model distribution, which is costly to compute in general.
 
-Then, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using *non-parametric Parzen density estimation* to directly approximate the explicit score matching objective, making a connection with denoising autoenconders (proposed earlir by Pascal himself, as a co-author in [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html)), and proposing the **denoising score matching** method.
+Then, [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) explored the idea of using *non-parametric Parzen density estimation* to directly approximate the explicit score matching objective, making a connection with denoising autoenconders (proposed earlir by Pascal himself, as a co-author in [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html)), and proposing the **denoising score matching** method.
 
 ## Objetive function for denoising score matching
 
 ### The original explicit and implicit score matching
 
-The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the model score function $\psi(\mathbf{x}; {\boldsymbol{\theta}})$ to the score function $\psi_X(\mathbf{x})$ of a random variable $\mathbf{X}$ by minimizing the 
-**implicit score matching** objective
+The score-matching method from [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) aims to fit the score function $\psi(\mathbf{x}; {\boldsymbol{\theta}})$ of the model distribution to the score function $\psi_X(\mathbf{x})$ of a random variable $\mathbf{X}$ by minimizing the **implicit score matching** objective
 ```math
     J_{\mathrm{ISM}}({\boldsymbol{\theta}}) = \int_{\mathbb{R}} p_{\mathbf{X}}(\mathbf{x}) \left( \frac{1}{2}\left\|\boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}})\right\|^2 + \boldsymbol{\nabla}_{\mathbf{x}} \cdot \boldsymbol{\psi}(\mathbf{x}; {\boldsymbol{\theta}}) \right)\;\mathrm{d}\mathbf{x},
 ```
@@ -50,7 +49,7 @@ so the implemented implicit score matching objective is
 
 [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) briefly mentions that minimizing $J_{\mathrm{ESM}}({\boldsymbol{\theta}})$ directly is "basically a non-parametric estimation problem", but dismisses it for the "simple trick of partial integration to compute the objective function very easily". As we have seen, the trick is fine for model functions for which we can compute the gradient without much trouble, but for modeling it with a neural network, for instance, it becomes computationally expensive.
 
-A few years later, [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) considered the idea of using a Parzel kernel density estimation
+A few years later, [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) considered the idea of using a Parzel kernel density estimation
 ```math
     {\tilde p}_\sigma(\mathbf{x}) = \frac{1}{\sigma^d}\int_{\mathbb{R}^d} K\left(\frac{\mathbf{x} - \tilde{\mathbf{x}}}{\sigma}\right) \;\mathrm{d}{\tilde p}_0(\tilde{\mathbf{x}}) = \frac{1}{\sigma^d N}\sum_{n=1}^N K\left(\frac{\mathbf{x} - \mathbf{x}_n}{\sigma}\right),
 ```
@@ -113,9 +112,29 @@ Thus, in this case, the **empirical denoising score matching** objective reads
 
 Often, with $N$ sufficiently large, it suffices to take $M=1$, i.e. a single "corrupted" sample $\tilde{\mathbf{x}}_n$, for each "clean" sample point $\mathbf{x}_n$. In this way, the double summation becomes a single summation and the computation is just as fast as the one with the score of the unconditional Parzen estimation, with the benefit similar to the denosing autoencoders.
 
+### Energy based modeling
+
+The model distribution is chosen by [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) in the form
+```math
+    p_{\boldsymbol{\theta}}(\mathbf{x}) = \frac{1}{Z(\boldsymbol{\theta})} e^{-U(\mathbf{x}; \boldsymbol{\theta})},
+```
+for an energy potential $U(\mathbf{x}; \boldsymbol{\theta})$ of the form
+```math
+    U(\mathbf{x}; \boldsymbol{\theta}) = - \frac{1}{\sigma^2}\left( \mathbf{c}\cdot \mathbf{x} - \frac{1}{2}\|\mathbf{x}\|^2 + \sum_{j=1}^d \operatorname{softplus}\left(\mathbf{W}_j\cdot \mathbf{x} + b_j\right)\right),
+```
+where
+```math
+    \boldsymbol{\theta} = (\mathbf{W}, \mathbf{b}, \mathbf{c}), \quad \mathbf{W}\in \mathbb{R}^{d\times d}, \;\mathbf{b}, \mathbf{c}\in\mathbf{R}^d,
+```
+with $\mathbf{W}_j$ being the rows of the matrix $\mathbf{W}$, and $\operatorname{sigmoid}()$ is an activation function. For this model, the score function can be computed explicitly [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142), being
+```math
+    \boldsymbol{\nabla}_{\mathbf{x}} p(\mathbf{x}; \boldsymbol{\theta}) = \frac{1}{\sigma^2}\left( \mathbf{W}^{\mathrm{tr}}\operatorname{sigmoid}\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right) + \mathbf{c} - \mathbf{x}\right).
+```
+When substitute for in the denoising score matching objective, we obtain a loss function directly in terms of the parameters $\boldsymbol{\theta} = (\mathbf{W}, \mathbf{b}, \mathbf{c})$.
+
 ### Connection with denoising autoencoder
 
-This brings us to the connection, discussed by [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142),  with denoising autoencoders, which were proposed a bit earlier by [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html).
+This brings us to the connection, discussed by [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142),  with denoising autoencoders, which were proposed a bit earlier by [Vincent, Larochelle, Lajoie, Bengio, and Manzagol(2010)](https://www.jmlr.org/papers/v11/vincent10a.html).
 
 In an **autoencoder**, as introduced by [Kramer (1991)](https://doi.org/10.1002/AIC.690370209), one has two models, an *encoder* model $\mathbf{y} = \mathbf{f}_{\boldsymbol{\xi}}(\mathbf{x})$ and a *decoder* $\mathbf{x} = \mathbf{g}_{\boldsymbol{\eta}}(\mathbf{y})$, and the objective is to be able to encode and decode the sample, and recover the original sample as close as possible, i.e.
 ```math
@@ -134,11 +153,11 @@ and then use the corrupted sample to train the encoder/decoder pair with the obj
 
 The idea is that the encoder/decoder model learns to better "reconstruct" the information even from "imperfect" information. Think about the case of encoding/decoding a handwritten message, where the letters are not "perfect" according to any font style.
 
-In [Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142), by choosing the score model of the form
+In [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142), by choosing the score model of the form
 ```math
-    \boldsymbol{\psi}(\mathbf{x}, \boldsymbol{\theta}) = \frac{1}{\sigma^2}\left( \mathbf{W}^{\mathrm{tr}} s\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right) + \mathbf{c} - \mathbf{x}\right),
+    \boldsymbol{\psi}(\mathbf{x}, \boldsymbol{\theta}) = \frac{1}{\sigma^2}\left( \mathbf{W}^{\mathrm{tr}} \operatorname{sigmoid}\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right) + \mathbf{c} - \mathbf{x}\right),
 ```
-where $\boldsymbol{\theta} = (\mathbf{W}, \mathbf{b}, \mathbf{c})$ are the parameters and $s()$ is an activation function such as the sigmoid function, and choosing the noise according to
+where $\boldsymbol{\theta} = (\mathbf{W}, \mathbf{b}, \mathbf{c})$ are the parameters and $\operatorname{sigmoid}()$ is an activation function, and choosing the noise according to
 ```math
     \mathcal{P}(\tilde{\mathbf{x}}|\mathbf{x}_n) = \mathcal{N}(\mathbf{x}_n, \sigma^2),
 ```
@@ -161,7 +180,7 @@ with
 
 Remember that here we are not trying to encode/decode the variate $\mathbf{x}$ itself, but its score function, so the above structure is compatible with that.
 
-[Pascal Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) does not mention explicitly that what we denoted above by $\mathbf{h}_{\boldsymbol{\theta}}(\mathbf{x})$ is not exactly of the form $\mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\theta}}(\mathbf{x}))$ and actually seems to suggest they are of the same form, for the sake of the connection with a denoising autoenconder. But we see here that it is not. Let us not freak out about that, though. This is good enough to draw some connection between denoising score matching and denoising autoencoder and to have this as an inspiration.
+[Vincent (2011)](https://doi.org/10.1162/NECO_a_00142) does not mention explicitly that what we denoted above by $\mathbf{h}_{\boldsymbol{\theta}}(\mathbf{x})$ is not exactly of the form $\mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\theta}}(\mathbf{x}))$ and actually seems to suggest they are of the same form, for the sake of the connection with a denoising autoenconder. But we see here that it is not. Let us not freak out about that, though. This is good enough to draw some connection between denoising score matching and denoising autoencoder and to have this as an inspiration.
 
 ## Proof that ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) = {\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}({\boldsymbol{\theta}}) + C_\sigma$
 
@@ -256,7 +275,7 @@ where
 
 ## Numerical example
 
-We illustrate, numerically, the use of the **denoising (explicit) score matching** objective ${\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}$ to model a synthetic univariate Gaussian mixture distribution.
+We illustrate, numerically, the use of the **denoising (explicit) score matching** objective ${\tilde J}_{\mathrm{DSM{\tilde p}_\sigma}}$ to model a synthetic univariate Gaussian mixture distribution. However, instead using an energy based method and model an energy potential of the density as done by [Vincent (2011)](https://doi.org/10.1162/NECO_a_00142), we model directly the score function.
 
 ### Julia language setup
 
