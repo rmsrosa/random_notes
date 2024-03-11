@@ -1,9 +1,5 @@
 # Langevin sampling
 
-```@meta
-    Draft = false
-```
-
 ```@setup scoreandlangevin
 using StatsPlots
 using Random
@@ -266,7 +262,7 @@ Hence, we obtain the overdamped Langevin equation. Dropping the tildes, we write
     \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}W_{t}.
 ```
 
-## The limit distribution
+### The asymptotic distribution
 
 In the inviscid and deterministic case, the Langevin equation reads
 ```math
@@ -364,7 +360,7 @@ and the stationary distribution takes the form
     p_\infty(x) = \frac{1}{Z_0} e^{-\frac{U(x)}{\gamma}}.
 ```
 
-## Convergence to the limit distribution
+### Convergence to the asymptotic distribution
 
 There are many rigorous results concerning the convergence to the equilibrium distribution, discussing conditions for the convergence, metrics, and rate of convergence. We will discuss them in more details in due course.
 
@@ -483,7 +479,7 @@ anim # hide
 
 ### Two-dimensional numerical example
 
-Let's do a two-dimensional example, now. We consider a trimodel bivariate normal distribution and use the two-dimensional overdamped Langevin equations to obtain samples from the score function of the distribution.
+Let's do a two-dimensional example, now. We consider a trimodal bivariate normal distribution and use the two-dimensional overdamped Langevin equations to obtain samples from the score function of the distribution.
 
 ```@setup scoreandlangevin2d
 using StatsPlots
@@ -634,7 +630,7 @@ end
 anim # hide
 ```
 
-Now we draw samples starting from a uniform distribution of points.
+Now we draw samples starting from a uniform distribution of points on the square $[-6, 6]^2$, which encompasses all three modal regions.
 
 ```@setup scoreandlangevin2d
 initial_sample = 12 .* (rand(rng, 2, 1024) .- [0.5, 0.5])
@@ -651,7 +647,7 @@ plot(title="histogram and particles of the generated sample", titlefont=10) # hi
 histogram2d!(xt[1, :, end], xt[2, :, end], bins=40, normalize=true, color=:vik) # hide
 scatter!(xt[1, :, end], xt[2, :, end], markersize=2, markercolor=:white, label=false) # hid2
 ```
-This is closer to the desired distribution.
+Notice this is closer to the desired distribution. With the initial points spread out over the modal regions, the particles have less trouble moving to the asymptotic distribution.
 
 Again, let us see an animation.
 ```@setup scoreandlangevin2d
