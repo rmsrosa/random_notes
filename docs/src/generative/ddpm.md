@@ -1,9 +1,5 @@
 # Denoising diffusion probabilistic models
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
