@@ -103,7 +103,7 @@ In the univariate case, the score function is also univariate and is given by th
 ```
 Notice the score function in this case is just a linear function vanishing at the mean of the distribution and with the slope being minus the multiplicative inverse of its variance.
 
-```@setup scoreandlangevin
+```@setup steinscore
 xrange = range(0, 10, length=200)
 mu = 4
 sigma = 0.5
@@ -113,13 +113,13 @@ plt2 = plot(xrange, x -> logpdf(prob, x), title="logpdf of \$\\mathcal{N}($mu, $
 plt3 = plot(xrange, x -> gradlogpdf(prob, x), title="gradlogpdf (score) of \$\\mathcal{N}($mu, $(sigma)^2)\$", titlefont=8)
 ```
 
-```@example scoreandlangevin
+```@example steinscore
 plot(plt1, plt2, plt3, layout=(3, 1), legend=false, size=(600, 400)) # hide
 ```
 
 In the multivariate case, the score function is a *vector field* in the event space $\mathbb{R}^d$.
 
-```@setup scoreandlangevin
+```@setup steinscore
 xxrange = range(-4, 8, length=100)
 yyrange = range(-3, 7, length=100)
 meshgrid(x, y) = (repeat(x, outer=length(y)), repeat(y, inner=length(x)))
@@ -135,7 +135,7 @@ plt2b = heatmap(xxrange, yyrange, (x, y) -> logpdf(prob, [x, y]), color=:vik, ti
 quiver!(plt2b, xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, alpha=0.5)
 ```
 
-```@example scoreandlangevin
+```@example steinscore
 plot(plt1a, plt1b, plt2a, plt2b, size=(600, 400)) # hide
 ```
 
