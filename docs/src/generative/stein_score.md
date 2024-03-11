@@ -172,16 +172,16 @@ and we see that
 ```
 where $\mathcal{F}$ is taken to be the class of function $f=f(\mathbf{x})$ which are smooth and decay relatively fast with respect to $p=p(\mathbf{x})$ (or, more generally, a subset of that which is relatively large in a suitable sense). Based on that, the **Stein discrepancy measure** is defined originally as
 ```math
-    \mathbf{S}_{\mathcal{F}}^1(p, q) = \max_{f\in\mathcal{F}}\mathbb{E}_p\left[\boldsymbol{\nabla}_{\mathbf{x}} \log q(\mathbf{x})f(\mathbf{x}) + \boldsymbol{\nabla}_{\mathbf{x}} f(\mathbf{x})\right],
+    \mathbb{S}_{\mathcal{F}}^1(p, q) = \max_{f\in\mathcal{F}}\mathbb{E}_p\left[\boldsymbol{\nabla}_{\mathbf{x}} \log q(\mathbf{x})f(\mathbf{x}) + \boldsymbol{\nabla}_{\mathbf{x}} f(\mathbf{x})\right],
 ```
 but in other works such as [Liu, Lee, and Jordan (2016)](https://proceedings.mlr.press/v48/liub16.html) the **Stein discrepancy measure** is taken with the square of the expectation:
 ```math
-    \mathbf{S}_{\mathcal{F}}^2(p, q) = \max_{f\in\mathcal{F}}\mathbb{E}_p\left[\boldsymbol{\nabla}_{\mathbf{x}} \log q(\mathbf{x})f(\mathbf{x}) + \boldsymbol{\nabla}_{\mathbf{x}} f(\mathbf{x})\right]^2.
+    \mathbb{S}_{\mathcal{F}}^2(p, q) = \max_{f\in\mathcal{F}}\mathbb{E}_p\left[\boldsymbol{\nabla}_{\mathbf{x}} \log q(\mathbf{x})f(\mathbf{x}) + \boldsymbol{\nabla}_{\mathbf{x}} f(\mathbf{x})\right]^2.
 ```
 
-This is not usually computationally tractable and is not often used in practice, when $\mathcal{F}$ is such a large class of functions. [Liu, Lee, and Jordan (2016)](https://proceedings.mlr.press/v48/liub16.html), however, proposed working with a particular subset $\mathcal{F}$, defined by the a ball in a reproducing kernel Hilbert space, for which the discrepancy can be computed via
+This is not usually computationally tractable and is not often used in practice, when $\mathcal{F}$ is such a large class of functions. [Liu, Lee, and Jordan (2016)](https://proceedings.mlr.press/v48/liub16.html), however, proposed working with a particular subset $\mathcal{F}$, defined by a ball in a reproducing kernel Hilbert space, for which the discrepancy can be computed via
 ```math
-    \mathbf{S}_{\mathcal{F}}^2(p, q) = \mathbb{E}_{\mathbf{x}, \mathbf{x}' \sim p}\left[u_q(\mathbf{x}, \mathbf{x}')\right],
+    \mathbb{S}_{\mathcal{F}}^2(p, q) = \mathbb{E}_{\mathbf{x}, \mathbf{x}' \sim p}\left[u_q(\mathbf{x}, \mathbf{x}')\right],
 ```
 where $\mathbf{x}, \mathbf{x}'$ are independently draw from $p$, and $u_q$ is a function involving the (Stein) score of $q$ and a suitable (Stein) kernel.
 
