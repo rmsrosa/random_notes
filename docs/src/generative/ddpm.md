@@ -575,6 +575,27 @@ A further simplification proposed by [Ho, Jain, and Abbeel (2020)](https://proce
     {\tilde L}_{\mathrm{VLB}}^{\mathrm{simple}}(\boldsymbol{\theta}) = \frac{1}{N} \sum_{n=1}^N \left\|\bar{\boldsymbol{\epsilon}}_{k_n, n} - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k_n}}\mathbf{x}_0^n + \sqrt{1 - \bar{\alpha}_{k_n}}\bar{\boldsymbol{\epsilon}}_{k_n, n}, k_n\right) \right\|^2.
 ```
 
+### Connection with score matching
+
+Rewriting again the loss function in terms of
+```math
+    \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k
+```
+we have 
+```math
+    \begin{align*}
+        \bar{\boldsymbol{\epsilon}}_k - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k, k\right) & = \frac{\mathbf{x}_k - \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0}{\sqrt{1 - \bar{\alpha}_{k}}} - \boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right) \\
+        & = \sqrt{1 - \bar{\alpha}_{k}} \left(\frac{\mathbf{x}_k - \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0}{1 - \bar{\alpha}_{k}} - \frac{\boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)}{\sqrt{1 - \bar{\alpha}_{k}}}\right)
+    \end{align*}
+```
+The first term on the right hand side can be seen as the score function of the conditional distribution
+```math
+    \mathcal{N}\left(\sqrt{\bar{\alpha}_k}\mathbf{x}_0, 1 - \bar{\alpha}_{k}\right).
+```
+Thus, $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)$ is actually learning a scaled version of the score function of the diffusion conditioned at each sample point. Notice the relation with denoising score matching.
+
+
+
 ## More improvements
 
 [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ) modified a little more the simplifications in [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and improved even more some of the benchmark results for DDPM.
