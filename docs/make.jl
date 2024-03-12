@@ -38,7 +38,8 @@ allpages = [
             "generative/sliced_score_matching.md",
             "1D finite-difference score matching" => "generative/1d_FD_score_matching.md",
             "2D finite-difference score matching" => "generative/2d_FD_score_matching.md",
-            "generative/ddpm.md"
+            "generative/ddpm.md",
+            "generative/ncsn.md",
         ]
     ],
     "Sensitivity analysis" => [
