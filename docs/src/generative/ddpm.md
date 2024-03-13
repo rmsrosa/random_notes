@@ -577,9 +577,9 @@ A further simplification proposed by [Ho, Jain, and Abbeel (2020)](https://proce
 
 ### Connection with score matching
 
-Rewriting again the loss function in terms of
+Going back to
 ```math
-    \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k
+    \mathbf{x}_k = \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_{k}}\bar{\boldsymbol{\epsilon}}_k,
 ```
 we have 
 ```math
@@ -588,13 +588,25 @@ we have
         & = \sqrt{1 - \bar{\alpha}_{k}} \left(\frac{\mathbf{x}_k - \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0}{1 - \bar{\alpha}_{k}} - \frac{\boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)}{\sqrt{1 - \bar{\alpha}_{k}}}\right)
     \end{align*}
 ```
-The first term on the right hand side can be seen as the score function of the conditional distribution
+The first term in the parenthesis can be seen as the score function of the conditional distribution of $\mathbf{X}_k$ given $\mathbf{X}_0 = \mathbf{x}_0$, with density
 ```math
-    \mathcal{N}\left(\sqrt{\bar{\alpha}_k}\mathbf{x}_0, 1 - \bar{\alpha}_{k}\right).
+    p(\mathbf{x}_k|\mathbf{x}_0) = \mathcal{N}(\mathbf{x}_k; \sqrt{\bar{\alpha}_{k}}\mathbf{x}_0, 1 - \bar{\alpha}_{k}) = \frac{1}{(2\pi (1 - \bar\alpha_k))^{d/2}} e^{-\frac{1}{2}\frac{(\mathbf{x}_k - \sqrt{\bar\alpha_k}\mathbf{x}_0)^2}{1 - \bar\alpha_k}}.
 ```
+The score function of this distribution reads
+```math
+    \boldsymbol{\nabla}_{\mathbf{x}_k}\log p(\mathbf{x}_k|\mathbf{x}_0) =  - \frac{\mathbf{x}_k - \sqrt{\bar\alpha_k}\mathbf{x}_0}{1 - \bar\alpha_k}.
+```
+Introducing
+```math
+    \tilde{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right) = -\frac{\boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)}{\sqrt{1 - \bar{\alpha}_{k}}},
+```
+we rewrite the loss term $L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta})$ as
+```math
+    L_{\mathrm{VLB}, k-1}(\boldsymbol{\theta}) = \frac{1}{2\sigma_k^2}\frac{(1-\alpha_k)\sqrt{1 - \bar{\alpha}_{k}}}{\sqrt{\alpha_{k}}}\mathbb{E}_{p_0(\mathbf{x}_0)p(\mathbf{x}_k|\mathbf{x}_0)} \left[\left\|\boldsymbol{\nabla}_{\mathbf{x}_k}\log p(\mathbf{x}_k|\mathbf{x}_0) -  \tilde{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)\right\|^2\right],
+```
+for $k=1, \ldots, K$. 
+
 Thus, $\boldsymbol{\epsilon}_{\boldsymbol{\theta}}\left(\mathbf{x}_k, k\right)$ is actually learning a scaled version of the score function of the diffusion conditioned at each sample point. Notice the relation with denoising score matching.
-
-
 
 ## More improvements
 
