@@ -1,5 +1,9 @@
 # Multiple denoising score matching with annealed Langevin dynamics
 
+```@meta
+Draft = false
+```
+
 ## Introduction
 
 ### Aim
@@ -36,34 +40,380 @@ which is the same as
 ```
 for a starting $\sigma_1 > 0$ and a rate $0 < \theta < 1$ given by $\theta = \sigma_2/\sigma_1 = \ldots = \sigma_L/\sigma_{L-1}$.
 
-For each $\sigma=\sigma_i$, $i=1, \ldots, L$, one considers the perturbed distributions
+For each $\sigma=\sigma_i$, $i=1, \ldots, L$, one considers the perturbed distribution
 ```math
     p_{\sigma}(\tilde{\mathbf{x}}) = \int_{\mathbb{R}^d} p(\mathbf{x})p_{\sigma}(\tilde{\mathbf{x}}|\mathbf{x})\;\mathrm{d}\mathbf{x},
 ```
 with a perturbation kernel
 ```math
-    p_{\sigma}(\tilde{\mathbf{x}}|\mathbf{x}) = \mathbf{N}\left(\tilde\mathbf{x}; \mathbf{x}, \sigma^2 \mathbf{I}).
+    p_{\sigma}(\tilde{\mathbf{x}}|\mathbf{x}) = \mathcal{N}\left(\tilde{\mathbf{x}}; \mathbf{x}, \sigma^2 \mathbf{I}\right).
 ```
 This yields a sequence of perturbed distributions
 ```math
     \{p_{\sigma_i}\}_{i=1}^L.
 ```
 
-We model the corresponding family of score functions $\{s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma)\}$, i.e. such that $s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma_i)$ approximates the score function of $p_{\sigma_i}$, i.e.
+We model the corresponding family of score functions $\{s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i)\}$, i.e. such that $s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i)$ approximates the score function of $p_{\sigma_i}$, i.e.
 ```math
-    s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma_i) \approx \boldsymbol{\nabla}_{\tilde\mathbf{x}} \log p_{\sigma_i}(\tilde\mathbf{x}).
+    s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i) \approx \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{x}}).
 ```
 
-The **noise conditional score network (NCSN)** is precisely $s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma).$
+The **noise conditional score network (NCSN)** is precisely 
+```math
+    s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma).
+```
 
 ### The loss function
 
-One wants to train the noise conditional score network (NCSN) $s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma)$ by weighting together the denosing loss function of each perturbation, i.e.
+One wants to train the noise conditional score network $s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma)$ by weighting together the denosing loss function of each perturbation, i.e.
 ```math
-    J_{MDSM}(\boldsymbol{\theta}) = \frac{1}{2L}\sum_{i=1}^L \lambda(\sigma_i) \mathbb{E}_{p(\mathbf{x})p_{\sigma_i}(\tilde\mathbf{x}|\mathbf{x})}\left[\left\| s_{\boldsymbol{\theta}}(\tilde\mathbf{x}, \sigma_i) - \frac{\mathbf{x} - \tilde\mathbf{x}}{\sigma_i^2} \right\|\right],
+    J_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2L}\sum_{i=1}^L \lambda(\sigma_i) \mathbb{E}_{p(\mathbf{x})p_{\sigma_i}(\tilde{\mathbf{x}}|\mathbf{x})}\left[ \left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i) - \frac{\mathbf{x} - \tilde{\mathbf{x}}}{\sigma_i^2} \right\|^2 \right],
 ```
 where $\lambda = \lambda(\sigma_i)$ is a weighting factor.
 
+In practice, we use the empirical distribution and a single corrupted data for each sample data, i.e.
+```math
+    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i}}{\sigma_i^2} \right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
+```
+
+This can also be written with a reparametrization,
+```math
+    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2, \quad \boldsymbol{\epsilon}_{n, i} \sim \mathcal{N}\left(\mathbf{0}_n, \mathbf{I}\right).
+```
+
+As for the choice of $\lambda(\sigma)$, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) suggested choosing
+```math
+    \lambda(\sigma) = \sigma^2.
+```
+
+This comes from the observation that,
+```math
+    \|s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_n, \sigma_i)\|^2 \sim \frac{1}{\sigma_i},
+```
+hence
+```math
+    \lambda(\sigma_i)\left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2 \sim 1
+```
+is independent of $i=1, \ldots, L$.
+
+
+### Sampling
+
+For each $i=1, \ldots, L$, the dynamics of the overdamped Langevin equation
+```math
+    \mathrm{d}X_t = \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{X}}_t)\;\mathrm{d}t + \sqrt{2}\;\mathrm{d}W_t
+```
+drives any initial sample towards the distribution defined by $p_{\sigma_i}$. With $s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i)$ being an approximation of $\boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{x}})$ and with $p_{\sigma_i}(\tilde{\mathbf{x}})$ being closer to the target $p(\mathbf{x})$ the smaller the $\sigma_i$, the idea is to run batches of Langevin dynamics for decreasing values of noise, i.e. for $\sigma_1$ down to $\sigma_L$.
+
+More precisely, given $K\in\mathbb{N}$, we run the Langevin equation for $K$ steps, for each $i=1, \ldots, L$:
+
+**1.** Start with a $M$ sample points $\mathbf{y}_m$, $m=1, \ldots, M$, $M\in\mathbb{N}$, of a multivariate Normal distribution, or a uniform distribution, or any other known distribution.
+
+**2.** Then for each $i=1, \ldots, L$, run the discretized overdamped Langevin equation for $K$ steps
+```math
+    \mathbf{y}^i_{m, k} = \mathbf{y}^i_{m, k-1} + s_{\boldsymbol{\theta}}(\tilde{\mathbf{y}}^{i-1}_{m, k-1}, \sigma_i) \tau_i + \sqrt{2\tau_i}\mathbf{z}^i_{m, k},
+```
+where $\tau_i > 0$ is a given time step (which may or may not vary with $i$); the $\mathbf{z}^i_{m, k} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ are independent; and the initial conditions are given by
+```math
+    \mathbf{y}^1_{m, 0} = \mathbf{y}_m,
+```
+for $i=1$, and
+```math
+    \mathbf{y}^i_{m, 0} = \mathbf{y}^{i-1}_{m, K},
+```
+for $i = 2, \ldots, L$, i.e. the final $K$th-step of the solution of the Langevin equation with a given $i = 1, \ldots, K-1$ is the initial step of the Langevin equation for $i+1$.
+
+**3.** The final points $\mathbf{y}^L_{m, K}$, $m=1, \ldots, M$, are the $M$ desired new generated samples of the distribution approximating the data distribution.
+
+## Numerical example
+
+We illustrate, numerically, the use of **multiple denoising score matching** to model a synthetic univariate Gaussian mixture distribution.
+
+### Julia language setup
+
+We use the [Julia programming language](https://julialang.org) for the numerical simulations, with suitable packages.
+
+#### Packages
+
+```@example multipledenoisingscorematching
+using StatsPlots
+using Random
+using Distributions
+using Lux # artificial neural networks explicitly parametrized
+using Optimisers
+using Zygote # automatic differentiation
+using Markdown
+
+nothing # hide
+```
+
+#### Reproducibility
+
+We set the random seed for reproducibility purposes.
+
+```@example multipledenoisingscorematching
+rng = Xoshiro(12345)
+nothing # hide
+```
+
+```@setup multipledenoisingscorematching
+function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
+    ps = probs(d)
+    cs = components(d)
+    ps1 = first(ps)
+    cs1 = first(cs)
+    pdfx1 = pdf(cs1, x)
+    pdfx = ps1 * pdfx1
+    glp = pdfx * gradlogpdf(cs1, x)
+    if iszero(ps1)
+        glp = zero(glp)
+    end
+    @inbounds for (psi, csi) in Iterators.drop(zip(ps, cs), 1)
+        if !iszero(psi)
+            pdfxi = pdf(csi, x)
+            if !iszero(pdfxi)
+                pipdfxi = psi * pdfxi
+                pdfx += pipdfxi
+                glp += pipdfxi * gradlogpdf(csi, x)
+            end
+        end
+    end
+    if !iszero(pdfx) # else glp is already zero
+        glp /= pdfx
+    end 
+    return glp
+end
+```
+
+### Data
+
+We build the usual target model and draw samples from it.
+
+```@setup multipledenoisingscorematching
+target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
+
+xrange = range(-10, 10, 200)
+dx = Float64(xrange.step)
+xx = permutedims(collect(xrange))
+target_pdf = pdf.(target_prob, xrange')
+target_score = gradlogpdf.(target_prob, xrange')
+
+sigma = 0.5
+sample_points = permutedims(rand(rng, target_prob, 1024))
+noised_sample_points = sample_points .+ sigma .* randn(size(sample_points))
+dsm_target = ( sample_points .- noised_sample_points ) ./ sigma ^ 2
+data = (noised_sample_points, dsm_target)
+```
+
+Visualizing the sample data drawn from the distribution and the PDF.
+```@setup multipledenoisingscorematching
+plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
+histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
+plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
+scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
+```
+
+```@example multipledenoisingscorematching
+plt # hide
+```
+
+Visualizing the score function.
+```@setup multipledenoisingscorematching
+plt = plot(title="The score function and the sample", titlefont=10)
+
+plot!(plt, xrange, target_score', label="score function", markersize=2)
+scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+```
+
+```@example multipledenoisingscorematching
+plt # hide
+```
+
+### The neural network model
+
+The neural network we consider is a simple feed-forward neural network made of a single hidden layer, obtained as a chain of a couple of dense layers. This is implemented with the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package.
+
+We will see that we don't need a big neural network in this simple example. We go as low as it works.
+
+```@example multipledenoisingscorematching
+model = Chain(Dense(1 => 8, relu), Dense(8 => 1))
+```
+
+The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
+```@example multipledenoisingscorematching
+ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of the model
+```
+
+### Loss function
+
+Here it is how we implement the **empirical denoising score matching** objective
+```math
+    {\tilde J}_{\mathrm{DSM{\tilde p}_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{NM}\sum_{n=1}^N \sum_{m=1}^M \left\| \boldsymbol{\psi}(\mathbf{x}_{n, m}; {\boldsymbol{\theta}}) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2} \right\|^2 \mathrm{d}\tilde{\mathbf{x}}.
+```
+First we precompute the matrix $(\mathbf{a}_{n,m})_{n,m}$ given by
+```math
+    \mathbf{a}_{n,m} = \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2}.
+```
+Then, at each iteration of the optimization process, we take the current parameters $\boldsymbol{\theta}$ and apply the model to the perturbed points $\tilde{\mathbf{x}}_{n, m}$ to obtain the predicted scores $\{\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}}\}$ with values
+```math
+    \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} = \boldsymbol{\psi}(\tilde{\mathbf{x}}_{n,m}, \boldsymbol{\theta}),
+```
+and then compute half the mean square distance between the two matrices:
+```math
+    \frac{1}{2}\sum_{m=1}^M \sum_{n=1}^N \left\| \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} - \mathbf{a}_{n,m}\right|^2.
+```
+
+In the implementation below, we just use $M=1$, so the matrices $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are actually just vectors. Besides, this is a scalar example, i.e. with $d=1$, so they are indeed plain real-valued vectors $(\psi_{n,1})_n$ and $(a_{n,1})_n$.
+
+In general, though, these objects $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are $\mathbb{R}^d$-vector-valued matrices.
+
+```@example multipledenoisingscorematching
+function loss_function_dsm(model, ps, st, data)
+    noised_sample_points, dsm_target = data
+    y_score_pred, st = Lux.apply(model, noised_sample_points, ps, st)
+    loss = mean(abs2, y_score_pred .- dsm_target) / 2
+    return loss, st, ()
+end
+```
+
+### Optimization setup
+
+#### Optimization method
+
+We use the Adam optimiser.
+
+```@example multipledenoisingscorematching
+opt = Adam(0.01)
+
+tstate_org = Lux.Training.TrainState(rng, model, opt)
+```
+
+#### Automatic differentiation in the optimization
+
+As mentioned, we setup differentiation in [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) with the [FluxML/Zygote.jl](https://github.com/FluxML/Zygote.jl) library.
+```@example multipledenoisingscorematching
+vjp_rule = Lux.Training.AutoZygote()
+```
+
+#### Processor
+
+We use the CPU instead of the GPU.
+```@example multipledenoisingscorematching
+dev_cpu = cpu_device()
+## dev_gpu = gpu_device()
+```
+
+#### Check differentiation
+
+Check if Zygote via Lux is working fine to differentiate the loss functions for training.
+```@example multipledenoisingscorematching
+Lux.Training.compute_gradients(vjp_rule, loss_function_dsm, data, tstate_org)
+```
+
+#### Training loop
+
+Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
+```@example multipledenoisingscorematching
+function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
+    losses = zeros(epochs)
+    tstates = [(0, tstate)]
+    for epoch in 1:epochs
+        grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp,
+            loss_function, data, tstate)
+        if ( epochs ≥ numshowepochs > 0 ) && rem(epoch, div(epochs, numshowepochs)) == 0
+            println("Epoch: $(epoch) || Loss: $(loss)")
+        end
+        if ( epochs ≥ numsavestates > 0 ) && rem(epoch, div(epochs, numsavestates)) == 0
+            push!(tstates, (epoch, tstate))
+        end
+        losses[epoch] = loss
+        tstate = Lux.Training.apply_gradients(tstate, grads)
+    end
+    return tstate, losses, tstates
+end
+```
+
+### Training
+
+Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
+```@example multipledenoisingscorematching
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_dsm, 500, 20, 125)
+nothing # hide
+```
+
+### Results
+
+Testing out the trained model.
+```@example multipledenoisingscorematching
+y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+```
+
+Visualizing the result.
+```@example multipledenoisingscorematching
+plot(title="Fitting", titlefont=10)
+
+plot!(xrange, target_score', linewidth=4, label="score function")
+
+scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+
+plot!(xx', y_pred', linewidth=2, label="predicted MLP")
+```
+
+Just for the fun of it, let us see an animation of the optimization process.
+```@setup multipledenoisingscorematching
+ymin, ymax = extrema(target_score)
+epsilon = (ymax - ymin) / 10
+anim = @animate for (epoch, tstate) in tstates
+    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+    plot(title="Fitting evolution", titlefont=10)
+
+    plot!(xrange, target_score', linewidth=4, label="score function")
+
+    scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+
+    plot!(xrange, y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+end
+```
+
+```@example multipledenoisingscorematching
+gif(anim, fps = 20) # hide
+```
+
+Recovering the PDF of the distribution from the trained score function.
+```@example multipledenoisingscorematching
+paux = exp.(accumulate(+, y_pred) .* dx)
+pdf_pred = paux ./ sum(paux) ./ dx
+plot(title="Original PDF and PDF from predicted score function", titlefont=10)
+plot!(xrange, target_pdf', label="original")
+plot!(xrange, pdf_pred', label="recoverd")
+```
+
+And the animation of the evolution of the PDF.
+```@setup multipledenoisingscorematching
+ymin, ymax = extrema(target_pdf)
+epsilon = (ymax - ymin) / 10
+anim = @animate for (epoch, tstate) in tstates
+    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+    paux = exp.(accumulate(+, y_pred) * dx)
+    pdf_pred = paux ./ sum(paux) ./ dx
+    plot(title="Fitting evolution", titlefont=10, legend=:topleft)
+
+    plot!(xrange, target_pdf', linewidth=4, fill=true, alpha=0.3, label="PDF")
+
+    scatter!(sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
+
+    plot!(xrange, pdf_pred', linewidth=2, fill=true, alpha=0.3, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+end
+```
+
+```@example multipledenoisingscorematching
+gif(anim, fps = 10) # hide
+```
+
+We also visualize the evolution of the losses.
+```@example multipledenoisingscorematching
+plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
+```
 
 ## References
 
