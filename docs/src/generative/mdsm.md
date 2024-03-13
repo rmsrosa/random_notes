@@ -36,7 +36,7 @@ More precisely, one starts with a positive geometric sequence of noise levels $\
 ```
 which is the same as
 ```math
-    \sigma_i = \theta^i \sigma_1, \quad i = 1, \ldots, L,
+    \sigma_i = \theta^{i-1} \sigma_1, \quad i = 1, \ldots, L,
 ```
 for a starting $\sigma_1 > 0$ and a rate $0 < \theta < 1$ given by $\theta = \sigma_2/\sigma_1 = \ldots = \sigma_L/\sigma_{L-1}$.
 
@@ -227,6 +227,21 @@ scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", mar
 
 ```@example multipledenoisingscorematching
 plt # hide
+```
+
+### Parameters
+
+Here we set some parameters for the model and prepare any necessary data. For instance, the corrupted/perturbed sample points can be computed beforehand
+
+```@example multipledenoisingscorematching
+L = 10
+sigma_1 = 1.0
+theta = 0.5
+sigma = [sigma_1 * theta ^ (i-1) for i in 1:L]
+```
+
+```@example multipledenoisingscorematching
+xtilde = []
 ```
 
 ### The neural network model
