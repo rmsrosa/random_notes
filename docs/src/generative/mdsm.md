@@ -234,16 +234,17 @@ Here we set some parameters for the model and prepare any necessary data. For in
 ```@example multipledenoisingscorematching
 L = 6
 sigma_1 = 2.0
-theta = 0.6
-sigma = [sigma_1 * theta ^ (i-1) for i in 1:L]
+sigma_L = 0.5
+theta = ( sigma_L / sigma_1 )^(1/(L-1))
+sigmas = [sigma_1 * theta ^ (i-1) for i in 1:L]
 ```
 
 ```@example multipledenoisingscorematching
-noisy_sample_points = sample_points .+ sigma .* randn(rng, size(sample_points))
+noisy_sample_points = sample_points .+ sigmas .* randn(rng, size(sample_points))
 flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
-flattened_sigmas = repeat(sigma', 1, length(sample_points))
+flattened_sigmas = repeat(sigmas', 1, length(sample_points))
 model_input = [flattened_noisy_sample_points; flattened_sigmas]
-scores = ( sample_points .- noisy_sample_points ) ./ sigma .^ 2
+scores = ( sample_points .- noisy_sample_points ) ./ sigmas .^ 2
 flattened_scores = reshape(scores, 1, :)
 data = (model_input, flattened_scores, flattened_sigmas)
 ```
@@ -342,50 +343,64 @@ nothing # hide
 ### Results
 
 Checking out the trained model.
-```@example multipledenoisingscorematching
+```@setup multipledenoisingscorematching
 plt = plot(title="Fitting", titlefont=10)
 plot!(plt, xrange, target_score', linewidth=4, label="score function", legend=:topright)
 scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-for sigmai in sigma
+for sigmai in sigmas
     y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
     plot!(plt, xx', y_pred', linewidth=2, label="\$\\sigma = $(round(sigmai, digits=3))\$")
 end
-plt
+```
+
+```@example multipledenoisingscorematching
+plt # hide
 ```
 
 Visualizing the result with the smallest noise.
+```@setup multipledenoisingscorematching
+y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
+plt = plot(title="Last Fitting", titlefont=10)
+
+plot!(plt, xrange, target_score', linewidth=4, label="score function")
+
+scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+
+plot!(plt, xx', y_pred', linewidth=2, label="predicted MLP")
+```
+
 ```@example multipledenoisingscorematching
-y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
-plot(title="Last Fitting", titlefont=10)
-
-plot!(xrange, target_score', linewidth=4, label="score function")
-
-scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-
-plot!(xx', y_pred', linewidth=2, label="predicted MLP")
+plt # hide
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example multipledenoisingscorematching
+```@setup multipledenoisingscorematching
 plt = plot(title="Original PDF and PDF from predicted score functions", titlefont=10, legend=:topleft)
 plot!(plt, xrange, target_pdf', label="original")
 scatter!(plt, sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
-for sigmai in sigma
+for sigmai in sigmas
     y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
     paux = exp.(accumulate(+, y_pred) .* dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot!(plt, xrange, pdf_pred', label="\$\\sigma = $(round(sigmai, digits=3))\$")
 end
-plt
+```
+
+```@example multipledenoisingscorematching
+plt # hide
 ```
 
 With the smallest noise.
-```@example multipledenoisingscorematching
+```@setup multipledenoisingscorematching
 paux = exp.(accumulate(+, y_pred) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
-plot(title="Original PDF and PDF from predicted score function", titlefont=10)
-plot!(xrange, target_pdf', label="original")
-plot!(xrange, pdf_pred', label="recoverd")
+plt = plot(title="Original PDF and PDF from predicted score function", titlefont=10)
+plot!(plt, xrange, target_pdf', label="original")
+plot!(plt, xrange, pdf_pred', label="recoverd")
+```
+
+```@example multipledenoisingscorematching
+plt # hide
 ```
 
 Just for the fun of it, let us see an animation of the optimization process.
@@ -393,7 +408,7 @@ Just for the fun of it, let us see an animation of the optimization process.
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
     plot(title="Fitting evolution", titlefont=10)
 
     plot!(xrange, target_score', linewidth=4, label="score function")
@@ -408,14 +423,12 @@ end
 gif(anim, fps = 20) # hide
 ```
 
-
-
 And the animation of the evolution of the PDF.
 ```@setup multipledenoisingscorematching
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[begin]], tstate.parameters, tstate.states)[1]
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
     paux = exp.(accumulate(+, y_pred) * dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot(title="Fitting evolution", titlefont=10, legend=:topleft)
@@ -434,7 +447,7 @@ gif(anim, fps = 10) # hide
 
 We also visualize the evolution of the losses.
 ```@example multipledenoisingscorematching
-plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
+plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
 ```
 
 ## References
