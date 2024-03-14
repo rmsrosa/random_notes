@@ -232,14 +232,14 @@ plt # hide
 Here we set some parameters for the model and prepare any necessary data. For instance, the corrupted/perturbed sample points can be computed beforehand
 
 ```@example multipledenoisingscorematching
-L = 10
-sigma_1 = 5.0
-theta = 0.5
+L = 6
+sigma_1 = 2.0
+theta = 0.6
 sigma = [sigma_1 * theta ^ (i-1) for i in 1:L]
 ```
 
 ```@example multipledenoisingscorematching
-noisy_sample_points = sample_points .+ sigma .* randn(size(sigma))
+noisy_sample_points = sample_points .+ sigma .* randn(rng, size(sample_points))
 flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
 flattened_sigmas = repeat(sigma', 1, length(sample_points))
 model_input = [flattened_noisy_sample_points; flattened_sigmas]
@@ -266,7 +266,7 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 ### Loss function
 
 ```@example multipledenoisingscorematching
-function loss_function_dsm(model, ps, st, data)
+function loss_function_mdsm(model, ps, st, data)
     model_input, flattened_scores, flattened_sigmas = data
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
     loss = mean(abs2, flattened_sigmas .* (y_score_pred .- flattened_scores)) / 2
@@ -304,14 +304,14 @@ dev_cpu = cpu_device()
 #### Check differentiation
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
-```julia
-Lux.Training.compute_gradients(vjp_rule, loss_function_dsm, data, tstate_org)
+```@example multipledenoisingscorematching
+Lux.Training.compute_gradients(vjp_rule, loss_function_mdsm, data, tstate_org)
 ```
 
 #### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```julia
+```@example multipledenoisingscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -334,21 +334,29 @@ end
 ### Training
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
-```julia
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_dsm, 2000, 20, 125)
+```@example multipledenoisingscorematching
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_mdsm, 1000, 20, 125)
 nothing # hide
 ```
 
 ### Results
 
-Testing out the trained model.
-```julia
-y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
+Checking out the trained model.
+```@example multipledenoisingscorematching
+plt = plot(title="Fitting", titlefont=10)
+plot!(plt, xrange, target_score', linewidth=4, label="score function", legend=:topright)
+scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+for sigmai in sigma
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
+    plot!(plt, xx', y_pred', linewidth=2, label="\$\\sigma = $(round(sigmai, digits=3))\$")
+end
+plt
 ```
 
-Visualizing the result.
-```julia
-plot(title="Fitting", titlefont=10)
+Visualizing the result with the smallest noise.
+```@example multipledenoisingscorematching
+y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
+plot(title="Last Fitting", titlefont=10)
 
 plot!(xrange, target_score', linewidth=4, label="score function")
 
@@ -357,9 +365,31 @@ scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersi
 plot!(xx', y_pred', linewidth=2, label="predicted MLP")
 ```
 
+Recovering the PDF of the distribution from the trained score function.
+```@example multipledenoisingscorematching
+plt = plot(title="Original PDF and PDF from predicted score functions", titlefont=10, legend=:topleft)
+plot!(plt, xrange, target_pdf', label="original")
+scatter!(plt, sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
+for sigmai in sigma
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
+    paux = exp.(accumulate(+, y_pred) .* dx)
+    pdf_pred = paux ./ sum(paux) ./ dx
+    plot!(plt, xrange, pdf_pred', label="\$\\sigma = $(round(sigmai, digits=3))\$")
+end
+plt
+```
+
+With the smallest noise.
+```@example multipledenoisingscorematching
+paux = exp.(accumulate(+, y_pred) .* dx)
+pdf_pred = paux ./ sum(paux) ./ dx
+plot(title="Original PDF and PDF from predicted score function", titlefont=10)
+plot!(xrange, target_pdf', label="original")
+plot!(xrange, pdf_pred', label="recoverd")
+```
+
 Just for the fun of it, let us see an animation of the optimization process.
-```julia
-## @setup multipledenoisingscorematching
+```@setup multipledenoisingscorematching
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
@@ -374,26 +404,18 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```julia
+```@example multipledenoisingscorematching
 gif(anim, fps = 20) # hide
 ```
 
-Recovering the PDF of the distribution from the trained score function.
-```julia
-paux = exp.(accumulate(+, y_pred) .* dx)
-pdf_pred = paux ./ sum(paux) ./ dx
-plot(title="Original PDF and PDF from predicted score function", titlefont=10)
-plot!(xrange, target_pdf', label="original")
-plot!(xrange, pdf_pred', label="recoverd")
-```
+
 
 And the animation of the evolution of the PDF.
-```julia
-## @setup multipledenoisingscorematching
+```@setup multipledenoisingscorematching
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[begin]], tstate.parameters, tstate.states)[1]
     paux = exp.(accumulate(+, y_pred) * dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot(title="Fitting evolution", titlefont=10, legend=:topleft)
@@ -406,12 +428,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```julia
+```@example multipledenoisingscorematching
 gif(anim, fps = 10) # hide
 ```
 
 We also visualize the evolution of the losses.
-```julia
+```@example multipledenoisingscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
