@@ -337,7 +337,7 @@ end
 
 We build the usual target model and draw samples from it.
 
-```@setup denoisingscorematching
+```@example denoisingscorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
 
 xrange = range(-10, 10, 200)
@@ -346,11 +346,7 @@ xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
 target_score = gradlogpdf.(target_prob, xrange')
 
-sigma = 0.5
 sample_points = permutedims(rand(rng, target_prob, 1024))
-noised_sample_points = sample_points .+ sigma .* randn(size(sample_points))
-dsm_target = ( sample_points .- noised_sample_points ) ./ sigma ^ 2
-data = (noised_sample_points, dsm_target)
 ```
 
 Visualizing the sample data drawn from the distribution and the PDF.
@@ -415,6 +411,16 @@ In the implementation below, we just use $M=1$, so the matrices $(\boldsymbol{\p
 
 In general, though, these objects $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are $\mathbb{R}^d$-vector-valued matrices.
 
+So, here is how we prepare the data.
+```@example denoisingscorematching
+sigma = 0.3
+noised_sample_points = sample_points .+ sigma .* randn(size(sample_points))
+dsm_target = ( sample_points .- noised_sample_points ) ./ sigma ^ 2
+data = (noised_sample_points, dsm_target)
+nothing # hide
+```
+
+and here is the implementation of the loss function
 ```@example denoisingscorematching
 function loss_function_dsm(model, ps, st, data)
     noised_sample_points, dsm_target = data
@@ -422,6 +428,7 @@ function loss_function_dsm(model, ps, st, data)
     loss = mean(abs2, y_score_pred .- dsm_target) / 2
     return loss, st, ()
 end
+nothing # hide
 ```
 
 ### Optimization setup
