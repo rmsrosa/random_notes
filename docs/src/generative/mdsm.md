@@ -73,12 +73,12 @@ where $\lambda = \lambda(\sigma_i)$ is a weighting factor.
 
 In practice, we use the empirical distribution and a single corrupted data for each sample data, i.e.
 ```math
-    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i}}{\sigma_i^2} \right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
+    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i)\left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i}}{\sigma_i^2} \right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
 ```
 
 This can also be written with a reparametrization,
 ```math
-    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2, \quad \boldsymbol{\epsilon}_{n, i} \sim \mathcal{N}\left(\mathbf{0}_n, \mathbf{I}\right).
+    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i) \left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2, \quad \boldsymbol{\epsilon}_{n, i} \sim \mathcal{N}\left(\mathbf{0}_n, \mathbf{I}\right).
 ```
 
 As for the choice of $\lambda(\sigma)$, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) suggested choosing
@@ -94,8 +94,10 @@ hence
 ```math
     \lambda(\sigma_i)\left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2 \sim 1
 ```
-is independent of $i=1, \ldots, L$.
-
+is independent of $i=1, \ldots, L$. Choosing such weighting, the loss function becomes
+```math
+    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| \sigma_i s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - (\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i})\right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
+```
 
 ### Sampling
 
@@ -197,6 +199,8 @@ dx = Float64(xrange.step)
 xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
 target_score = gradlogpdf.(target_prob, xrange')
+
+sample_points = rand(rng, target_prob, 1, 1024)
 ```
 
 Visualizing the sample data drawn from the distribution and the PDF.
@@ -236,7 +240,12 @@ sigma = [sigma_1 * theta ^ (i-1) for i in 1:L]
 
 ```@example multipledenoisingscorematching
 noisy_sample_points = sample_points .+ sigma .* randn(size(sigma))
-data = (sample_points, noisy_sample_points)
+flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
+flattened_sigmas = repeat(sigma', 1, length(sample_points))
+model_input = [flattened_noisy_sample_points; flattened_sigmas]
+scores = ( sample_points .- noisy_sample_points ) ./ sigma .^ 2
+flattened_scores = reshape(scores, 1, :)
+data = (model_input, flattened_scores, flattened_sigmas)
 ```
 
 ### The neural network model
@@ -256,32 +265,11 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ### Loss function
 
-Here it is how we implement the **empirical denoising score matching** objective
-```math
-    {\tilde J}_{\mathrm{DSM{\tilde p}_{\sigma, 0}}}({\boldsymbol{\theta}}) = \frac{1}{2}\frac{1}{NM}\sum_{n=1}^N \sum_{m=1}^M \left\| \boldsymbol{\psi}(\mathbf{x}_{n, m}; {\boldsymbol{\theta}}) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2} \right\|^2 \mathrm{d}\tilde{\mathbf{x}}.
-```
-First we precompute the matrix $(\mathbf{a}_{n,m})_{n,m}$ given by
-```math
-    \mathbf{a}_{n,m} = \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, m}}{\sigma^2}.
-```
-Then, at each iteration of the optimization process, we take the current parameters $\boldsymbol{\theta}$ and apply the model to the perturbed points $\tilde{\mathbf{x}}_{n, m}$ to obtain the predicted scores $\{\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}}\}$ with values
-```math
-    \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} = \boldsymbol{\psi}(\tilde{\mathbf{x}}_{n,m}, \boldsymbol{\theta}),
-```
-and then compute half the mean square distance between the two matrices:
-```math
-    \frac{1}{2}\sum_{m=1}^M \sum_{n=1}^N \left\| \boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}} - \mathbf{a}_{n,m}\right|^2.
-```
-
-In the implementation below, we just use $M=1$, so the matrices $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are actually just vectors. Besides, this is a scalar example, i.e. with $d=1$, so they are indeed plain real-valued vectors $(\psi_{n,1})_n$ and $(a_{n,1})_n$.
-
-In general, though, these objects $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}})_{n,m}$ and $(\mathbf{a}_{n,m})_{n,m}$ are $\mathbb{R}^d$-vector-valued matrices.
-
 ```@example multipledenoisingscorematching
 function loss_function_dsm(model, ps, st, data)
-    sample_points, noisy_sample_points = data
-    y_score_pred, st = Lux.apply(model, noisy_sample_points, ps, st)
-    loss = mean(abs2, y_score_pred .- dsm_target) / 2
+    model_input, flattened_scores, flattened_sigmas = data
+    y_score_pred, st = Lux.apply(model, model_input, ps, st)
+    loss = mean(abs2, flattened_sigmas .* (y_score_pred .- flattened_scores)) / 2
     return loss, st, ()
 end
 ```
@@ -316,14 +304,14 @@ dev_cpu = cpu_device()
 #### Check differentiation
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
-```julia multipledenoisingscorematching
+```julia
 Lux.Training.compute_gradients(vjp_rule, loss_function_dsm, data, tstate_org)
 ```
 
 #### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```julia multipledenoisingscorematching
+```julia
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -346,20 +334,20 @@ end
 ### Training
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
-```julia multipledenoisingscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_dsm, 500, 20, 125)
+```julia
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_dsm, 2000, 20, 125)
 nothing # hide
 ```
 
 ### Results
 
 Testing out the trained model.
-```julia multipledenoisingscorematching
-y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+```julia
+y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```julia multipledenoisingscorematching
+```julia
 plot(title="Fitting", titlefont=10)
 
 plot!(xrange, target_score', linewidth=4, label="score function")
@@ -370,11 +358,12 @@ plot!(xx', y_pred', linewidth=2, label="predicted MLP")
 ```
 
 Just for the fun of it, let us see an animation of the optimization process.
-```@setup multipledenoisingscorematching
+```julia
+## @setup multipledenoisingscorematching
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
     plot(title="Fitting evolution", titlefont=10)
 
     plot!(xrange, target_score', linewidth=4, label="score function")
@@ -385,12 +374,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```julia multipledenoisingscorematching
+```julia
 gif(anim, fps = 20) # hide
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```julia multipledenoisingscorematching
+```julia
 paux = exp.(accumulate(+, y_pred) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -399,11 +388,12 @@ plot!(xrange, pdf_pred', label="recoverd")
 ```
 
 And the animation of the evolution of the PDF.
-```@setup multipledenoisingscorematching
+```julia
+## @setup multipledenoisingscorematching
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
+    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigma[end]], tstate.parameters, tstate.states)[1]
     paux = exp.(accumulate(+, y_pred) * dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot(title="Fitting evolution", titlefont=10, legend=:topleft)
@@ -416,12 +406,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```julia multipledenoisingscorematching
+```julia
 gif(anim, fps = 10) # hide
 ```
 
 We also visualize the evolution of the losses.
-```julia multipledenoisingscorematching
+```julia
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
