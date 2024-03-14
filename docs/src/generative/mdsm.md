@@ -197,12 +197,6 @@ dx = Float64(xrange.step)
 xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
 target_score = gradlogpdf.(target_prob, xrange')
-
-sigma = 0.5
-sample_points = permutedims(rand(rng, target_prob, 1024))
-noised_sample_points = sample_points .+ sigma .* randn(size(sample_points))
-dsm_target = ( sample_points .- noised_sample_points ) ./ sigma ^ 2
-data = (noised_sample_points, dsm_target)
 ```
 
 Visualizing the sample data drawn from the distribution and the PDF.
@@ -235,13 +229,14 @@ Here we set some parameters for the model and prepare any necessary data. For in
 
 ```@example multipledenoisingscorematching
 L = 10
-sigma_1 = 1.0
+sigma_1 = 5.0
 theta = 0.5
 sigma = [sigma_1 * theta ^ (i-1) for i in 1:L]
 ```
 
 ```@example multipledenoisingscorematching
-xtilde = []
+noisy_sample_points = sample_points .+ sigma .* randn(size(sigma))
+data = (sample_points, noisy_sample_points)
 ```
 
 ### The neural network model
@@ -251,7 +246,7 @@ The neural network we consider is a simple feed-forward neural network made of a
 We will see that we don't need a big neural network in this simple example. We go as low as it works.
 
 ```@example multipledenoisingscorematching
-model = Chain(Dense(1 => 8, relu), Dense(8 => 1))
+model = Chain(Dense(2 => 64, relu), Dense(64 => 1))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
@@ -284,8 +279,8 @@ In general, though, these objects $(\boldsymbol{\psi}_{n,m}^{\boldsymbol{\theta}
 
 ```@example multipledenoisingscorematching
 function loss_function_dsm(model, ps, st, data)
-    noised_sample_points, dsm_target = data
-    y_score_pred, st = Lux.apply(model, noised_sample_points, ps, st)
+    sample_points, noisy_sample_points = data
+    y_score_pred, st = Lux.apply(model, noisy_sample_points, ps, st)
     loss = mean(abs2, y_score_pred .- dsm_target) / 2
     return loss, st, ()
 end
@@ -321,14 +316,14 @@ dev_cpu = cpu_device()
 #### Check differentiation
 
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 Lux.Training.compute_gradients(vjp_rule, loss_function_dsm, data, tstate_org)
 ```
 
 #### Training loop
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
@@ -351,7 +346,7 @@ end
 ### Training
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 @time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_dsm, 500, 20, 125)
 nothing # hide
 ```
@@ -359,12 +354,12 @@ nothing # hide
 ### Results
 
 Testing out the trained model.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 y_pred = Lux.apply(tstate.model, xrange', tstate.parameters, tstate.states)[1]
 ```
 
 Visualizing the result.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 plot(title="Fitting", titlefont=10)
 
 plot!(xrange, target_score', linewidth=4, label="score function")
@@ -390,12 +385,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 gif(anim, fps = 20) # hide
 ```
 
 Recovering the PDF of the distribution from the trained score function.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 paux = exp.(accumulate(+, y_pred) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
 plot(title="Original PDF and PDF from predicted score function", titlefont=10)
@@ -421,12 +416,12 @@ anim = @animate for (epoch, tstate) in tstates
 end
 ```
 
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 gif(anim, fps = 10) # hide
 ```
 
 We also visualize the evolution of the losses.
-```@example multipledenoisingscorematching
+```julia multipledenoisingscorematching
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false)
 ```
 
