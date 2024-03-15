@@ -348,8 +348,8 @@ plt = plot(title="Fitting", titlefont=10)
 plot!(plt, xrange, target_score', linewidth=4, label="score function", legend=:topright)
 scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 for sigmai in sigmas
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
-    plot!(plt, xx', y_pred', linewidth=2, label="\$\\sigma = $(round(sigmai, digits=3))\$")
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
+    plot!(plt, xx', y_predi', linewidth=2, label="\$\\sigma = $(round(sigmai, digits=3))\$")
 end
 ```
 
@@ -379,8 +379,8 @@ plt = plot(title="Original PDF and PDF from predicted score functions", titlefon
 plot!(plt, xrange, target_pdf', label="original")
 scatter!(plt, sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
 for sigmai in sigmas
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
-    paux = exp.(accumulate(+, y_pred) .* dx)
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
+    paux = exp.(accumulate(+, y_predi) .* dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot!(plt, xrange, pdf_pred', label="\$\\sigma = $(round(sigmai, digits=3))\$")
 end
@@ -408,14 +408,14 @@ Just for the fun of it, let us see an animation of the optimization process.
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
     plot(title="Fitting evolution", titlefont=10)
 
     plot!(xrange, target_score', linewidth=4, label="score function")
 
     scatter!(sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
 
-    plot!(xrange, y_pred', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
+    plot!(xrange, y_predi', linewidth=2, label="predicted at epoch=$(lpad(epoch, (length(string(last(tstates)[1]))), '0'))", ylims=(ymin-epsilon, ymax+epsilon))
 end
 ```
 
@@ -428,8 +428,8 @@ And the animation of the evolution of the PDF.
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
-    paux = exp.(accumulate(+, y_pred) * dx)
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
+    paux = exp.(accumulate(+, y_predi) * dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot(title="Fitting evolution", titlefont=10, legend=:topleft)
 
@@ -450,6 +450,54 @@ We also visualize the evolution of the losses.
 plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
 ```
 
+## Sampling with annealed Langevin
+
+Now we sample the modeled distribution with the annealed Langevin method described earlier.
+
+```@setup multipledenoisingscorematching
+function solve_annealed_langevin_1d(rng, x0, M, tstate, sigmas, dt)
+    
+    L = length(sigmas)
+    xt = zeros(L * M, length(x0))
+    sqrt2dt = √(2dt)
+    zs = zeros(length(x0))
+    tt = range(0, L*M*dt, length=L*M)
+    xt[1, :] .= x0
+    k1 = 1
+    for k in 2:L*M
+        i = div(k, M+1) + 1
+        sigma = sigmas[i]
+        randn!(rng, zs)
+        for j in axes(xt, 2)
+            xt[k, j] = xt[k1, j] + first(tstate.model([xt[k1, j], sigma], tstate.parameters, tstate.states))[1] * dt + sqrt2dt * zs[j]
+        end
+        k1 = k
+    end
+    return tt, xt
+end
+```
+
+```@setup multipledenoisingscorematching
+x0 = randn(rng, 256)
+M = 50
+dt = 10 / L / M
+tt, xt = solve_annealed_langevin_1d(rng, x0, M, tstate, sigmas, dt)
+# nothing
+```
+
+Here are the trajectories.
+```@example multipledenoisingscorematching
+plot(title="$(length(x0)) annealed Langevin trajectories with \$M=$M\$ and \$\\mathrm{dt}=$(round(dt, sigdigits=2))\$", titlefont=10, legend=false) # hide
+plot!(tt, xt, xlabel="\$t\$", ylabel="\$x\$") # hide
+```
+
+The sample histogram obtained at the end of the trajectories.
+
+```@example multipledenoisingscorematching
+plot(title="Histogram at the end of sampling", titlefont=10) # hide
+histogram(xt[end, :], bins=40, normalize=:pdf, label="sample") # hide
+plot!(range(-6, 6, length=200), x -> pdf(target_prob, x), label="target PDF", xlabel="\$x\$") # hide
+```
 ## References
 
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
