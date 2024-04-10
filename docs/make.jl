@@ -40,6 +40,7 @@ allpages = [
             "2D finite-difference score matching" => "generative/2d_FD_score_matching.md",
             "generative/ddpm.md",
             "Multiple denoising score matching" => "generative/mdsm.md",
+            "Probability flow" => "generative/probability_flow.md",
             "Score-based SDE model" => "generative/score_based_sde.md"
         ]
     ],

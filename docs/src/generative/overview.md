@@ -26,6 +26,8 @@ In a subsequent work, [Song, Meng, Ermon (2021)](https://openreview.net/forum?id
 
 Then came [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), with the **score-based denoising diffusion SDE models**, unifying the ideas of DDPM and NCSN methods, in a time-continuum model, adding noise to the data via a stochastic differential equation (SDE), with a corresponding reverse SDE.
 
+Finally, we have the paper from the NVIDIA team, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) with the aim of "elucidating the design space of diffusion-based generative models", as the title says.
+
 ## References
 
 1. [P. Langevin (1908), "Sur la théorie du mouvement brownien [On the Theory of Brownian Motion]". C. R. Acad. Sci. Paris. 146: 530–533](https://gallica.bnf.fr/ark:/12148/bpt6k3100t/f530.item)
@@ -42,3 +44,4 @@ Then came [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arx
 1. [A. Q. Nichol and P. Dhariwal (2021), "Improved denoising diffusion probabilistic models", ICLR 2021 Conference](https://openreview.net/forum?id=-NEXDKk8gZ)
 1. [J. Song, C. Meng, S. Ermon (2021), "Denoising diffusion implicit models", ICLR 2021 Conference](https://openreview.net/forum?id=St1giarCHLP)
 1. [Y. Song, J. Sohl-Dickstein, D. P. Kingma, A. Kumar, S. Ermon, B. Poole (2020), "Score-based generative modeling through stochastic differential equations", arXiv:2011.13456](https://arxiv.org/abs/2011.13456)
+1. [T. Karras, M. Aittala, T. Aila, S. Laine (2022), Elucidating the design space of diffusion-based generative models, Advances in Neural Information Processing Systems 35 (NeurIPS 2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html)
