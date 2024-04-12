@@ -273,21 +273,35 @@ with the Fokker-Planck equation
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot \bigg( \bigg( f(t, x) - \frac{1-\theta(t)}{2} g(t)\nabla_x \log p(t, x) \bigg) p(t, x) \bigg) = \frac{\theta(t)g(t)^2}{2}\Delta_x p(t, x).
 ```
+
+### Connection with the Karas et al probability flow SDE
+
 If we set
 ```math
-    f(t, x) = 0, \qquad g(t) = \sqrt{\dot\sigma(t) \sigma(t)}
+    f(t, x) = 0, \qquad g(t) = \sqrt{2\dot\sigma(t) \sigma(t)}
 ```
 and choose
 ```math
-    \theta(t) = \frac{2\beta(t)\sigma(t)^2}{g(t)^2} = \frac{2\beta(t)\sigma(t)}{\dot \sigma(t)},
+    \theta(t) = \frac{2\beta(t)\sigma(t)^2}{g(t)^2},
 ```
-we transform this equation into the [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) probability flow SDE
+we get
+```math
+    \begin{align*}
+        - \frac{1 - \theta(t)}{2} g(t)^2 & = \frac{1}{2}(\theta(t) - 1) g(t)^2 = \frac{1}{2}\left( \frac{2\beta(t)\sigma(t)^2}{g(t)^2} - 1\right)g(t)^2 = \frac{1}{2}\left(2\beta(t)\sigma(t)^2 - g(t)^2\right) \\
+        & = \frac{1}{2}\left( 2\beta(t)\sigma(t)^2 - 2\dot\sigma(t) \sigma(t)\right) = \beta(t)\sigma(t)^2 - \dot\sigma(t) \sigma(t)
+    \end{align*}
+```
+and 
+```math
+    \sqrt{\theta(t)} g(t) = \sqrt{2\beta(t)} \sigma(t)
+```
+Thus, we transform the splitted-up probability flow SDE into the probability flow SDE of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html),
 ```math
     \begin{align*}
         \mathrm{d}X_t = \left( -\dot\sigma(t)\sigma(t) + \beta(t)\sigma(t)^2 \right) \nabla_x \log p(t, X_t)\;\mathrm{d}t + \sqrt{2\beta(t)} \sigma(t)\;\mathrm{d}W_t,
     \end{align*}
 ```
-with the free parameter $\beta=\beta(t),$ with the same distribution as the SDE
+having the same distribution as the SDE
 ```math
     \mathrm{d}X_t = \sqrt{2\dot\sigma(t)\sigma(t)}\;\mathrm{d}W_t,
 ```
@@ -295,6 +309,18 @@ which is associated with the Fokker-Planck equation
 ```math
     \frac{\partial p}{\partial t}  = \dot\sigma(t)\sigma(t)\Delta_x p(t, x).
 ```
+
+Notice that now, instead of the free parameter $\theta(t)$, we have the free parameter $\beta(t)$ of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
+
+The motivation for writing it in this way, with $\dot\sigma \sigma$ as the diffusion coefficient, is that the heat kernel becomes
+```math
+    G(\sigma(t)) = \frac{1}{(2\pi \sigma(t)^2)^{d/2}} e^{-\frac{1}{2}\frac{x^2}{\sigma(t)^2}},
+```
+which is the probability density of the Gaussian $\mathcal{N}(0, \sigma(t)^2\mathbf{I}).$ The distribution $p(t, x)$ is given by the convolution
+```math
+    p(t, \cdot) = G(\sigma(t)) \star p_0,
+```
+where $p_0=p_0(x)$ is the initial probability density of the distribution we are attempting to model. This is just a reparametrization of the process.
 
 
 ## References
