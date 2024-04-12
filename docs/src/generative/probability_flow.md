@@ -205,12 +205,15 @@ amounts to expressing the diffusion term completely as a flux term
 ```math
     \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
 ```
-As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. More precisely, we may introduce a parameter $\theta$ and write
+As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. More precisely, we may introduce a parameter $0 < \theta < 1$ and split
+```math
+    \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x))
+        = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) + \frac{1 - \theta}{2}\Delta_x (g(t, x)^2 p(t, x)),
+```
+rewriting only the second term as a flux, i.e.
 ```math
     \begin{align*}
-        \frac{1}{2}\Delta_x & (g(t, x)^2 p(t, x)) \\
-        & = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) + \frac{1 - \theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
-        & = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
+        \frac{1}{2}\Delta_x & (g(t, x)^2 p(t, x)) = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
         & \quad + \frac{1 - \theta}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
     \end{align*}
 ```
