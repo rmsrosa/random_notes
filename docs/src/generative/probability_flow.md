@@ -45,15 +45,15 @@ Defining
 ```math
     \tilde f(t, x) = f(x) - \frac{\sigma^2}{2} \nabla_x \log p(t, x),
 ```
-the Fokker-Planck equation becomes
+the Fokker-Planck equation becomes a Liouville equation
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot \left(\tilde f(x) p(t, x) \right) = 0.
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left(\tilde f(x) p(t, x) \right) = 0,
 ```
-This correponds to the evolution of a distribution governed by an SDE with no diffusion,
+associated with the evolution of a distribution governed by an SDE with no diffusion
 ```math
     \mathrm{d}X_t = \tilde f(t, X_t)\;\mathrm{d}t,
 ```
-hence just an Random ODE (more specifically an ODE with random initial data), of the form
+i.e. just a Random ODE (more specifically an ODE with random initial data) of the form
 ```math
     \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{\sigma^2}{2} \nabla_x \log p(t, X_t).
 ```
@@ -92,7 +92,7 @@ As before, the diffusion term can be written as
         & = \frac{1}{2}\nabla_x \cdot \left( \nabla_x g(t, x)^2 p(t, x) + g(t, x)^2 p(t, x) \nabla_x \log p(t, x) \right)
     \end{align*}
 ```
-Thus, the Fokker-Planck equation become
+Thus, the Fokker-Planck equation becomes
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot \left( f(x) p(t, x) - \frac{1}{2} \nabla_x g(t, x)^2 p(t, x) - g(t, x)^2 p(t, x) \nabla_x \log p(t, x) \right) = 0,
 ```
@@ -102,12 +102,13 @@ which can also be viewed as the Fokker-Planck equation for the SDE with no diffu
 ```
 with
 ```math
-    \tilde f(t, x) = f(t, x) - \frac{1}{2} \nabla_x g(t, x)^2 - g(t, x)^2\nabla_x \log p(t, x).
+    \tilde f(t, x) = f(t, x) - \frac{1}{2} \nabla_x g(t, x)^2 - g(t, x)^2\nabla_x \log p(t, x),
 ```
 which is actually a random ODE (more specifically an ODE with random initial condition),
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x g(t, X_t)^2 - g(t, X_t)^2\nabla_x \log p(t, X_t).
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x g(t, X_t)^2 - g(t, X_t)^2\nabla_x \log p(t, X_t),
 ```
+with the equation for $p(t, x)$ being the associated Liouville equation.
 
 ## General Itô diffusion
 
@@ -139,9 +140,23 @@ we can write the Fokker-Planck as
 As before, the diffusion term can be written as
 ```math
     \begin{align*}
-        \frac{1}{2}\nabla_x \cdot & \left(\nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x))\right) \\
-        & = \frac{1}{2}\nabla_x \cdot \bigg( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x p(t, x)\bigg).
+        \frac{1}{2}\nabla_x \cdot & \left( \nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x)) \right) \\
+        & = \frac{1}{2}\nabla_x \cdot \bigg( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x p(t, x) \bigg) \\
+        & = \frac{1}{2}\nabla_x \cdot \bigg( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \bigg).
     \end{align*}
+```
+With that, the Fokker-Planck equation reads
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \right).
+```
+
+Rearranging it, we have
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0.
+```
+This is the Liouville equation of the random ODE
+```math
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x).
 ```
 
 ## Generalized probability flow SDE for a general Itô diffusion
