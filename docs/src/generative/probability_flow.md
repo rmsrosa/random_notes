@@ -8,9 +8,33 @@ Draft = false
 
 The aim is to review the probability flow sampling method, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
+## Background
+
+[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) extended the **denoising diffusion probabilistic models (DDPM)** of [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and the **multiple denoising score matching with Langevin dynamics (MDSMLD)** of [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) to the continuous case. This lead to a noising schedule based on a stochastic differential equation of the form
+```math
+    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + g(t, X_t)\;\mathrm{d}W_t,
+```
+for suitable choices of $f=f(t, x)$ and $g=g(t, x)$.
+
+[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) also showed that the probability density $p(t, x)$ of $X_t$ can also be obtained with the (random) ODE
+```math
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
+```
+
+This **probability flow ODE,** as so they termed, was based on this fresh work by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), who derived this equation in the particular case of a time-independent drift term and a constant diagonal noise factor, i.e. with
+```math
+    f(t, x) = f(x), \qquad G(t, x) = \sigma \mathbf{I}.
+```
+
+Both the SDE and the random ODE have a reverse-time counterpart, which is then used for sampling, after the Stein score $\nabla \log p(t, x)$ has been modeled by a suitable neural network.
+
+In theory, both formulations are equivalent to each other. In practice, however, the advantage of sampling via the reverse probability flow ODE is that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost. Meanwhile, sampling with the reverse SDE seems to introduce better mixing of the sample and a more representative distribution.
+
+Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE. Here, we extract only the latter aspect of the result, but on the more general context of arbitrary Itô diffusion.
+
 ## Probability flow (random) ODEs
 
-The probability flow ODEs are actually ordinary differential equations with random initial conditions, which is a special form of a *Random ODE (RODE).* The mains point is that they have the same probability distributions as their original stochastic versions.
+The probability flow ODEs are actually ordinary differential equations with random initial conditions, which is a special form of a *Random ODE (RODE).* The main point is that they have the same probability distributions as their original stochastic versions. In what follows, we will build that up in different context.
 
 ### With a constant scalar diagonal noise amplitude
 
@@ -64,7 +88,7 @@ Before that, we remark that one difficulty with the probability flow ODE is that
 
 On the other hand, [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) models the score function directly as a (trained) neural network.
 
-## Nonlinear scalar diagonal noise amplitude
+### With a onlinear scalar diagonal noise amplitude
 
 In [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), the authors consider the more general SDE
 ```math
@@ -110,7 +134,7 @@ which is actually a random ODE (more specifically an ODE with random initial con
 ```
 with the equation for $p(t, x)$ being the associated Liouville equation.
 
-## General Itô diffusion
+### With arbitrary drift and diffusion
 
 Now we consider the more general case considered in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), with an SDE of the form
 ```math
@@ -127,7 +151,7 @@ so that the SDE reads
 
 In this case, the Fokker-Planck equation takes the form
 ```math
-    \frac{\partial p}{\partial t} + \sum_{i=1}^d \frac{\partial}{\partial x_i} (f(x) p(t, x)) = \frac{1}{2}\sum_{i=1}^d \frac{\partial}{\partial x_i} \sum_{j=1}^d \frac{\partial}{\partial x_j} (G_{ik}(t, x)G_{jk}(t, x) p(t, x)).
+    \frac{\partial p}{\partial t} + \sum_{i=1}^d \frac{\partial}{\partial x_i} (f(t, x) p(t, x)) = \frac{1}{2}\sum_{i=1}^d \frac{\partial}{\partial x_i} \sum_{j=1}^d \frac{\partial}{\partial x_j} (G_{ik}(t, x)G_{jk}(t, x) p(t, x)).
 ```
 Writing the divergence of a tensor field $A(x) = (A_{ij}(x))_{i,j=1}^d$ as the vector
 ```math
@@ -135,7 +159,7 @@ Writing the divergence of a tensor field $A(x) = (A_{ij}(x))_{i,j=1}^d$ as the v
 ```
 we can write the Fokker-Planck as
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left(\nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x))\right).
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left(\nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x))\right).
 ```
 As before, the diffusion term can be written as
 ```math
@@ -147,22 +171,56 @@ As before, the diffusion term can be written as
 ```
 With that, the Fokker-Planck equation reads
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \right).
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \right).
 ```
 
-Rearranging it, we have
+Rearranging it, we obtain the Liouville equation
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0.
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0
 ```
-This is the Liouville equation of the random ODE
+for the random ODE
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x).
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
 ```
 
-## Generalized probability flow SDE for a general Itô diffusion
+## Splitted-up probability flow SDE for a general Itô diffusion
+
+Notice the change from the Fokker-Planck equation
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x)).
+```
+of the SDE
+```math
+    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
+```
+to the Liouville equation
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0
+```
+for the random ODE
+```math
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
+```
+amounts to expressing the diffusion term completely as a flux term
+```math
+    \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
+```
+As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. More precisely, we may introduce a parameter $\theta$ and write
+```math
+    \begin{align*}
+        \frac{1}{2}\Delta_x & (g(t, x)^2 p(t, x)) \\
+        & = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) + \frac{1 - \theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
+        & = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
+        & \quad + \frac{1 - \theta}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
+    \end{align*}
+```
+
 
 ## References
 
+1. [J. Sohl-Dickstein, E. A. Weiss, N. Maheswaranathan, S. Ganguli (2015), "Deep unsupervised learning using nonequilibrium thermodynamics", ICML'15: Proceedings of the 32nd International Conference on International Conference on Machine Learning - Volume 37, 2256-2265](https://dl.acm.org/doi/10.5555/3045118.3045358)
+1. [Y. Song and S. Ermon (2019), "Generative modeling by estimating gradients of the data distribution", NIPS'19: Proceedings of the 33rd International Conference on Neural Information Processing Systems, no. 1067, 11918-11930](https://dl.acm.org/doi/10.5555/3454287.3455354)
+1. [J. Ho, A. Jain, P. Abbeel (2020), "Denoising diffusion probabilistic models", in Advances in Neural Information Processing Systems 33, NeurIPS2020](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html)
 1. [D. Maoutsa, S. Reich, M. Opper (2020), "Interacting particle solutions of Fokker-Planck equations through gradient-log-density estimation", Entropy, 22(8), 802, DOI: 10.3390/e22080802](https://doi.org/10.3390/e22080802)
 1. [Y. Song, J. Sohl-Dickstein, D. P. Kingma, A. Kumar, S. Ermon, B. Poole (2020), "Score-based generative modeling through stochastic differential equations", arXiv:2011.13456](https://arxiv.org/abs/2011.13456)
 1. [T. Karras, M. Aittala, T. Aila, S. Laine (2022), Elucidating the design space of diffusion-based generative models, Advances in Neural Information Processing Systems 35 (NeurIPS 2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html)
