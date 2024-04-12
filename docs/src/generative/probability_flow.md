@@ -136,28 +136,38 @@ with the equation for $p(t, x)$ being the associated Liouville equation.
 
 ### With arbitrary drift and diffusion
 
-Now we consider the more general case considered in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), with an SDE of the form
+Now we address the more general case considered in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), with an SDE of the form
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-where the diffusion factor is not a scalar diagonal anymore but is a  matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$ In coordinates,
+where the diffusion factor is not a scalar diagonal anymore but is a  matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
+
+In this case, the Fokker-Planck equation takes the form
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x)\right).
+```
+Notice that the term within the parentheses, on the right hand side, is a tensor field which at each point $(t, x)$ yields a certain matrix $A(t, x) = (A_{ij}(t, x))_{i,j=1}^d.$ The differential operator $\nabla_x^2$ acting on such a tensor field is given by
+```math
+    \nabla_x^2 : A(t, x) = \sum_{i=1}^d\sum_{j=1}^d \frac{\partial^2}{\partial x_i\partial x_j} A_{ij}(t, x).
+```
+
+We may write everything in coordinates, starting with
 ```math
     X_t = (X_t^i)_{i=1}^d, \quad W_t = (W_t^i)_{i=1}^d, \quad f(t, x) = (f_i(t, x))_{i=1}^d, \quad G(t, X_t) = (G_{ij}(t, X_t))_{i, j=1}^d,
 ``` 
 so that the SDE reads
 ```math
-    \mathrm{d}X_t^i = f_i(t, X_t^1, \ldots, X_t^d)\;\mathrm{d}t + \sum_{j=1}^d G_{ij}(t, X_t^1, \ldots, X_t^d)\;\mathrm{d}W_t^j.
+    \mathrm{d}X_t^i = f_i(t, X_t^1, \ldots, X_t^d)\;\mathrm{d}t + \sum_{j=1}^d G_{ij}(t, X_t^1, \ldots, X_t^d)\;\mathrm{d}W_t^j,
 ```
-
-In this case, the Fokker-Planck equation takes the form
+and the Fokker-Planck equation reads
 ```math
-    \frac{\partial p}{\partial t} + \sum_{i=1}^d \frac{\partial}{\partial x_i} (f(t, x) p(t, x)) = \frac{1}{2}\sum_{i=1}^d \frac{\partial}{\partial x_i} \sum_{j=1}^d \frac{\partial}{\partial x_j} (G_{ik}(t, x)G_{jk}(t, x) p(t, x)).
+    \frac{\partial p}{\partial t} + \sum_{i=1}^d \frac{\partial}{\partial x_i} (f(t, x) p(t, x)) = \frac{1}{2}\sum_{i=1}^d \sum_{j=1}^d \frac{\partial^2}{\partial x_i \partial x_j} (G_{ik}(t, x)G_{jk}(t, x) p(t, x)).
 ```
-Writing the divergence of a tensor field $A(x) = (A_{ij}(x))_{i,j=1}^d$ as the vector
+Writing the divergence of a tensor field $A(t, x) = (A_{ij}(x))_{i,j=1}^d$ as the vector
 ```math
-    \nabla_x \cdot A(x) = \left( \nabla_x \cdot A_{i\cdot}(x)\right)_{i=1}^d = \left( \sum_{j=1}^d \frac{\partial}{\partial x_j} A_{ij}(x)\right)_{i=1}^d,
+    \nabla_x \cdot A(t, x) = \left( \nabla_x \cdot A_{i\cdot}(t, x)\right)_{i=1}^d = \left( \sum_{j=1}^d \frac{\partial}{\partial x_j} A_{ij}(t, x)\right)_{i=1}^d,
 ```
-we can write the Fokker-Planck as
+we can write the Fokker-Planck equation in divergence form,
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left(\nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x))\right).
 ```
@@ -171,7 +181,10 @@ As before, the diffusion term can be written as
 ```
 With that, the Fokker-Planck equation reads
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \right).
+    \begin{align*}
+        \frac{\partial p}{\partial t} + & \nabla_x \cdot (f(t, x) p(t, x)) \\
+        & = \frac{1}{2}\nabla_x \cdot \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) + G(t, x)G(t, x)^{\mathrm{tr}}p(t, x)\nabla_x \log p(t, x) \right).
+    \end{align*}
 ```
 
 Rearranging it, we obtain the Liouville equation
@@ -183,39 +196,104 @@ for the random ODE
     \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
 ```
 
-## Splitted-up probability flow SDE for a general Itô diffusion
+## Splitted-up probability flow SDE
 
-Notice the change from the Fokker-Planck equation
+The change from the Fokker-Planck equation
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x)).
+    \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right).
 ```
-of the SDE
+for the SDE
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
 to the Liouville equation
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0,
 ```
 for the random ODE
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
+    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t),
 ```
-amounts to expressing the diffusion term completely as a flux term
-```math
-    \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x)) = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
-```
-As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. More precisely, we may introduce a parameter $0 < \theta < 1$ and split
-```math
-    \frac{1}{2}\Delta_x (g(t, x)^2 p(t, x))
-        = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) + \frac{1 - \theta}{2}\Delta_x (g(t, x)^2 p(t, x)),
-```
-rewriting only the second term as a flux, i.e.
+amounts to expressing the diffusion term completely as a flux term:
 ```math
     \begin{align*}
-        \frac{1}{2}\Delta_x & (g(t, x)^2 p(t, x)) = \frac{\theta}{2}\Delta_x (g(t, x)^2 p(t, x)) \\
-        & \quad + \frac{1 - \theta}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
+        \frac{1}{2}\nabla_x^2 : & \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right) \\
+        & = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
     \end{align*}
+```
+As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. This is what we do next.
+
+### For a general Itô diffusion
+
+We may introduce a weight parameter, say $\theta(t),$ which can even be time dependent, and split up the diffusion term of the Fokker-Planck equation into
+```math
+   \begin{align*}
+        \frac{1}{2}\nabla_x^2 : & \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right) \\
+        & = \frac{1 - \theta(t)}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right) + \frac{\theta(t)}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right).
+    \end{align*}
+```
+Rewriting only the first term as a flux we obtain
+```math
+    \begin{align*}
+        \frac{1}{2}\nabla_x^2 : & \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right) \\
+        & = \frac{1 - \theta(t)}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) \\
+        & \qquad +  \frac{\theta(t)}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right).
+    \end{align*}
+```
+In this way, the Fokker-Planck equation becomes
+```math
+    \begin{align*}
+        \frac{\partial p}{\partial t} + \nabla_x \cdot \bigg( \bigg( & f(t, x) - \frac{1-\theta(t)}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) \\
+        & \qquad \qquad - \frac{1-\theta(t)}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \bigg) p(t, x) \bigg) \\
+        & \qquad \qquad \qquad \qquad = \frac{\theta(t)}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right).
+    \end{align*}
+```
+
+The associated **splitted-up probability flow SDE** reads
+```math
+    \begin{align*}
+        \mathrm{d}X_t = \bigg( & f(t, X_t) - \frac{1- \theta(t)}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) \\
+        & \qquad \qquad - \frac{1 - \theta(t)}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} G(t, X_t)\;\mathrm{d}W_t.
+    \end{align*}
+```
+
+### For an SDE with scalar time-dependent diagonal noise
+
+In the case that
+```math
+    G(t, x) = g(t)\mathbf{I},
+```
+the splitted-up probability flow SDE reduces to
+```math
+    \begin{align*}
+        \mathrm{d}X_t = \bigg( & f(t, X_t) - \frac{1 - \theta(t)}{2} g(t)^2 \nabla_x \log p(t, X_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} g(t)\;\mathrm{d}W_t,
+    \end{align*}
+```
+with the Fokker-Planck equation
+```math
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \bigg( \bigg( f(t, x) - \frac{1-\theta(t)}{2} g(t)\nabla_x \log p(t, x) \bigg) p(t, x) \bigg) = \frac{\theta(t)g(t)^2}{2}\Delta_x p(t, x).
+```
+If we set
+```math
+    f(t, x) = 0, \qquad g(t) = \sqrt{\dot\sigma(t) \sigma(t)}
+```
+and choose
+```math
+    \theta(t) = \frac{2\beta(t)\sigma(t)^2}{g(t)^2} = \frac{2\beta(t)\sigma(t)}{\dot \sigma(t)},
+```
+we transform this equation into the [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) probability flow SDE
+```math
+    \begin{align*}
+        \mathrm{d}X_t = \left( -\dot\sigma(t)\sigma(t) + \beta(t)\sigma(t)^2 \right) \nabla_x \log p(t, X_t)\;\mathrm{d}t + \sqrt{2\beta(t)} \sigma(t)\;\mathrm{d}W_t,
+    \end{align*}
+```
+with the free parameter $\beta=\beta(t),$ with the same distribution as the SDE
+```math
+    \mathrm{d}X_t = \sqrt{2\dot\sigma(t)\sigma(t)}\;\mathrm{d}W_t,
+```
+which is associated with the Fokker-Planck equation
+```math
+    \frac{\partial p}{\partial t}  = \dot\sigma(t)\sigma(t)\Delta_x p(t, x).
 ```
 
 
