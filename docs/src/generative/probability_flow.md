@@ -26,9 +26,9 @@ This **probability flow ODE,** as so they termed, was based on the work by [Maou
     f(t, x) = f(x), \qquad G(t, x) = \sigma \mathbf{I}.
 ```
 
-Both the SDE and the random ODE have a reverse-time counterpart, which is then used for sampling, after the Stein score $\nabla \log p(t, x)$ has been modeled by a suitable neural network.
+Both the SDE and the random ODE have a reverse-time counterpart, which is then used for sampling, provided the Stein score $\nabla \log p(t, x)$ has been properly modeled by a suitable neural network.
 
-In theory, both formulations are equivalent to each other. In practice, however, the advantage of sampling via the reverse probability flow ODE is that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost. Meanwhile, sampling with the reverse SDE seems to introduce better mixing of the sample and a more representative distribution.
+In theory, both formulations are equivalent to each other. In practice, however, sampling via the reverse probability flow ODE has some advantages such as the fact that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost, and that there are less parameters to fiddle with. It is also easier to go back and forth with the ODE. Meanwhile, sampling with the reverse SDE, for some well chosen parameters, seems to somehow generate better sample distributions. 
 
 Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE.
 
@@ -221,7 +221,7 @@ amounts to expressing the diffusion term completely as a flux term:
         & = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
     \end{align*}
 ```
-As discussed in the Introduction, both formulations have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. This is what we do next.
+As discussed in the Introduction, both formulations seem to have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. This is what we do next.
 
 ### For a general Itô diffusion
 
