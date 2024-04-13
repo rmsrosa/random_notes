@@ -4,7 +4,7 @@
 
 ### Aim
 
-Review the **multiple denoising score matching (MDSM),** or **denosing score matching with Langevin dynamics (SMLD),** which fits a **noise conditional score network (NCSN),** as introduced by [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354), which together with DDPM was one step closer to the score-based SDE model.
+Review the **(multiple denoising) score matching with Langevin dynamics (SMLD),** which fits a **noise conditional score network (NCSN),** as introduced by [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354), which together with DDPM was one step closer to the score-based SDE model.
 
 ### Background
 
@@ -14,7 +14,7 @@ One of the approaches was the *denoising score matching* of [Pascal Vincent (201
 
 [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) came with two ideas tied together. The first idea was to model directly the score function and use the Langevin equation to draw samples from it. One difficulty with Langevin sampling, however, is in correctly estimating the weights of multimodal distributions, either superestimating or subestimating some modal regions, depending on where the initial distribution of points is located relative to the model regions. It may take a long time to reach the desired distribution.
 
-In order to overcome that, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) also proposed using an annealed version of Langevin dynamics, based on a scale of *denoising score matching* models, with different levels of noise, instead of a single denoising. Lower noises are closer to the target distribution but are challenging to the Langevin sampling, while higher noises are better for Langevin sampling but depart from the target distributions. Combining different levels of noise and gradually sampling between different denoising models improve the modeling and sampling of a distribution. That is the idea of their proposed **noise conditional score network (NCSN)** framework, in a method that was later denominated **denosing score matching with Langevin dynamics (SMLD),** and for which a more precise description would be **multiple denosing score matching with annealed Langevin dynamics,** or simply **multiple denoising score matching (MDSM).**
+In order to overcome that, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) also proposed using an annealed version of Langevin dynamics, based on a scale of *denoising score matching* models, with different levels of noise, instead of a single denoising. Lower noises are closer to the target distribution but are challenging to the Langevin sampling, while higher noises are better for Langevin sampling but depart from the target distributions. Combining different levels of noise and gradually sampling between different denoising models improve the modeling and sampling of a distribution. That is the idea of their proposed **noise conditional score network (NCSN)** framework, in a method that was later denominated **denosing score matching with Langevin dynamics (SMLD),** and for which a more precise description would be **(multiple denosing) score matching with (annealed) Langevin dynamics.**
 
 ## Multiple denoising score matching 
 
@@ -63,18 +63,18 @@ The **noise conditional score network (NCSN)** is precisely
 
 One wants to train the noise conditional score network $s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma)$ by weighting together the denosing loss function of each perturbation, i.e.
 ```math
-    J_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2L}\sum_{i=1}^L \lambda(\sigma_i) \mathbb{E}_{p(\mathbf{x})p_{\sigma_i}(\tilde{\mathbf{x}}|\mathbf{x})}\left[ \left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i) - \frac{\mathbf{x} - \tilde{\mathbf{x}}}{\sigma_i^2} \right\|^2 \right],
+    J_{\textrm{SMLD}}(\boldsymbol{\theta}) = \frac{1}{2L}\sum_{i=1}^L \lambda(\sigma_i) \mathbb{E}_{p(\mathbf{x})p_{\sigma_i}(\tilde{\mathbf{x}}|\mathbf{x})}\left[ \left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}, \sigma_i) - \frac{\mathbf{x} - \tilde{\mathbf{x}}}{\sigma_i^2} \right\|^2 \right],
 ```
 where $\lambda = \lambda(\sigma_i)$ is a weighting factor.
 
 In practice, we use the empirical distribution and a single corrupted data for each sample data, i.e.
 ```math
-    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i)\left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i}}{\sigma_i^2} \right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
+    {\tilde J}_{\textrm{SMLD}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i)\left\| s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - \frac{\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i}}{\sigma_i^2} \right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
 ```
 
 This can also be written with a reparametrization,
 ```math
-    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i) \left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2, \quad \boldsymbol{\epsilon}_{n, i} \sim \mathcal{N}\left(\mathbf{0}_n, \mathbf{I}\right).
+    {\tilde J}_{\textrm{SMLD}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \lambda(\sigma_i) \left\| s_{\boldsymbol{\theta}}(\mathbf{x}_n + \boldsymbol{\epsilon}_{n, i}, \sigma_i) + \frac{\boldsymbol{\epsilon}_{n, i}}{\sigma_i} \right\|^2, \quad \boldsymbol{\epsilon}_{n, i} \sim \mathcal{N}\left(\mathbf{0}_n, \mathbf{I}\right).
 ```
 
 As for the choice of $\lambda(\sigma)$, [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) suggested choosing
@@ -92,7 +92,7 @@ hence
 ```
 is independent of $i=1, \ldots, L$. Choosing such weighting, the loss function becomes
 ```math
-    {\tilde J}_{\textrm{MDSM}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| \sigma_i s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - (\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i})\right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
+    {\tilde J}_{\textrm{SMLD}}(\boldsymbol{\theta}) = \frac{1}{2LN} \sum_{n=1}^N \sum_{i=1}^L \left\| \sigma_i s_{\boldsymbol{\theta}}(\tilde{\mathbf{x}}_{n, i}, \sigma_i) - (\mathbf{x}_n - \tilde{\mathbf{x}}_{n, i})\right\|^2, \quad \tilde{\mathbf{x}}_{n, i} \sim \mathcal{N}\left(\mathbf{x}_n, \sigma^2 \mathbf{I}\right).
 ```
 
 ### Sampling
