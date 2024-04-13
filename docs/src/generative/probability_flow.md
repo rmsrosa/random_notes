@@ -10,7 +10,7 @@ The aim is to review the probability flow sampling method, introduced by [Maouts
 
 ## Background
 
-[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) extended the **denoising diffusion probabilistic models (DDPM)** of [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and the **multiple denoising score matching with Langevin dynamics (MDSMLD)** of [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) to the continuous case. This lead to a noising schedule based on a stochastic differential equation of the form
+[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) extended the **denoising diffusion probabilistic models (DDPM)** of [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and the **(multiple denoising) score matching with Langevin dynamics (SMLD)** of [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) to the continuous case. This lead to a noising schedule based on a stochastic differential equation of the form
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + g(t, X_t)\;\mathrm{d}W_t,
 ```
@@ -21,7 +21,7 @@ for suitable choices of $f=f(t, x)$ and $g=g(t, x)$.
     \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
 ```
 
-This **probability flow ODE,** as so they termed, was based on this fresh work by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), who derived this equation in the particular case of a time-independent drift term and a constant diagonal noise factor, i.e. with
+This **probability flow ODE,** as so they termed, was based on the work by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), who derived this equation in the particular case of a time-independent drift term and a constant diagonal noise factor, i.e. with
 ```math
     f(t, x) = f(x), \qquad G(t, x) = \sigma \mathbf{I}.
 ```
@@ -30,7 +30,7 @@ Both the SDE and the random ODE have a reverse-time counterpart, which is then u
 
 In theory, both formulations are equivalent to each other. In practice, however, the advantage of sampling via the reverse probability flow ODE is that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost. Meanwhile, sampling with the reverse SDE seems to introduce better mixing of the sample and a more representative distribution.
 
-Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE. Here, we extract only the latter aspect of the result, but on the more general context of arbitrary Itô diffusion.
+Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE.
 
 ## Probability flow (random) ODEs
 
