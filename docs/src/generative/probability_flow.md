@@ -10,11 +10,11 @@ The aim is to review the probability flow sampling method, introduced by [Maouts
 
 ## Background
 
-[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) extended the **denoising diffusion probabilistic models (DDPM)** of [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and the **(multiple denoising) score matching with Langevin dynamics (SMLD)** of [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) to the continuous case. This lead to a noising schedule based on a stochastic differential equation of the form
+[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) extended the **denoising diffusion probabilistic models (DDPM)** of [Sohl-Dickstein, Weiss, Maheswaranathan, Ganguli (2015)](https://dl.acm.org/doi/10.5555/3045118.3045358) and [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/hash/4c5bcfec8584af0d967f1ab10179ca4b-Abstract.html) and the **(multiple denoising) score matching with (annealed) Langevin dynamics (SMLD)** of [Song and Ermon (2019)](https://dl.acm.org/doi/10.5555/3454287.3455354) to the continuous case. This lead to a noising schedule based on a stochastic differential equation of the form
 ```math
-    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + g(t, X_t)\;\mathrm{d}W_t,
+    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-for suitable choices of $f=f(t, x)$ and $g=g(t, x)$.
+for suitable choices of $f=f(t, x)$ and $G=G(t, x)$ (usually with $f(t, x) = -a(t)x$ linear in $x$ and with $G(t, x) = g(t)\mathbf{I}$ diagonal and only time dependent).
 
 [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) also showed that the probability density $p(t, x)$ of $X_t$ can also be obtained with the (random) ODE
 ```math
@@ -28,9 +28,9 @@ This **probability flow ODE,** as so they termed, was based on the work by [Maou
 
 Both the SDE and the random ODE have a reverse-time counterpart, which is then used for sampling, provided the Stein score $\nabla \log p(t, x)$ has been properly modeled by a suitable neural network.
 
-In theory, both formulations are equivalent to each other. In practice, however, sampling via the reverse probability flow ODE has some advantages such as the fact that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost, and that there are less parameters to fiddle with. It is also easier to go back and forth with the ODE. Meanwhile, sampling with the reverse SDE, for some well chosen parameters, seems to somehow generate better sample distributions. 
+In theory, both formulations are equivalent to each other. In practice, however, their numerical implementations and their Monte Carlo approximations differ considerably. Sampling via the reverse probability flow ODE has some advantages such as the fact that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost, and that there are less parameters to fiddle with. It is also easier to go back and forth with the ODE. Meanwhile, in some situations and with well chosen parameters, sampling with the reverse SDE seems to somehow generate better sample distributions.
 
-Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE.
+Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE. In essence, the desired variance is simply a reparametrization of the terms of the equation, while the mixture of the SDE and the ODE is just a split-up of the way the diffusion term is handled. More precisely, for the passage from the SDE to the flow ODE, the whole diffusion term is rewritten as a flux. For the mixture, just part of it is rewritten.
 
 ## Probability flow (random) ODEs
 
@@ -49,15 +49,15 @@ In this case, given a initial probability distribution $p_0$ for the initial ran
     \frac{\partial p}{\partial t} + \nabla_x \cdot (f(x) p(t, x)) = \frac{\sigma^2}{2}\Delta_x p(t, x).
 ```
 
-The diffusion term can also be expressed as a divergence, namely
+The idea is that the diffusion term can also be expressed as a divergence, namely
 ```math
     \frac{\sigma^2}{2}\Delta_x p(t, x) = \frac{\sigma^2}{2}\nabla_x \cdot \nabla_x p(t, x) = \nabla_x \cdot \left(\frac{\sigma^2}{2}\nabla_x p(t, x)\right).
 ```
-Notice that, at least where $p(t, x) > 0,$ we can write the gradient term in terms of the Stein score $\nabla_x\log p(t, x),$
+Another key point is that the gradient above can be written as a multiple of the probability density, with the help of the Stein score function $\nabla_x\log p(t, x).$ Indeed, in the region where $p(t, x) > 0,$
 ```math
     \nabla_x p(t, x) = p(t, x) \frac{\nabla_x p(t, x)}{p(t, x)} = p(t, x) \nabla_x \log p(t, x).
 ```
-With the understanding that $s\log s$ vanishes for $s = 0$, which extends this function continuously to the region $s\geq 0,$ we can assume this relation holds everywhere. Thus, the Fokker-Planck equation takes the form
+Then, with the understanding that $s\log s$ vanishes for $s = 0$, which extends this function continuously to the region $s\geq 0,$ we can assume this relation holds everywhere. Thus, the Fokker-Planck equation takes the form
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot (f(x) p(t, x)) = \nabla_x \cdot (\frac{\sigma^2}{2}p(t, x) \nabla_x \log p(t, x)).
 ```
@@ -69,11 +69,11 @@ Defining
 ```math
     \tilde f(t, x) = f(x) - \frac{\sigma^2}{2} \nabla_x \log p(t, x),
 ```
-the Fokker-Planck equation becomes a Liouville equation
+the Fokker-Planck equation becomes a Liouville equation, namely
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot \left(\tilde f(x) p(t, x) \right) = 0,
 ```
-associated with the evolution of a distribution governed by an SDE with no diffusion
+associated with the evolution of a distribution governed by the SDE with no diffusion
 ```math
     \mathrm{d}X_t = \tilde f(t, X_t)\;\mathrm{d}t,
 ```
@@ -88,7 +88,7 @@ Before that, we remark that one difficulty with the probability flow ODE is that
 
 On the other hand, [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) models the score function directly as a (trained) neural network.
 
-### With a onlinear scalar diagonal noise amplitude
+### With a nonlinear scalar diagonal noise amplitude
 
 In [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), the authors consider the more general SDE
 ```math
@@ -140,13 +140,13 @@ Now we address the more general case considered in [Song, Sohl-Dickstein, Kingma
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-where the diffusion factor is not a scalar diagonal anymore but is a  matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
+where the diffusion factor is now a matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
 
 In this case, the Fokker-Planck equation takes the form
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t, x) p(t, x)) = \frac{1}{2}\nabla_x^2 : \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x)\right).
 ```
-Notice that the term within the parentheses, on the right hand side, is a tensor field which at each point $(t, x)$ yields a certain matrix $A(t, x) = (A_{ij}(t, x))_{i,j=1}^d.$ The differential operator $\nabla_x^2$ acting on such a tensor field is given by
+Notice that the term within the parentheses, on the right hand side, is a tensor field which at each point $(t, x)$ yields a certain matrix $A(t, x) = (A_{ij}(t, x))_{i,j=1}^d.$ The differential operation $\nabla_x^2 :$ acting on such a tensor field is given by
 ```math
     \nabla_x^2 : A(t, x) = \sum_{i=1}^d\sum_{j=1}^d \frac{\partial^2}{\partial x_i\partial x_j} A_{ij}(t, x).
 ```
@@ -195,6 +195,7 @@ for the random ODE
 ```math
     \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
 ```
+This is the **probability flow (random) ODE** of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
 ## Splitted-up probability flow SDE
 
@@ -214,14 +215,14 @@ for the random ODE
 ```math
     \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t),
 ```
-amounts to expressing the diffusion term completely as a flux term:
+boils down to expressing the diffusion term completely as a flux term:
 ```math
     \begin{align*}
         \frac{1}{2}\nabla_x^2 : & \left( (G(t, x)G(t, x)^{\mathrm{tr}}) p(t, x) \right) \\
         & = \frac{1}{2}\nabla_x \cdot \left( \left( \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) + G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right).
     \end{align*}
 ```
-As discussed in the Introduction, both formulations seem to have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion. This is what we do next.
+As discussed in the Introduction, both formulations seem to have their advantages. So one idea is to split up the diffusion term and handle one part as the ODE flow and leave the other part as the SDE diffusion, in an attempt to leverage the advantages of both formulations. This is what we do next.
 
 ### For a general Itô diffusion
 
@@ -257,6 +258,8 @@ The associated **splitted-up probability flow SDE** reads
     \end{align*}
 ```
 
+As mentioned before, all these formulations are theoretically equivalent. But their practical applications differ.
+
 ### For an SDE with scalar time-dependent diagonal noise
 
 In the case that
@@ -274,7 +277,7 @@ with the Fokker-Planck equation
     \frac{\partial p}{\partial t} + \nabla_x \cdot \bigg( \bigg( f(t, x) - \frac{1-\theta(t)}{2} g(t)\nabla_x \log p(t, x) \bigg) p(t, x) \bigg) = \frac{\theta(t)g(t)^2}{2}\Delta_x p(t, x).
 ```
 
-### Connection with the Karas et al probability flow SDE
+### Connection with the Karras et al probability flow SDE
 
 If we set
 ```math
@@ -320,8 +323,7 @@ which is the probability density of the Gaussian $\mathcal{N}(0, \sigma(t)^2\mat
 ```math
     p(t, \cdot) = G(\sigma(t)) \star p_0,
 ```
-where $p_0=p_0(x)$ is the initial probability density of the distribution we are attempting to model. This is just a reparametrization of the process.
-
+where $p_0=p_0(x)$ is the initial probability density of the distribution we are attempting to model. This is just a reparametrization of the process directly in terms of a desired variance $\sigma(t)^2.$
 
 ## References
 
