@@ -2,7 +2,7 @@
 
 ## Aim
 
-The aim is to review the probability flow sampling method, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
+The aim is to review the probability flow introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
 ## Background
 
@@ -12,9 +12,9 @@ The aim is to review the probability flow sampling method, introduced by [Maouts
 ```
 for suitable choices of $f=f(t, x)$ and $G=G(t, x)$ (usually with $f(t, x) = -a(t)x$ linear in $x$ and with $G(t, x) = g(t)\mathbf{I}$ diagonal and only time dependent).
 
-[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) also showed that the probability density $p(t, x)$ of $X_t$ can also be obtained with the (random) ODE
+[Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) then showed that the probability density $p(t, x)$ of $X_t$ can also be obtained with the (random) ODE
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_x \cdot ( G(t, Y_t)G(t, Y_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, Y_t)G(t, Y_t)^{\mathrm{tr}}\nabla_x \log p(t, Y_t).
 ```
 
 This **probability flow ODE,** as so they termed, was based on the work by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), who derived this equation in the particular case of a time-independent drift term and a constant diagonal noise factor, i.e. with
@@ -22,9 +22,11 @@ This **probability flow ODE,** as so they termed, was based on the work by [Maou
     f(t, x) = f(x), \qquad G(t, x) = \sigma \mathbf{I}.
 ```
 
-Both the SDE and the random ODE have a reverse-time counterpart, which is then used for sampling, provided the Stein score $\nabla \log p(t, x)$ has been properly modeled by a suitable neural network.
+Both the SDE for $\{X_t\}_t$ and the random ODE for $\{Y_t\}_t$ have a reverse-time counterpart, which is then used for sampling, provided the Stein score $\nabla \log p(t, x)$ has been properly modeled by a suitable neural network.
 
-In theory, both formulations are equivalent to each other. In practice, however, their numerical implementations and their Monte Carlo approximations differ considerably. Sampling via the reverse probability flow ODE has some advantages such as the fact that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost, and that there are less parameters to fiddle with. It is also easier to go back and forth with the ODE. Meanwhile, in some situations and with well chosen parameters, sampling with the reverse SDE seems to somehow generate better sample distributions.
+In theory, both formulations are equivalent to each other, in the sense of yielding the same probability density $p(t, x).$ In practice, however, their numerical implementations and their Monte Carlo approximations differ considerably. Sampling via the reverse probability flow ODE has some advantages such as the fact that the sample trajectories are smoother and easier to integrate numerically, allowing for higher order schemes with lower computational cost, and that there are less parameters to fiddle with. It is also easier to go back and forth with the ODE. Meanwhile, in some situations and with well chosen parameters, sampling with the reverse SDE seems to somehow generate better sample distributions.
+
+Notice that we denoted the probability flow ODE with $\{Y_t\}_t$ to stress the fact that this is a different process from $\{X_t\}_t$ but with the remarkable fact that they have same probability density function $p(t, x).$
 
 Later, [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) considered a particular type of SDE and obtained a sort of probability flow SDE with two main characteristics: a desired specific variance schedule and a mixture of the original SDE and the probability flow ODE. In essence, the desired variance is simply a reparametrization of the terms of the equation, while the mixture of the SDE and the ODE is just a split-up of the way the diffusion term is handled. More precisely, for the passage from the SDE to the flow ODE, the whole diffusion term is rewritten as a flux. For the mixture, just part of it is rewritten.
 
@@ -65,17 +67,17 @@ Defining
 ```math
     \tilde f(t, x) = f(x) - \frac{\sigma^2}{2} \nabla_x \log p(t, x),
 ```
-the Fokker-Planck equation becomes a Liouville equation, namely
+the Fokker-Planck equation becomes
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot \left(\tilde f(x) p(t, x) \right) = 0,
 ```
-associated with the evolution of a distribution governed by the SDE with no diffusion
+which can be viewed as the Liouville equation associated with the evolution of a distribution governed by the ODE, with no diffusion,
 ```math
-    \mathrm{d}X_t = \tilde f(t, X_t)\;\mathrm{d}t,
+    \mathrm{d}Y_t = \tilde f(t, Y_t)\;\mathrm{d}t,
 ```
 i.e. just a Random ODE (more specifically an ODE with random initial data) of the form
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{\sigma^2}{2} \nabla_x \log p(t, X_t).
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{\sigma^2}{2} \nabla_x \log p(t, Y_t).
 ```
 
 This equation did not receive any special name in the original work [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), but got the name **probability flow ODE** in the work [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), which we discuss next.
@@ -118,7 +120,7 @@ Thus, the Fokker-Planck equation becomes
 ```
 which can also be viewed as the Fokker-Planck equation for the SDE with no diffusion
 ```math
-    \mathrm{d}X_t = \tilde f(t, X_t)\;\mathrm{d}t,
+    \mathrm{d}Y_t = \tilde f(t, Y_t)\;\mathrm{d}t,
 ```
 with
 ```math
@@ -126,7 +128,7 @@ with
 ```
 which is actually a random ODE (more specifically an ODE with random initial condition),
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x g(t, X_t)^2 - g(t, X_t)^2\nabla_x \log p(t, X_t),
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_x g(t, Y_t)^2 - g(t, Y_t)^2\nabla_x \log p(t, Y_t),
 ```
 with the equation for $p(t, x)$ being the associated Liouville equation.
 
@@ -183,15 +185,15 @@ With that, the Fokker-Planck equation reads
     \end{align*}
 ```
 
-Rearranging it, we obtain the Liouville equation
+Rearranging it, we obtain the following equation
 ```math
-    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0
+    \frac{\partial p}{\partial t} + \nabla_x \cdot \left( \left( f(t, x) - \frac{1}{2} \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - \frac{1}{2} G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \right) p(t, x) \right) = 0,
 ```
-for the random ODE
+which can be viewed as the Liouville equation for the random ODE
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t).
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_x \cdot ( G(t, Y_t)G(t, Y_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, Y_t)G(t, Y_t)^{\mathrm{tr}}\nabla_x \log p(t, Y_t).
 ```
-This is the **probability flow (random) ODE** of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
+This is the **probability flow (random) ODE** of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) (except for the symbol $\{Y_t\}_t$ instead of $\{X_t\}_t$).
 
 ## Splitted-up probability flow SDE
 
@@ -209,7 +211,7 @@ to the Liouville equation
 ```
 for the random ODE
 ```math
-    \frac{\mathrm{d}X_t}{\mathrm{d}t} = f(t, X_t) - \frac{1}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t),
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_x \cdot ( G(t, Y_t)G(t, Y_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, Y_t)G(t, Y_t)^{\mathrm{tr}}\nabla_x \log p(t, Y_t),
 ```
 boils down to expressing the diffusion term completely as a flux term:
 ```math
@@ -249,8 +251,8 @@ In this way, the Fokker-Planck equation becomes
 The associated **splitted-up probability flow SDE** reads
 ```math
     \begin{align*}
-        \mathrm{d}X_t = \bigg( & f(t, X_t) - \frac{1- \theta(t)}{2} \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) \\
-        & \qquad \qquad - \frac{1 - \theta(t)}{2} G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} G(t, X_t)\;\mathrm{d}W_t.
+        \mathrm{d}Y_t = \bigg( & f(t, Y_t) - \frac{1- \theta(t)}{2} \nabla_x \cdot ( G(t, Y_t)G(t, Y_t)^{\mathrm{tr}} ) \\
+        & \qquad \qquad - \frac{1 - \theta(t)}{2} G(t, Y_t)G(t, Y_t)^{\mathrm{tr}}\nabla_x \log p(t, Y_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} G(t, Y_t)\;\mathrm{d}W_t.
     \end{align*}
 ```
 
@@ -265,7 +267,7 @@ In the case that
 the splitted-up probability flow SDE reduces to
 ```math
     \begin{align*}
-        \mathrm{d}X_t = \bigg( & f(t, X_t) - \frac{1 - \theta(t)}{2} g(t)^2 \nabla_x \log p(t, X_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} g(t)\;\mathrm{d}W_t,
+        \mathrm{d}Y_t = \bigg( & f(t, Y_t) - \frac{1 - \theta(t)}{2} g(t)^2 \nabla_x \log p(t, Y_t)\bigg)\;\mathrm{d}t + \sqrt{\theta(t)} g(t)\;\mathrm{d}W_t,
     \end{align*}
 ```
 with the Fokker-Planck equation
@@ -297,7 +299,7 @@ and
 Thus, we transform the splitted-up probability flow SDE into the probability flow SDE of [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html),
 ```math
     \begin{align*}
-        \mathrm{d}X_t = \left( -\dot\sigma(t)\sigma(t) + \beta(t)\sigma(t)^2 \right) \nabla_x \log p(t, X_t)\;\mathrm{d}t + \sqrt{2\beta(t)} \sigma(t)\;\mathrm{d}W_t,
+        \mathrm{d}Y_t = \left( -\dot\sigma(t)\sigma(t) + \beta(t)\sigma(t)^2 \right) \nabla_x \log p(t, Y_t)\;\mathrm{d}t + \sqrt{2\beta(t)} \sigma(t)\;\mathrm{d}W_t,
     \end{align*}
 ```
 having the same distribution as the SDE
