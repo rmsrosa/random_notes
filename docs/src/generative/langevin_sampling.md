@@ -408,8 +408,9 @@ prob_score = gradlogpdf.(prob, xrange)
 ```@example scoreandlangevin
 Markdown.parse("""The Gaussian mixture distribution is composed of Normal distributions ``\\mathcal{N}($(ns[1][1]), $(ns[1][2]))`` and ``\\mathcal{N}($(ns[2][1]), $(ns[2][2]))``, with weights $(ps[1]) and $(ps[2]), respectively. The PDF and score functions look as follows.""") # hide
 plt1 = plot(xrange, x -> pdf(prob, x), title="PDF of the Gaussian mixture", titlefont=10, legend=false) # hide
-plt2 = plot(xrange, x -> gradlogpdf(prob, x), title="score function of the Gaussian mixture", titlefont=10, legend=false) # hide
-plot(plt1, plt2, size=(600, 600), layout=(2, 1)) # hide
+plt2 = plot(xrange, x -> -logpdf(prob, x), title="Potential \$-\\operatorname{logpdf}\$ of the Gaussian mixture", titlefont=10, legend=false) # hide
+plt3 = plot(xrange, x -> gradlogpdf(prob, x), title="Score function of the Gaussian mixture", titlefont=10, legend=false) # hide
+plot(plt1, plt2, plt3, size=(600, 900), layout=(3, 1)) # hide
 ```
 
 ```@setup scoreandlangevin
