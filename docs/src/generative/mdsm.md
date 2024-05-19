@@ -1,5 +1,9 @@
 # Multiple denoising score matching with annealed Langevin dynamics
 
+```@meta
+Draft = false
+```
+
 ## Introduction
 
 ### Aim
@@ -225,10 +229,10 @@ plt # hide
 
 ### Parameters
 
-Here we set some parameters for the model and prepare any necessary data. For instance, the corrupted/perturbed sample points can be computed beforehand
+Here we set some parameters for the model and prepare any necessary data.
 
 ```@example multipledenoisingscorematching
-L = 6
+L = 16
 sigma_1 = 2.0
 sigma_L = 0.5
 theta = ( sigma_L / sigma_1 )^(1/(L-1))
@@ -236,13 +240,7 @@ sigmas = [sigma_1 * theta ^ (i-1) for i in 1:L]
 ```
 
 ```@example multipledenoisingscorematching
-noisy_sample_points = sample_points .+ sigmas .* randn(rng, size(sample_points))
-flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
-flattened_sigmas = repeat(sigmas', 1, length(sample_points))
-model_input = [flattened_noisy_sample_points; flattened_sigmas]
-scores = ( sample_points .- noisy_sample_points ) ./ sigmas .^ 2
-flattened_scores = reshape(scores, 1, :)
-data = (model_input, flattened_scores, flattened_sigmas)
+data = (sample_points, sigmas)
 ```
 
 ### The neural network model
@@ -264,9 +262,21 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ```@example multipledenoisingscorematching
 function loss_function_mdsm(model, ps, st, data)
-    model_input, flattened_scores, flattened_sigmas = data
+        sample_points, sigmas = data
+
+    noisy_sample_points = sample_points .+ sigmas .* randn(rng, size(sample_points))
+    scores = ( sample_points .- noisy_sample_points ) ./ sigmas .^ 2
+
+    flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
+    flattened_sigmas = repeat(sigmas', 1, length(sample_points))
+    model_input = [flattened_noisy_sample_points; flattened_sigmas]
+
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
+    
+    flattened_scores = reshape(scores, 1, :)
+
     loss = mean(abs2, flattened_sigmas .* (y_score_pred .- flattened_scores)) / 2
+    
     return loss, st, ()
 end
 ```
@@ -494,6 +504,7 @@ plot(title="Histogram at the end of sampling", titlefont=10) # hide
 histogram(xt[end, :], bins=40, normalize=:pdf, label="sample") # hide
 plot!(range(-6, 6, length=200), x -> pdf(target_prob, x), label="target PDF", xlabel="\$x\$") # hide
 ```
+
 ## References
 
 1. [Aapo Hyvärinen (2005), "Estimation of non-normalized statistical models by score matching", Journal of Machine Learning Research 6, 695-709](https://jmlr.org/papers/v6/hyvarinen05a.html)
