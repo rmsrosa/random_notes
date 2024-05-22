@@ -1,9 +1,5 @@
 # Multiple denoising score matching with annealed Langevin dynamics
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
