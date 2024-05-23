@@ -243,7 +243,7 @@ We build the usual target model and draw samples from it.
 
 ```@setup sdescorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
-target_prob = MixtureModel([Normal(-1, 0.1), Normal(1, 0.1)], [0.5, 0.5])
+target_prob = MixtureModel([Normal(-1, 0.2), Normal(1, 0.2)], [0.5, 0.5])
 
 xrange = range(-2, 2, 200)
 dx = Float64(xrange.step)
