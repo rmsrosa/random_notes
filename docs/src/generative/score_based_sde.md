@@ -243,8 +243,9 @@ We build the usual target model and draw samples from it.
 
 ```@setup sdescorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
+target_prob = MixtureModel([Normal(-1, 0.1), Normal(1, 0.1)], [0.5, 0.5])
 
-xrange = range(-10, 10, 200)
+xrange = range(-2, 2, 200)
 dx = Float64(xrange.step)
 xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
@@ -289,10 +290,10 @@ trange = 0.0:0.01:1.0
 
 ```@example sdescorematching
 sigma_min = 0.01
-sigma_max = 10.0
+sigma_max = 1.0
 
 f_ve(t) = 0.0
-g_ve(t; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = σₘᵢₙ * ( σₘₐₓ / σₘₐₓ )^t * √(2 * log(σₘₐₓ/σₘᵢₙ))
+g_ve(t; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = σₘᵢₙ * ( σₘₐₓ / σₘᵢₙ)^t * √(2 * log(σₘₐₓ/σₘᵢₙ))
 
 prob_kernel_ve(t, x0; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = Normal( x0, σₘᵢₙ^2 * (σₘₐₓ/σₘᵢₙ)^(2t) )
 p_kernel_ve(t, x, x0) = pdf(prob_kernel_ve(t, x0), x)
@@ -320,11 +321,11 @@ prob_kernel_vp(t, x0; βₘᵢₙ=beta_min, βₘₐₓ=beta_max) = Normal( x0 *
 ```
 
 ```@example sdescorematching
-surface(trange, xrange, (t, x) -> sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * pdf(target_prob, x0), xrange))
+surface(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * pdf(target_prob, x0), xrange)))
 ```
 
 ```@example sdescorematching
-heatmap(trange, xrange, (t, x) -> sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * pdf(target_prob, x0), xrange))
+heatmap(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * pdf(target_prob, x0), xrange)))
 ```
 
 ```@example sdescorematching
