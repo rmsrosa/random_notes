@@ -1,7 +1,7 @@
 # Score-based generative modeling through stochastic differential equations
 
 ```@meta
-Draft = true
+Draft = false
 ```
 
 ## Introduction
@@ -301,11 +301,11 @@ score_kernel_ve(t, x, x0) = gradlogpdf(prob_kernel_ve(t, x, x0), x)
 ```
 
 ```@example sdescorematching
-surface(trange, xrange, (t, x) -> sum(x0 -> pdf(prob_kernel_ve(t, x0), x) * pdf(target_prob, x0), xrange))
+surface(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_ve(t, x0), x) * pdf(target_prob, x0), xrange)))
 ```
 
 ```@example sdescorematching
-heatmap(trange, xrange, (t, x) -> sum(x0 -> pdf(prob_kernel_ve(t, x0), x) * pdf(target_prob, x0), xrange))
+heatmap(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_ve(t, x0), x) * pdf(target_prob, x0), xrange)))
 ```
 
 #### Variance preserving
