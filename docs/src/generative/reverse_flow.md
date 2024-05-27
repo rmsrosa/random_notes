@@ -2,17 +2,13 @@
 
 ## Aim
 
-Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the reverse time diffusion equation model worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5).
+Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5).
 
 ## Reverse ODE
 
 For an ODE of the form
 ```math
     \frac{\mathrm{d}x}{\mathrm{d}t} = f(t, x),
-```
-with initial condition
-```math
-    x(0) = x_0,
 ```
 reverting time, on a time interval $[0, T],$ is just a matter of decreasing $t,$ from $T$ to $0.$ One way to think of it is via the integral formula
 ```math
@@ -22,6 +18,20 @@ so that
 ```math
     x(t) = x(T) - \int_t^T f(s, x(s))\;\mathrm{d}s.
 ```
+
+Another way is to write $y(t) = x(T - t)$ and use the chain rule
+```math
+    \frac{\mathrm{d}y}{\mathrm{d}t} = -\frac{\mathrm{d}x}{\mathrm{d}t}(T - t) = - f(T-t, x(T-t)) = -f(T-t, y(t)) = \tilde f(t, y(t)).
+```
+Integrating from $0$ to $T$ yields an integral relation equivalent to the previous one,
+```math
+    x(T - t) = y(t) = y(0) - \int_0^t f(T-\tau, y(\tau)) \;\mathrm{d}\tau = x(T) - \int_0^T f(T-\tau, x(T-\tau))\;\mathrm{d}\tau = x(T) + \int_T^{T-t} f(s, x(s))\;\mathrm{d}s,
+```
+which yields
+```math
+    x(t) = x(T) - \int_t^T f(s, x(s))\;\mathrm{d}s.
+```
+
 The Euler method for the reverse flow is simply stepping backward from $t$ to $t - \Delta t,$ with the Taylor approximation reading
 ```math
     x(t_j) = x(t_{j+1}) - f(t_{j+1}, x(t_{j+1}))\Delta t,
