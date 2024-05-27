@@ -19,15 +19,19 @@ so that
     x(t) = x(T) - \int_t^T f(s, x(s))\;\mathrm{d}s.
 ```
 
-Another way is to write $y(t) = x(T - t)$ and use the chain rule
+Another way is to write ${\tilde x}(\tilde t\,) = x(T - \tilde t\,)$ and use the chain rule
 ```math
-    \frac{\mathrm{d}y}{\mathrm{d}t} = -\frac{\mathrm{d}x}{\mathrm{d}t}(T - t) = - f(T-t, x(T-t)) = -f(T-t, y(t)) = \tilde f(t, y(t)).
+    \frac{\mathrm{d}{\tilde x}(\tilde t\,)}{\mathrm{d}\tilde t} = -\frac{\mathrm{d}x}{\mathrm{d}t}(T - \tilde t\,) = - f(T-\tilde t, x(T-\tilde t\,)) = -f(T-\tilde t, {\tilde x}(\tilde t\,)).
 ```
-Integrating from $0$ to $T$ yields an integral relation equivalent to the previous one,
+Integrating from $0$ to $T$ yields an integral relation equivalent to the previous one. In fact,
 ```math
-    x(T - t) = y(t) = y(0) - \int_0^t f(T-\tau, y(\tau)) \;\mathrm{d}\tau = x(T) - \int_0^T f(T-\tau, x(T-\tau))\;\mathrm{d}\tau = x(T) + \int_T^{T-t} f(s, x(s))\;\mathrm{d}s,
+    {\tilde x}(\tilde t\,) = {\tilde x}(0) - \int_0^{\tilde t} f(T-\tau, {\tilde x}(\tau)) \;\mathrm{d}\tau.
 ```
-which yields
+Going back to $x(\cdot)$ and making the change of variables $s = T - \tau,$ 
+```math
+    x(T - \tilde t\,) = x(T) - \int_0^T f(T-\tau, x(T-\tau))\;\mathrm{d}\tau = x(T) + \int_T^{T-\tilde t} f(s, x(s))\;\mathrm{d}s.
+```
+Back to $t = T - \tilde t$ yields
 ```math
     x(t) = x(T) - \int_t^T f(s, x(s))\;\mathrm{d}s.
 ```
