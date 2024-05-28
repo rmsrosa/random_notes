@@ -52,52 +52,112 @@ and $n\in\mathbb{N}$ given.
 
 If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution, then the reverse flow evolves back towards an approximation $Y_0$ of the initial distribution $X_0.$
 
-We should remark that this is a pathwise reversion, i.e. the same path can be traced back and forth with these ordinary differential equations. This is in contrast with what happens with in the stochastic case.
-
 ## Reverse Itô diffusion
 
 Consider now a forward evolution given by an Itô diffusion SDE
 ```math
-    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + g(t, X_t)\;\mathrm{d}W_t,
+    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-with initial distribution $X_0$ at $t = 0.$ In this case, we will not find a reverse equation tracing back a given sample path $X_t(\omega).$ Instead, we obtain a reverse SDE generating the same probability distribution. This will require knowledge of the Stein score function, which is not a problem in the use case we have in mind, where the Stein score is properly modeled.
+where the drift factor is a vector-valued function $f:I\times \mathbb{R}^d \rightarrow \mathbb{R}^d$, and the diffusion factor is a matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
+
+In the following proof, we cannot deduce that this reverse equation traces back a given sample path $X_t(\omega).$ Instead, we only obtain that a reverse SDE generating the same probability distribution. We discuss later a different proof showing the reverse equation indeed traces back each sample path of the original equation. 
+
+Notice the reverse diffusion equation requires knowledge of the Stein score function, which fortunately is not a problem in the use case we have in mind, where the Stein score is properly modeled.
 
 The original way of obtaining the reverse SDE, derived in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5), and seen in other works, is by looking at the joint distribution $p(t, x_t, s, x_s)$ at two different times $t$ and $s$ and by working with conditional distributions. We do it differently here, though. We look at the connection between the SDE and the probability flow, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
-For the stochastic differential equation above, with diagonal noise, the probability flow ODE takes the form
+For the stochastic differential equation above, the probability flow ODE obtained by [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) reads (except for the symbol $\{Y_t\}_t$ instead of $\{X_t\}_t$) 
 ```math
-    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_y g(t, Y_t)^2 - g(t, Y_t)^2\nabla_y \log p(t, Y_t).
+    \frac{\mathrm{d}Y_t}{\mathrm{d}t} = f(t, Y_t) - \frac{1}{2} \nabla_x \cdot ( G(t, Y_t)G(t, Y_t)^{\mathrm{tr}} ) - \frac{1}{2} G(t, Y_t)G(t, Y_t)^{\mathrm{tr}}\nabla_x \log p(t, Y_t).
 ```
 Both $\{X_t\}_t$ and $\{Y_t\}_t$ have the same probability distribution $p(t, \cdot).$
 
-We first write the reverse ODE in terms of $\tilde Y_{\tilde t} = Y_{T - \tilde t},$ in the reverse time variable $\tilde t = T - t.$ We have
+We now write the reverse ODE by making the change of variables $\tilde Y_{\tilde t} = Y_{T - \tilde t},$ with the reverse time variable $\tilde t = T - t.$ It is just an ODE (pathwise), so the reverse equation is straightforward chain rule
 ```math
-    \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = - f(T - \tilde t, Y_{T - \tilde t}) + \frac{1}{2} \nabla_y g(T - \tilde t, Y_{T - \tilde t})^2 + g(T - \tilde t, Y_{T - \tilde t})^2\nabla_y \log p(T - \tilde t, Y_{T - \tilde t}),
+    \begin{align*}
+        \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = - \frac{\mathrm{d}Y_{T - \tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, Y_{T - \tilde t}) + \frac{1}{2} \nabla_y \cdot ( G(T - \tilde t, Y_{T - \tilde t})G(T - \tilde t, Y_{T - \tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + \frac{1}{2} G(T - \tilde t, Y_{T - \tilde t})G(T - \tilde t, Y_{T - \tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, Y_{T - \tilde t}),
+    \end{align*}
 ```
 i.e.
 ```math
-    \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = - f(T - \tilde t, {\tilde Y}_{\tilde t}) + \frac{1}{2} \nabla_y g(T - \tilde t, {\tilde Y}_{\tilde t})^2 + g(T - \tilde t, {\tilde Y}_{\tilde t})^2\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}).
+    \begin{align*}
+        \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, {\tilde Y}_{\tilde t}) + \frac{1}{2} \nabla_y \cdot ( G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + \frac{1}{2} G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}).
+    \end{align*}
 ```
-Now we add and subtract $\nabla_y g(T - \tilde t, {\tilde Y}_{\tilde t})^2,$ to find
+The terms with $GG^{\mathrm{tr}}$ don't come with the right sign, so we just rewrite it as (like adding and subtracting the same terms)
 ```math
-    \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = - f(T - \tilde t, {\tilde Y}_{\tilde t}) - \frac{1}{2} \nabla_y g(T - \tilde t, {\tilde Y}_{\tilde t})^2 + \nabla_y g(T - \tilde t, {\tilde Y}_{\tilde t})^2 + g(T - \tilde t, {\tilde Y}_{\tilde t})^2\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}).
+    \begin{align*}
+        \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, {\tilde Y}_{\tilde t}) + \nabla_y \cdot ( G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}) \\
+        & \qquad \qquad - \frac{1}{2} \nabla_y \cdot ( G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad - \frac{1}{2} G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}).
+    \end{align*}
 ```
 
-With the proper sign for the second term on the right hand side, we see this is the probability flow equation for the associated SDE
+With the proper sign, the last two terms on the right hand side become the diffusion term in the associated SDE for which this is the probability flow equation, namely
 ```math
-    \mathrm{d}{\tilde X}_{\tilde t} = \left(- f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x g(T - \tilde t, {\tilde X}_{\tilde t})^2 + g(T - \tilde t, {\tilde X}_{\tilde t})^2\nabla_x \log p(T - \tilde t, {\tilde X}_{\tilde t})\right)\;\mathrm{d}{\tilde t} + g(T - \tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\tilde W}_{\tilde t},
+    \begin{align*}
+        \frac{\mathrm{d}{\tilde X}_{\tilde t}}{\mathrm{d}\tilde t} & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}}\nabla_x \log p(T - \tilde t, {\tilde X}_{\tilde t}) \bigg) \;\mathrm{d}\tilde t\\
+        & \qquad \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\tilde W}_{\tilde t},
+    \end{align*}
+```
+where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener process. Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde t},$
+```math
+    \begin{align*}
+        \frac{\mathrm{d}X_t}{\mathrm{d}\tilde t} & = \bigg( - f(t, X_t) + \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t) \bigg) \;\mathrm{d}\tilde t\\
+        & \qquad \qquad \qquad + G(t, X_t)\;\mathrm{d}{\tilde W}_{\tilde t},
+    \end{align*}
+```
+where $\{\tilde W\}_{T - t}$ is a reverse Wiener process. In integral form, the equation for ${\tilde X}_{\tilde t},$ integrating from $\tilde \tau = 0$ to $\tilde \tau = T - \tilde t,$ reads
+```math
+    \begin{align*}
+        {\tilde X}_{\tilde t} - {\tilde X}_0 & = \int_0^{T - \tilde t} \bigg( - f(T - \tilde \tau, {\tilde X}_{\tilde \tau}) + \nabla_x \cdot ( G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}}\nabla_x \log p(T - \tilde \tau, {\tilde X}_{\tilde \tau}) \bigg) \;\mathrm{d}\tilde \tau\\
+        & \qquad \qquad \qquad + \int_0^{T - \tilde t} G(T - \tilde \tau, {\tilde X}_{\tilde \tau})\;\mathrm{d}{\tilde W}_{\tilde \tau},
+    \end{align*}
+```
+
+Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde t},$ this becomes
+```math
+    \begin{align*}
+        X_t - X_T & = -\int_T^{t} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tau\\
+        & \qquad \qquad \qquad - \int_T^{t} G(\tau, X_\tau)\star\mathrm{d}{\tilde W}_{T-\tau},
+    \end{align*}
+```
+which can be written as
+```math
+    \begin{align*}
+        X_t - X_T & = \int_{t}^{T} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tilde \tau\\
+        & \qquad \qquad \qquad + \int_{t}^T G(\tau, X_\tau)\star\mathrm{d}{\tilde W}_{T - \tau},
+    \end{align*}
 ```
 where
 ```math
-    {\tilde W}_{\tilde t} = W_{T - \tilde t}
+    \int_{T-t}^T H_\tau \star\mathrm{d}{\tilde W}_{T - \tau}
 ```
-is a reverse Wiener process. Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde t},$
+denotes the *reverse Itô integral,* with the integrand, in the approximating summations, computed at the rightmost point of each mesh interval. Since $\{{\tilde W}_{T - \tau}\}_{\tau}$ is a reverse Wiener process, this integral is well defined and is essentially the Itô integral rephrased backwards. Let us examine this more carefully. We start with the Itô integral
 ```math
-    \mathrm{d}X_t = \left(f(t, X_t) - \nabla_x g(t, X_t)^2 - g(t, X_t)^2\nabla_x \log p(t, X_t)\right)\;\mathrm{d}t + g(t, X_t)\;\mathrm{d}W_{T-t}.
+    \int_0^{T - \tilde t} H_{T-\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau},
 ```
+defined for any given (non-antecipative) process $\{H_{T-\tilde\tau}\}_{\tilde \tau \geq 0}.$ It is given as the limit, as the mesh $0 = \tilde \tau_0 < \tilde \tau_1 < \ldots < \tilde \tau_n = T - \tilde t$ is refined, of the sums
+```math
+    \sum_{j=1}^n H_{T-\tilde \tau_{j-1}}({\tilde W}_{{\tilde \tau}_j} - {\tilde W}_{{\tilde \tau}_{j-1}}),
+```
+we see that the points $\tau_j = T - \tilde \tau_j$ form a mesh $T - t = \tau_n = T - \tilde \tau_n < \ldots < T - \tilde \tau_1 < T - \tilde \tau_0 = \tau_0 = T,$ with points $\tau_j = T - \tilde \tau_j$ decreasing in $j,$ and the summation can be written as
+```math
+    -\sum_{j=1}^n H_{T - \tau_{j-1}}({\tilde W}_{T - \tau_j} - {\tilde W}_{T - \tau_{j-1}}),
+```
+and with $T - \tau_{j-1} < T - \tau_j,$ which means at the "front" of the *decreasing* steps!
 
+## Reverse Itô diffusion via Stratonovich integral
 
-
+Another way to obtain the reverse diffusion which has the advantage of showing that the reversion operators at each sample path is by transforming the Itô diffusion equation into a Stratonovich diffusion and using that the Stratonovich diffusion equation can be reverted seamlessly, and then going back again to the Itô diffusion formulation with the reverted Wiener process. Each change to or from the Stratonovich integral adds half of the extra term, boiling down to a full extra term.
 
 ## References
 
