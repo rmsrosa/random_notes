@@ -52,6 +52,8 @@ and $n\in\mathbb{N}$ given.
 
 If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution, then the reverse flow evolves back towards an approximation $Y_0$ of the initial distribution $X_0.$
 
+We remark that this is a *pathwise reversion,* meaning that each forward path $x(t)$ with initial condition $x(0)$ is traced back by the reverse equation starting at the final point $x(T).$ This is in contrast with the result for SDEs, for which, in general, only the probability distribution is recovered with the backward flow, not necessarily the individual samples paths. In order to trace back the exact forward paths, a specific Wiener process must be used.
+
 ## Reverse Itô diffusion
 
 Consider now a forward evolution given by an Itô diffusion SDE
@@ -60,7 +62,7 @@ Consider now a forward evolution given by an Itô diffusion SDE
 ```
 where the drift factor is a vector-valued function $f:I\times \mathbb{R}^d \rightarrow \mathbb{R}^d$, and the diffusion factor is a matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
 
-In the following proof, we cannot deduce that this reverse equation traces back a given sample path $X_t(\omega).$ Instead, we only obtain that a reverse SDE generating the same probability distribution. We discuss later a different proof showing the reverse equation indeed traces back each sample path of the original equation. 
+In the following proof, we cannot deduce that this reverse equation traces back a given sample path $X_t(\omega),$ as in the ODE case. Instead, we only obtain that the reverse SDE generates the same probability distribution as the forward SDE.
 
 Notice the reverse diffusion equation requires knowledge of the Stein score function, which fortunately is not a problem in the use case we have in mind, where the Stein score is properly modeled.
 
@@ -104,15 +106,7 @@ With the proper sign, the last two terms on the right hand side become the diffu
         & \qquad \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\tilde W}_{\tilde t},
     \end{align*}
 ```
-where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener process. Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde t},$
-```math
-    \begin{align*}
-        \frac{\mathrm{d}X_t}{\mathrm{d}\tilde t} & = \bigg( - f(t, X_t) + \nabla_x \cdot ( G(t, X_t)G(t, X_t)^{\mathrm{tr}} ) \\
-        & \qquad \qquad + G(t, X_t)G(t, X_t)^{\mathrm{tr}}\nabla_x \log p(t, X_t) \bigg) \;\mathrm{d}\tilde t\\
-        & \qquad \qquad \qquad + G(t, X_t)\;\mathrm{d}{\tilde W}_{\tilde t},
-    \end{align*}
-```
-where $\{\tilde W\}_{T - t}$ is a reverse Wiener process. In integral form, the equation for ${\tilde X}_{\tilde t},$ integrating from $\tilde \tau = 0$ to $\tilde \tau = T - \tilde t,$ reads
+where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener process. In integral form, the equation for ${\tilde X}_{\tilde t},$ integrating from $\tilde \tau = 0$ to $\tilde \tau = T - \tilde t,$ reads
 ```math
     \begin{align*}
         {\tilde X}_{\tilde t} - {\tilde X}_0 & = \int_0^{T - \tilde t} \bigg( - f(T - \tilde \tau, {\tilde X}_{\tilde \tau}) + \nabla_x \cdot ( G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}} ) \\
@@ -126,7 +120,7 @@ Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde 
     \begin{align*}
         X_t - X_T & = -\int_T^{t} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tau\\
-        & \qquad \qquad \qquad - \int_T^{t} G(\tau, X_\tau)\star\mathrm{d}{\tilde W}_{T-\tau},
+        & \qquad \qquad \qquad - \int_T^{t} G(\tau, X_\tau)\mathrm{d}{\tilde W}_{T-\tau},
     \end{align*}
 ```
 which can be written as
@@ -134,14 +128,14 @@ which can be written as
     \begin{align*}
         X_t - X_T & = \int_{t}^{T} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tilde \tau\\
-        & \qquad \qquad \qquad + \int_{t}^T G(\tau, X_\tau)\star\mathrm{d}{\tilde W}_{T - \tau},
+        & \qquad \qquad \qquad + \int_{t}^T G(\tau, X_\tau)\mathrm{d}{\tilde W}_{T - \tau},
     \end{align*}
 ```
 where
 ```math
-    \int_{T-t}^T H_\tau \star\mathrm{d}{\tilde W}_{T - \tau}
+    \int_{T-t}^T H_\tau \mathrm{d}{\tilde W}_{T - \tau}
 ```
-denotes the *reverse Itô integral,* with the integrand, in the approximating summations, computed at the rightmost point of each mesh interval. Since $\{{\tilde W}_{T - \tau}\}_{\tau}$ is a reverse Wiener process, this integral is well defined and is essentially the Itô integral rephrased backwards. Let us examine this more carefully. We start with the Itô integral
+is a *reverse Itô integral,* with the integrand, in the approximating summations, computed at the rightmost point of each mesh interval. Since $\{{\tilde W}_{T - \tau}\}_{\tau}$ is a reverse Wiener process, this integral is well defined and is essentially the Itô integral rephrased backwards. Let us examine this more carefully. We start with the Itô integral
 ```math
     \int_0^{T - \tilde t} H_{T-\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau},
 ```
@@ -155,9 +149,34 @@ we see that the points $\tau_j = T - \tilde \tau_j$ form a mesh $T - t = \tau_n 
 ```
 and with $T - \tau_{j-1} < T - \tau_j,$ which means at the "front" of the *decreasing* steps!
 
-## Reverse Itô diffusion via Stratonovich integral
+## Tracing back the same forward paths with a specific Wiener process
 
-Another way to obtain the reverse diffusion which has the advantage of showing that the reversion operators at each sample path is by transforming the Itô diffusion equation into a Stratonovich diffusion and using that the Stratonovich diffusion equation can be reverted seamlessly, and then going back again to the Itô diffusion formulation with the reverted Wiener process. Each change to or from the Stratonovich integral adds half of the extra term, boiling down to a full extra term.
+In order to trace back the same sample paths, one must use a specific Wiener process $\{\bar W_t\}_{t\geq 0}$ define as the weak solution (i.e. with the specific original Wiener process $\{W_t\}_{t\geq 0}$ of the forward path)
+```math
+    \mathrm{d}\bar W_t = \mathrm{d}W_t + \frac{1}{p(t, X_t)}\nabla_x \cdot (p(t, X_t) G(t, X_t)) \;\mathrm{d}t,
+```
+i.e.
+```math
+    \bar W_t = W_t + \int_0^t \frac{1}{p(s, X_s)}\nabla_x \cdot (p(s, X_s) G(s, X_s)) \;\mathrm{d}s.
+```
+The proof that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is not trivial. We will be content in considering a specific illustrative one-dimensional case, given by
+```math
+    \mathrm{d}X_t = \sigma \;\mathrm{d}W_t,
+```
+with
+```math
+    X_0 = 0.
+```
+
+This is a somewhat trivial example, with solution
+```math
+    X_t = \sigma W_t.
+```
+The probability distribution function is
+```math
+    p(t, x) = \frac{1}{\sqrt{2\pi \sigma^2 t}}e^{-\frac{1}{2}\frac{x^2}{\sigma^2t}},
+```
+for $t > 0,$ $x\in\mathbb{R}.$
 
 ## References
 
