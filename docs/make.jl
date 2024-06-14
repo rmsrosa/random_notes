@@ -65,6 +65,7 @@ makedocs(
         sidebar_sitename = true,
         canonical = "https://github.com/rmsrosa/random_notes",
         edit_link = "main",
+        inventory_version = "0.1.0"
     ),
 )
 
