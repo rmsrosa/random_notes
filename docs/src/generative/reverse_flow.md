@@ -2,7 +2,7 @@
 
 ## Aim
 
-Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5).
+Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5) (see also [Haussmann and Pardoux (1986)](https://doi.org/10.1214/aop/1176992362))
 
 ## Reverse ODE
 
@@ -101,7 +101,7 @@ The terms with $GG^{\mathrm{tr}}$ don't come with the right sign, so we just rew
 With the proper sign, the last two terms on the right hand side become the diffusion term in the associated SDE for which this is the probability flow equation, namely
 ```math
     \begin{align*}
-        \frac{\mathrm{d}{\tilde X}_{\tilde t}}{\mathrm{d}\tilde t} & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
+        \mathrm{d}{\tilde X}_{\tilde t} & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}}\nabla_x \log p(T - \tilde t, {\tilde X}_{\tilde t}) \bigg) \;\mathrm{d}\tilde t\\
         & \qquad \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\tilde W}_{\tilde t},
     \end{align*}
@@ -115,19 +115,19 @@ where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener pr
     \end{align*}
 ```
 
-Back to the original variables $t = T - \tilde t$ and $X_t = {\tilde X}_{\tilde t},$ this becomes
+Back to the original time $t = T - \tilde t$ and setting ${\hat X}_t = {\tilde X}_{T - t} = {\tilde X}_{\tilde t},$ this becomes
 ```math
     \begin{align*}
-        X_t - X_T & = -\int_T^{t} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
-        & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tau\\
-        & \qquad \qquad \qquad - \int_T^{t} G(\tau, X_\tau)\mathrm{d}{\tilde W}_{T-\tau},
+        {\hat X}_t - {\hat X}_T & = -\int_T^{t} \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d}\tau\\
+        & \qquad \qquad \qquad - \int_T^{t} G(\tau, {\hat X}_\tau)\mathrm{d}{\tilde W}_{T-\tau},
     \end{align*}
 ```
 which can be written as
 ```math
     \begin{align*}
-        X_t - X_T & = \int_{t}^{T} \bigg( - f(\tau, X_\tau) + \nabla_x \cdot ( G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}} ) \\
-        & \qquad \qquad + G(\tau, X_\tau)G(\tau, X_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, X_\tau) \bigg) \;\mathrm{d}\tilde \tau\\
+        {\hat X}_t - {\hat X}_T & = \int_{t}^{T} \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d}\tilde \tau\\
         & \qquad \qquad \qquad + \int_{t}^T G(\tau, X_\tau)\mathrm{d}{\tilde W}_{T - \tau},
     \end{align*}
 ```
@@ -151,7 +151,7 @@ and with $T - \tau_{j-1} < T - \tau_j,$ which means at the "front" of the *decre
 
 ## Tracing back the same forward paths with a specific Wiener process
 
-In order to trace back the same sample paths, one must use a specific Wiener process $\{\bar W_t\}_{t\geq 0}$ define as the weak solution (i.e. with the specific original Wiener process $\{W_t\}_{t\geq 0}$ of the forward path)
+Notice we wrote, above, ${\hat X}_t$ instead of $X_t,$ because the paths might not be the same, although the distributions are. In order to trace back the same sample paths, one must use a specific Wiener process $\{\bar W_t\}_{t\geq 0}$ define as the weak solution (i.e. with the specific original Wiener process $\{W_t\}_{t\geq 0}$ of the forward path)
 ```math
     \mathrm{d}\bar W_t = \mathrm{d}W_t + \frac{1}{p(t, X_t)}\nabla_x \cdot (p(t, X_t) G(t, X_t)) \;\mathrm{d}t,
 ```
@@ -159,7 +159,31 @@ i.e.
 ```math
     \bar W_t = W_t + \int_0^t \frac{1}{p(s, X_s)}\nabla_x \cdot (p(s, X_s) G(s, X_s)) \;\mathrm{d}s.
 ```
-The proof that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is not trivial. We will be content in considering a specific illustrative one-dimensional case, given by
+With this noise, if $\{X_t\}_{t\geq 0}$ is the solution of the forward diffusion equation
+```math
+    \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
+```
+then the (pathwise) reverse flow ${\tilde X}_{\tilde t} = X_{T - \tilde t}$ is a (weak) solution (because it solves a diffusion equation with a specific Wiener process) of
+```math
+    \mathrm{d}{\tilde X}_{\tilde t} = {\tilde f}(\tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}t + {\tilde G}(\tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\bar W}_{\tilde t},
+```
+with
+```math
+    {\tilde G}(\tilde t, {\tilde X}_{\tilde t}) = G(T - \tilde t, {\tilde X}_{\tilde t})
+```
+and
+```math
+    \begin{align*}
+        {\tilde f}(\tilde t, {\tilde X}_{\tilde t}) & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
+        & \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}}\nabla_x \log p(T - \tilde t, {\tilde X}_{\tilde t}) \bigg).
+    \end{align*}
+```
+
+The proof that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is not trivial, thought. We will be content in considering a specific illustrative one-dimensional case.
+
+## A simple scalar example
+
+Consider the trivial diffusion equation
 ```math
     \mathrm{d}X_t = \sigma \;\mathrm{d}W_t,
 ```
@@ -168,18 +192,32 @@ with
     X_0 = 0.
 ```
 
-This is a somewhat trivial example, with solution
+The solution is simply
 ```math
     X_t = \sigma W_t.
 ```
-The probability distribution function is
+
+The marginal probability distribution functions of this stochastic process are
 ```math
-    p(t, x) = \frac{1}{\sqrt{2\pi \sigma^2 t}}e^{-\frac{1}{2}\frac{x^2}{\sigma^2t}},
+    p(t, x) = \frac{1}{\sqrt{2\pi \sigma^2 t}}e^{-\frac{1}{2}\frac{x^2}{\sigma^2t}}, \quad x\in\mathbb{R},
 ```
-for $t > 0,$ $x\in\mathbb{R}.$
+for $t > 0.$ In this case,
+```math
+    \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x) G(s, x)) = \sigma \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x)) = sigma \nabla_x \log(p(s, x)),
+```
+with
+```math
+    \sigma\nabla_x \log(p(s, x)) = \sigma \nabla_x \left( -\frac{1}{2}\frac{x^2}{\sigma^2t} - \log(\sqrt{2\pi \sigma^2 t}) \right) = - \frac{x}{\sigma t}.
+```
+
+The reverse Wiener process takes the form
+```math
+    {\bar W}_t = W_t + \int_0^t 
+```
 
 ## References
 
 1. [Y. Song, J. Sohl-Dickstein, D. P. Kingma, A. Kumar, S. Ermon, B. Poole (2020), "Score-based generative modeling through stochastic differential equations", arXiv:2011.13456](https://arxiv.org/abs/2011.13456)
 1. [T. Karras, M. Aittala, T. Aila, S. Laine (2022), Elucidating the design space of diffusion-based generative models, Advances in Neural Information Processing Systems 35 (NeurIPS 2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html)
 3. [B. D. O. Anderson (1982). Reverse-time diffusion equation models, Stochastic Process. Appl., vol. 12, no. 3, 313–326, DOI: 10.1016/0304-4149(82)90051-5](https://doi.org/10.1016/0304-4149(82)90051-5)
+4. [U. G. Haussmann, E. Pardoux (1986). Time reversal of diffusions, Ann. Probab. 14, no. 4, 1188-1205](https://doi.org/10.1214/aop/1176992362)
