@@ -50,7 +50,7 @@ so that $t_0 = T$ and $t_n = 0,$ for
 ```
 and $n\in\mathbb{N}$ given.
 
-If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution, then the reverse flow evolves back towards an approximation $Y_0$ of the initial distribution $X_0.$
+If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution as in the generative diffusion processes, then the reverse flow evolves back towards an approximation $Y_0$ of the initial distribution $X_0.$
 
 We remark that this is a *pathwise reversion,* meaning that each forward path $x(t)$ with initial condition $x(0)$ is traced back by the reverse equation starting at the final point $x(T).$ This is in contrast with the result for SDEs, for which, in general, only the probability distribution is recovered with the backward flow, not necessarily the individual samples paths. In order to trace back the exact forward paths, a specific Wiener process must be used.
 
@@ -74,10 +74,10 @@ For the stochastic differential equation above, the probability flow ODE obtaine
 ```
 Both $\{X_t\}_t$ and $\{Y_t\}_t$ have the same probability distribution $p(t, \cdot).$
 
-We now write the reverse ODE by making the change of variables $\tilde Y_{\tilde t} = Y_{T - \tilde t},$ with the reverse time variable $\tilde t = T - t.$ It is just an ODE (pathwise), so the reverse equation is straightforward chain rule
+We now write the reverse ODE by making the change of variables $\tilde Y_{\tilde t} = Y_{T - \tilde t},$ with the reverse time variable $\tilde t = T - t.$ It is just an ODE (pathwise), so the reverse equation follows from a straightforward chain rule, upon the change $\tilde t \mapsto T - \tilde t,$
 ```math
     \begin{align*}
-        \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = - \frac{\mathrm{d}Y_{T - \tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, Y_{T - \tilde t}) + \frac{1}{2} \nabla_y \cdot ( G(T - \tilde t, Y_{T - \tilde t})G(T - \tilde t, Y_{T - \tilde t})^{\mathrm{tr}} ) \\
+        \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} = \frac{\mathrm{d}}{\mathrm{d}\tilde t}Y_{T - \tilde t} = - \frac{\mathrm{d}Y_{T - \tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, Y_{T - \tilde t}) + \frac{1}{2} \nabla_y \cdot ( G(T - \tilde t, Y_{T - \tilde t})G(T - \tilde t, Y_{T - \tilde t})^{\mathrm{tr}} ) \\
         & \qquad \qquad + \frac{1}{2} G(T - \tilde t, Y_{T - \tilde t})G(T - \tilde t, Y_{T - \tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, Y_{T - \tilde t}),
     \end{align*}
 ```
@@ -88,7 +88,7 @@ i.e.
         & \qquad \qquad + \frac{1}{2} G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}}\nabla_y \log p(T - \tilde t, {\tilde Y}_{\tilde t}).
     \end{align*}
 ```
-The terms with $GG^{\mathrm{tr}}$ don't come with the right sign, so we just rewrite it as (like adding and subtracting the same terms)
+The terms with $GG^{\mathrm{tr}}$ don't come with the right sign (for the conversion from probability flow ODE to the associated SDE), so we just rewrite it as (like adding and subtracting the same terms)
 ```math
     \begin{align*}
         \frac{\mathrm{d}{\tilde Y}_{\tilde t}}{\mathrm{d}\tilde t} & = - f(T - \tilde t, {\tilde Y}_{\tilde t}) + \nabla_y \cdot ( G(T - \tilde t, {\tilde Y}_{\tilde t})G(T - \tilde t, {\tilde Y}_{\tilde t})^{\mathrm{tr}} ) \\
@@ -98,7 +98,7 @@ The terms with $GG^{\mathrm{tr}}$ don't come with the right sign, so we just rew
     \end{align*}
 ```
 
-With the proper sign, the last two terms on the right hand side become the diffusion term in the associated SDE for which this is the probability flow equation, namely
+Now, with the proper sign, the last two terms on the right hand side become the diffusion term in the associated SDE for which this is the probability flow equation, namely
 ```math
     \begin{align*}
         \mathrm{d}{\tilde X}_{\tilde t} & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
@@ -106,52 +106,90 @@ With the proper sign, the last two terms on the right hand side become the diffu
         & \qquad \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\tilde W}_{\tilde t},
     \end{align*}
 ```
-where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener process. In integral form, the equation for ${\tilde X}_{\tilde t},$ integrating from $\tilde \tau = 0$ to $\tilde \tau = T - \tilde t,$ reads
+where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener process. In integral form, the equation for ${\tilde X}_{\tilde t},$ integrating from $\tilde t = 0$ to $\tilde t = T - t,$ reads
 ```math
     \begin{align*}
-        {\tilde X}_{\tilde t} - {\tilde X}_0 & = \int_0^{T - \tilde t} \bigg( - f(T - \tilde \tau, {\tilde X}_{\tilde \tau}) + \nabla_x \cdot ( G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}} ) \\
+        {\tilde X}_{\tilde t} - {\tilde X}_0 & = \int_0^{\tilde t} \bigg( - f(T - \tilde \tau, {\tilde X}_{\tilde \tau}) + \nabla_x \cdot ( G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(T - \tilde \tau, {\tilde X}_{\tilde \tau})G(T - \tilde \tau, {\tilde X}_{\tilde \tau})^{\mathrm{tr}}\nabla_x \log p(T - \tilde \tau, {\tilde X}_{\tilde \tau}) \bigg) \;\mathrm{d}\tilde \tau\\
-        & \qquad \qquad \qquad + \int_0^{T - \tilde t} G(T - \tilde \tau, {\tilde X}_{\tilde \tau})\;\mathrm{d}{\tilde W}_{\tilde \tau},
+        & \qquad \qquad \qquad + \int_0^{\tilde t} G(T - \tilde \tau, {\tilde X}_{\tilde \tau})\;\mathrm{d}{\tilde W}_{\tilde \tau},
     \end{align*}
 ```
 
-Back to the original time $t = T - \tilde t$ and setting ${\hat X}_t = {\tilde X}_{T - t} = {\tilde X}_{\tilde t},$ this becomes
+Back to the original time $t = T - \tilde t,$ setting ${\hat X}_t = {\tilde X}_{T - t} = {\tilde X}_{\tilde t},$ and making the change of variable $\tau = T - \tilde \tau$ in the integral term, this becomes
 ```math
     \begin{align*}
-        {\hat X}_t - {\hat X}_T & = -\int_T^{t} \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
+        {\hat X}_t - {\hat X}_T & = \int_t^T \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d}\tau\\
-        & \qquad \qquad \qquad - \int_T^{t} G(\tau, {\hat X}_\tau)\mathrm{d}{\tilde W}_{T-\tau},
+        & \qquad \qquad \qquad - \int_t^{T} G(\tau, {\hat X}_\tau)\mathrm{d}{\tilde W}_{T-\tau},
     \end{align*}
 ```
 which can be written as
 ```math
     \begin{align*}
-        {\hat X}_t - {\hat X}_T & = \int_{t}^{T} \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
-        & \qquad \qquad + G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d}\tilde \tau\\
-        & \qquad \qquad \qquad + \int_{t}^T G(\tau, X_\tau)\mathrm{d}{\tilde W}_{T - \tau},
+        {\hat X}_T - {\hat X}_t & = \int_{t}^{T} \bigg( f(\tau, {\hat X}_\tau) - \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
+        & \qquad \qquad - G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d} \tau\\
+        & \qquad \qquad \qquad + \int_{t}^T G(\tau, {\hat X}_\tau)\mathrm{d}{\hat W}_\tau,
     \end{align*}
+```
+with shorthand
+```math
+    \begin{align*}
+        \mathrm{d}{\hat X}_t & = \bigg( f(t, {\hat X}_t) - \nabla_x \cdot ( G(t, {\hat X}_t)G(t, {\hat X}_t)^{\mathrm{tr}} ) \\
+        & \qquad \qquad - G(t, {\hat X}_t)G(t, {\hat X}_t)^{\mathrm{tr}}\nabla_x \log p(t, {\hat X}_t) \bigg) \;\mathrm{d}t + G(\tau, {\hat X}_t)\mathrm{d}{\hat W}_t,
+    \end{align*} 
 ```
 where
 ```math
-    \int_{T-t}^T H_\tau \mathrm{d}{\tilde W}_{T - \tau}
+    {\hat W}_t = {\tilde W}_{T - t},
 ```
-is a *reverse Itô integral,* with the integrand, in the approximating summations, computed at the rightmost point of each mesh interval. Since $\{{\tilde W}_{T - \tau}\}_{\tau}$ is a reverse Wiener process, this integral is well defined and is essentially the Itô integral rephrased backwards. Let us examine this more carefully. We start with the Itô integral
+with the understanding that $\{{\hat W}_t\}_{0 \leq t \leq T}$ is a *backward Wiener process,* for which ${\hat W}_T = 0;$ the term ${\hat X}_t = {\tilde X}_{T - t}$ is independent of *previous* steps of the backward Wiener process, such as ${\hat W}_{t - \tau} - {\hat W}_t = {\tilde W}_{T - t + \tau} - {\tilde W}_{T - t},$ $\tau > 0;$ and the stochastic integral above is a *backward Itô integral,* with
 ```math
-    \int_0^{T - \tilde t} H_{T-\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau},
+    \int_t^T {\hat H}_\tau \;\mathrm{d}{\hat W}_\tau = \lim \sum_{i=0}^{n-1} {\hat H}_{t_{i+1}} ( {\hat W}_{t_{i+1}} - {\hat W}_{t_{i}} ),
 ```
-defined for any given (non-antecipative) process $\{H_{T-\tilde\tau}\}_{\tilde \tau \geq 0}.$ It is given as the limit, as the mesh $0 = \tilde \tau_0 < \tilde \tau_1 < \ldots < \tilde \tau_n = T - \tilde t$ is refined, of the sums
+where $t = \tau_0 < \tau_1 < \tau_n = T,$ and the limit is taken as $\max_{i=0, n-1}|\tau_{i+1} - \tau_i| \rightarrow 0.$ This is essentially the Itô integral rephrased backwards. Let us examine this more carefully.
+
+We start with the Itô integral
 ```math
-    \sum_{j=1}^n H_{T-\tilde \tau_{j-1}}({\tilde W}_{{\tilde \tau}_j} - {\tilde W}_{{\tilde \tau}_{j-1}}),
+    \int_0^{T - t} {\tilde H}_{\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau},
 ```
-we see that the points $\tau_j = T - \tilde \tau_j$ form a mesh $T - t = \tau_n = T - \tilde \tau_n < \ldots < T - \tilde \tau_1 < T - \tilde \tau_0 = \tau_0 = T,$ with points $\tau_j = T - \tilde \tau_j$ decreasing in $j,$ and the summation can be written as
+defined for any given (non-antecipative) process $\{H_{\tilde t}\}_{\tilde t \geq 0},$ with respect to a (forward) Wiener process $\{{\tilde W}_{\tilde t}\}_{\tilde t \geq 0}.$ This can be thought as the limit, as the mesh $0 = \tilde \tau_0 < \tilde \tau_1 < \ldots < \tilde \tau_n = T - \tilde t$ is refined, of the sums
 ```math
-    -\sum_{j=1}^n H_{T - \tau_{j-1}}({\tilde W}_{T - \tau_j} - {\tilde W}_{T - \tau_{j-1}}),
+    \sum_{j=1}^n {\tilde H}_{\tilde \tau_{j-1}}({\tilde W}_{{\tilde \tau}_j} - {\tilde W}_{{\tilde \tau}_{j-1}}).
 ```
-and with $T - \tau_{j-1} < T - \tau_j,$ which means at the "front" of the *decreasing* steps!
+Now we define the points $\tau_j = T - \tilde \tau_j,$ which form a mesh $T = \tau_0 = T - {\tilde \tau}_0 > \ldots T - {\tilde \tau}_n = T - t = \tau_n.$ The summation can be written as
+```math
+    \sum_{j=1}^n {\tilde H}_{\tilde \tau_{j-1}}({\tilde W}_{{\tilde \tau}_j} - {\tilde W}_{{\tilde \tau}_{j-1}}) = \sum_{j=1}^n {\tilde H}_{T - \tau_{j-1}} ( {\tilde W}_{T - \tau_j} - {\tilde W}_{T - \tau_{j-1}} ).
+```
+Defining ${\hat H}_t = {\tilde H}_{T - t}$ and ${\hat W}_t = {\tilde W}_{T - t},$ we write the above as
+```math
+    \sum_{j=1}^n {\hat H}_{\tau_{j-1}} ( {\hat W}_{\tau_j} - {\hat W}_{\tau_{j-1}} ).
+```
+But notice that, now, $\tau_j < \tau_{j-1}.$ In order to make this fact look more natural, we reindex the summation with $i = N - j,$ and define the mesh with ${\hat \tau}_i = \tau_{N-i},$ so that
+```math
+    \begin{align*}
+        \sum_{j=1}^n {\hat H}_{\tau_{j-1}} ( {\hat W}_{\tau_j} - {\hat W}_{\tau_{j-1}} ) & = \sum_{i=0}^{n-1} {\hat H}_{\tau_{N-i-1}} ( {\hat W}_{\tau_{N-i}} - {\hat W}_{\tau_{N-i-1}} ) \\
+        & = \sum_{i=0}^{n-1} {\hat H}_{\tau_{N-(i+1)}} ( {\hat W}_{\tau_{N-i}} - {\hat W}_{\tau_{N-(i+1)}} ) \\
+        & = \sum_{i=0}^{n-1} {\hat H}_{{\hat \tau}_{i+1}} ( {\hat W}_{{\hat \tau}_{i}} - {\hat W}_{{\hat \tau}_{i+1}} ) \\
+        & = - \sum_{i=0}^{n-1} {\hat H}_{{\hat \tau}_{i+1}} ( {\hat W}_{{\hat \tau}_{i+1}} - {\hat W}_{{\hat \tau}_{i}} ).
+    \end{align*}
+```
+The mesh runs from ${\hat \tau}_0 = \tau_N = T-t$ to ${\hat \tau}_N = \tau_0 = T.$ As the mesh is refined, this becomes the backward Itô integral
+```math
+    -\int_t^T {\hat H}_{\hat \tau}\;\mathrm{d}{\hat W}_{\hat \tau}.
+```
+Thus, we have obtained the following identity between the forward and backward Itô integrals,
+```math
+    \int_0^{T - t} {\tilde H}_{\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau} = -\int_t^T {\hat H}_{\hat \tau}\;\mathrm{d}{\hat W}_{\hat \tau},
+```
+with the relevant changes of variables
+```math
+    {\hat H}_t = {\tilde H}_{T - t}, \qquad {\hat W}_t = {\tilde W}_{T - t}.
+```
+The process ${\tilde H}_{\tilde t}$ is independent of future increments of the Wiener process $\{{\tilde W}_{\tilde t}\}_{\tilde t \geq 0}$ if, and only if, ${\hat H}_t$ is independent of previous increments of the backward Wiener process $\{{\hat W}_t\}_{0\leq t \leq T}.$
 
 ## Tracing back the same forward paths with a specific Wiener process
 
-Notice we wrote, above, ${\hat X}_t$ instead of $X_t,$ because the paths might not be the same, although the distributions are. In order to trace back the same sample paths, one must use a specific Wiener process $\{\bar W_t\}_{t\geq 0}$ define as the weak solution (i.e. with the specific original Wiener process $\{W_t\}_{t\geq 0}$ of the forward path)
+Notice we wrote, above, ${\hat X}_t$ instead of $X_t,$ because the paths might not be the same, although the distributions are. In order to trace back the same sample paths, one must use a specific Wiener process $\{\bar W_t\}_{t\geq 0}$ defined as the weak solution (i.e. with the specific original Wiener process $\{W_t\}_{t\geq 0}$ of the forward path)
 ```math
     \mathrm{d}\bar W_t = \mathrm{d}W_t + \frac{1}{p(t, X_t)}\nabla_x \cdot (p(t, X_t) G(t, X_t)) \;\mathrm{d}t,
 ```
@@ -203,7 +241,7 @@ The marginal probability distribution functions of this stochastic process are
 ```
 for $t > 0.$ In this case,
 ```math
-    \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x) G(s, x)) = \sigma \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x)) = sigma \nabla_x \log(p(s, x)),
+    \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x) G(s, x)) = \sigma \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x)) = \sigma \nabla_x \log(p(s, x)),
 ```
 with
 ```math
@@ -212,8 +250,30 @@ with
 
 The reverse Wiener process takes the form
 ```math
-    {\bar W}_t = W_t + \int_0^t 
+    {\bar W}_t = W_t - \int_0^t \frac{X_s}{\sigma s} \;\mathrm{d}s = W_t - \int_0^t \frac{W_s}{s}\;\mathrm{d}s.
 ```
+
+The reverse equation reads
+```math
+    \mathrm{d}{\tilde X}_{\tilde t} = \sigma \;\mathrm{d}{\bar W}_{\tilde t},
+```
+i.e.
+```math
+    {\tilde X}_{\tilde t} = \sigma {\bar W}_{\tilde t} = \sigma W_{\tilde t} - \sigma \int_0^{\tilde t} \frac{W_s}{s}\;\mathrm{d}s.
+```
+i.e.
+```math
+    X_{T - \tilde t} = \sigma W_{\tilde t} - \sigma \int_0^{\tilde t} \frac{W_s}{s}\;\mathrm{d}s.
+```
+Replacing $t = T - \tilde t,$
+```math
+    X_t = \sigma W_{T - t} - \sigma \int_0^{T - t} \frac{W_s}{s}\;\mathrm{d}s.
+```
+Changing the integration variable according to $s \mapsto T - s,$ we find
+```math
+    X_t = \sigma W_{T - t} + \sigma \int_t^T \frac{W_{T-s}}{T-s}\;\mathrm{d}s.
+```
+
 
 ## References
 
