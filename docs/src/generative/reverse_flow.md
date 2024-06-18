@@ -217,7 +217,7 @@ and
     \end{align*}
 ```
 
-The proof that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is not trivial, thought. We will be content in considering a specific illustrative one-dimensional case.
+The proofs that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process and that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0}$ are not trivial, thought. We will be content in considering a specific illustrative one-dimensional case.
 
 ## A simple scalar example
 
@@ -254,18 +254,59 @@ Thus, the reverse Wiener process takes the form
 
 Write
 ```math
-    X_T - X_t = \sigma W_T - \sigma W_t = \sigma {\bar W}_T - \sigma {\bar W}_t + \sigma\int_t^T \frac{W_s}{s}\;\mathrm{d}s = \sigma ({\bar W}_T - \sigma {\bar W}_t) + \int_t^T \frac{X_s}{s}\;\mathrm{d}s.
+    X_T - X_t = \sigma W_T - \sigma W_t = \sigma {\bar W}_T - \sigma {\bar W}_t + \sigma\int_t^T \frac{W_s}{s}\;\mathrm{d}s = \sigma ({\bar W}_T - {\bar W}_t) + \int_t^T \frac{X_s}{s}\;\mathrm{d}s.
 ```
 This becomes the reverse diffusion equation
 ```math
     \mathrm{d}X_t = \frac{X_t}{t}\;\mathrm{d}t + \sigma\;\mathrm{d}{\bar W}_t.
 ```
-The diffusion term is a trivial constant term, but, nevertheless, we still have the remarkable property that $X_t=\sigma W_t$ is independent of the previous increments of ${\bar W}_t.$ Indeed, both are Gaussian processes with zero mean, so the correlation is given by
+The diffusion term is a trivial constant term, but, nevertheless, we still have the remarkable property that $X_t=\sigma W_t$ is independent of previous increments of ${\bar W}_t.$ Indeed, both are Gaussian processes with zero mean, so the covariance, with $0 \leq t - \tau < t,$ is given by
 ```math
-    \mathbb{E}[X_t (W_t - W_{t - \tau})] = ...
+    \begin{align*}
+        \mathbb{E}[X_t ({\bar W}_t - {\bar W}_{t - \tau})] & = \sigma\mathbb{E}\left[ W_t ({\bar W}_t - {\bar W}_{t - \tau})\right] \\
+        & = \sigma\mathbb{E}\left[ W_t \left(W_t - W_{t - \tau} - \int_{t-\tau}^t \frac{W_s}{s}\;\mathrm{d}s\right)\right] \\
+        & = \sigma\mathbb{E}\left[ W_t^2\right] - \sigma\mathbb{E}\left[W_t W_{t - \tau}\right] - \int_{t-\tau}^t \frac{\mathbb{E}[W_t W_s]}{s}\;\mathrm{d}s \\
+        & = \sigma t - \sigma \min\{t, t - \tau\} - \sigma \int_{t-\tau}^t \frac{\min\{t, s\}}{s}\;\mathrm{d}s \\
+        & = \sigma t - \sigma (t - \tau) - \sigma \int_{t-\tau}^t \;\mathrm{d}s \\
+        & = \sigma t - \sigma (t - \tau) - \sigma \tau \\
+        & = 0,
+    \end{align*}
 ```
+showing that they are uncorrelated. Similarly with
+```math
+    \mathbb{E}[X_{t_2} ({\bar W}_{t_1} - {\bar W}_{t_0})] = \sigma t_1 - \sigma t_0 - \sigma (t_1 - t_0) = 0,
+```
+for $0 \leq t_0 < t_1 \leq t_2.$
 
-Moreover, if we revert time $\tilde t = T - t$ in the equation
+In order to see that $\{\bar W_t\}_{t \geq 0}$ is, in fact, a Wiener process, we first notice that the formula in the definition implies that it is a Gaussian process with zero expectation at each time. Now we compute the covariance, at times $t, s \geq 0,$ 
+```math
+    \begin{align*}
+        \mathbb{E}[\bar W_t \bar W_s] & = \mathbb{E}\left[ \left(W_t - \int_0^t \frac{W_\tau}{\tau}\;\mathrm{d}\tau\right)\left(W_s - \int_0^s \frac{W_\xi}{\xi}\;\mathrm{d}\xi\right)\right] \\
+        & = \mathbb{E}\left[ W_t W_s - \int_0^s \frac{W_t W_\xi}{\xi}\;\mathrm{d}\xi - \int_0^t \frac{W_\tau W_s}{\tau}\;\mathrm{d}\tau + \int_0^t \int_0^s \frac{W_\tau W_\xi}{\tau\xi}\;\mathrm{d}\xi\;\mathrm{d}\tau\right] \\
+        & = \mathbb{E}[W_t W_s] - \int_0^s \frac{\mathbb{E}[W_t W_\xi]}{\xi}\;\mathrm{d}\xi - \int_0^t \frac{\mathbb{E}[W_\tau W_s]}{\tau}\;\mathrm{d}\tau + \int_0^t \int_0^s \frac{\mathbb{E}[W_\tau W_\xi]}{\tau\xi}\;\mathrm{d}\xi\;\mathrm{d}\tau \\
+        & = \min\{t, s\} - \int_0^s \frac{\min\{t, \xi\}}{\xi}\;\mathrm{d}\xi - \int_0^t \frac{\min\{\tau, s\}}{\tau}\;\mathrm{d}\tau + \int_0^t \int_0^s \frac{\min\{\tau, \xi\}}{\tau\xi}\;\mathrm{d}\xi\;\mathrm{d}\tau
+    \end{align*}
+```
+Assuming $0 \leq s \leq t,$ we obtain
+```math
+    \begin{align*}
+        \mathbb{E}[\bar W_t \bar W_s] & = s - \int_0^s \;\mathrm{d}\xi - \int_0^s \;\mathrm{d}\tau - \int_s^t \frac{s}{\tau}\;\mathrm{d}\tau + \int_0^s \int_0^\tau \frac{1}{\tau}\;\mathrm{d}\xi\;\mathrm{d}\tau + \int_0^s \int_\tau^s \frac{1}{\xi}\;\mathrm{d}\xi\;\mathrm{d}\tau + \int_s^t \int_0^s \frac{1}{\tau}\;\mathrm{d}\xi\;\mathrm{d}\tau\\
+        & = s - s - s - \int_s^t \frac{s}{\tau}\;\mathrm{d}\tau + \int_0^s \;\mathrm{d}\tau + \int_0^s \int_0^\xi \frac{1}{\xi}\;\mathrm{d}\tau\;\mathrm{d}\xi + \int_s^t \frac{s}{\tau}\;\mathrm{d}\tau \\ 
+        & = s - s - s + s + s \\
+        & = s.
+    \end{align*}
+```
+For $0 \leq t \leq s,$ we get
+```math
+    \mathbb{E}[\bar W_t \bar W_s] = t,
+```
+which means that
+```math
+    \mathbb{E}[\bar W_t \bar W_s] = \min\{t, s\}.
+```
+Thus, by the characterization of Wiener processes as the Gaussian processes with zero mean and correlation $\min\{t, s\},$ we see that $\{\bar W_t\}_{t \geq 0}$ is indeed a Wiener process.
+
+As a final remark, notice that, if we revert time $\tilde t = T - t$ in the equation
 ```math
     \mathrm{d}X_t = \frac{X_t}{t}\;\mathrm{d}t + \sigma\;\mathrm{d}{\bar W}_t,
 ```
@@ -273,7 +314,7 @@ we find
 ```math
     \mathrm{d}{\tilde X}_{\tilde t} = - \frac{{\tilde X}_{\tilde t}}{T - \tilde t}\;\mathrm{d}{\tilde t} + \sigma\;\mathrm{d}{\tilde W}_{\tilde t},
 ```
-for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} = {\bar W}_{T - \tilde t}.$ Notice this is the Brownian bridge equation, except that we start at ${\tilde X}_0 = X_T$ and end up at ${\tilde X}_T = X_0.$
+for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} = {\bar W}_{T - \tilde t}.$ This is the Brownian bridge equation, except that we start at ${\tilde X}_0 = X_T$ and end up at ${\tilde X}_T = X_0.$
 
 ## References
 
