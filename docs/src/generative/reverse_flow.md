@@ -235,7 +235,7 @@ The solution is simply
     X_t = \sigma W_t.
 ```
 
-The marginal probability distribution functions of this stochastic process are
+The marginal probability densities of this stochastic process are
 ```math
     p(t, x) = \frac{1}{\sqrt{2\pi \sigma^2 t}}e^{-\frac{1}{2}\frac{x^2}{\sigma^2t}}, \quad x\in\mathbb{R},
 ```
@@ -247,33 +247,33 @@ with
 ```math
     \sigma\nabla_x \log(p(s, x)) = \sigma \nabla_x \left( -\frac{1}{2}\frac{x^2}{\sigma^2t} - \log(\sqrt{2\pi \sigma^2 t}) \right) = - \frac{x}{\sigma t}.
 ```
-
-The reverse Wiener process takes the form
+Thus, the reverse Wiener process takes the form
 ```math
     {\bar W}_t = W_t - \int_0^t \frac{X_s}{\sigma s} \;\mathrm{d}s = W_t - \int_0^t \frac{W_s}{s}\;\mathrm{d}s.
 ```
 
-The reverse equation reads
+Write
 ```math
-    \mathrm{d}{\tilde X}_{\tilde t} = \sigma \;\mathrm{d}{\bar W}_{\tilde t},
+    X_T - X_t = \sigma W_T - \sigma W_t = \sigma {\bar W}_T - \sigma {\bar W}_t + \sigma\int_t^T \frac{W_s}{s}\;\mathrm{d}s = \sigma ({\bar W}_T - \sigma {\bar W}_t) + \int_t^T \frac{X_s}{s}\;\mathrm{d}s.
 ```
-i.e.
+This becomes the reverse diffusion equation
 ```math
-    {\tilde X}_{\tilde t} = \sigma {\bar W}_{\tilde t} = \sigma W_{\tilde t} - \sigma \int_0^{\tilde t} \frac{W_s}{s}\;\mathrm{d}s.
+    \mathrm{d}X_t = \frac{X_t}{t}\;\mathrm{d}t + \sigma\;\mathrm{d}{\bar W}_t.
 ```
-i.e.
+The diffusion term is a trivial constant term, but, nevertheless, we still have the remarkable property that $X_t=\sigma W_t$ is independent of the previous increments of ${\bar W}_t.$ Indeed, both are Gaussian processes with zero mean, so the correlation is given by
 ```math
-    X_{T - \tilde t} = \sigma W_{\tilde t} - \sigma \int_0^{\tilde t} \frac{W_s}{s}\;\mathrm{d}s.
-```
-Replacing $t = T - \tilde t,$
-```math
-    X_t = \sigma W_{T - t} - \sigma \int_0^{T - t} \frac{W_s}{s}\;\mathrm{d}s.
-```
-Changing the integration variable according to $s \mapsto T - s,$ we find
-```math
-    X_t = \sigma W_{T - t} + \sigma \int_t^T \frac{W_{T-s}}{T-s}\;\mathrm{d}s.
+    \mathbb{E}[X_t (W_t - W_{t - \tau})] = ...
 ```
 
+Moreover, if we revert time $\tilde t = T - t$ in the equation
+```math
+    \mathrm{d}X_t = \frac{X_t}{t}\;\mathrm{d}t + \sigma\;\mathrm{d}{\bar W}_t,
+```
+we find
+```math
+    \mathrm{d}{\tilde X}_{\tilde t} = - \frac{{\tilde X}_{\tilde t}}{T - \tilde t}\;\mathrm{d}{\tilde t} + \sigma\;\mathrm{d}{\tilde W}_{\tilde t},
+```
+for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} = {\bar W}_{T - \tilde t}.$ Notice this is the Brownian bridge equation, except that we start at ${\tilde X}_0 = X_T$ and end up at ${\tilde X}_T = X_0.$
 
 ## References
 
