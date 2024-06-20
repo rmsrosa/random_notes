@@ -217,11 +217,19 @@ and
     \end{align*}
 ```
 
-The proofs that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process and that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0}$ are not trivial, thought. We will be content in considering a specific illustrative one-dimensional case.
+The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on the characterization of the Wiener process as an almost surely continuous martingale with $W_0 = 0$ and with quadratic variation $[W_t, W_t] = t,$ for all $t\geq 0.$ Since the second term in the definition of $\bar W_t$ is a Riemann integral, its quadtratic variation is zero, and thus
+```math
+    [\bar W_t, \bar W_t]_t = [W_t, W_t]_t = t.
+```
+
+The fact that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0},$ say $\bar W_{t_2} - \bar W_{t_1}, $0 \leq t_1 < t_2 \leq t,$ follows from showing that
+```math
+    \mathbb{E}[X_t(W_{t_2} - W_{t_1})] = 0.
+```
 
 ## A simple scalar example
 
-Consider the trivial diffusion equation
+For illustrative purposes, consider the trivial diffusion equation
 ```math
     \mathrm{d}X_t = \sigma \;\mathrm{d}W_t,
 ```
