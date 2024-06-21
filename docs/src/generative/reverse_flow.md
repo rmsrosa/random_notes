@@ -2,7 +2,7 @@
 
 ## Aim
 
-Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5) (see also [Haussmann and Pardoux (1986)](https://doi.org/10.1214/aop/1176992362))
+Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5).
 
 ## Reverse ODE
 
@@ -66,7 +66,7 @@ In the following proof, we cannot deduce that this reverse equation traces back 
 
 Notice the reverse diffusion equation requires knowledge of the Stein score function, which fortunately is not a problem in the use case we have in mind, where the Stein score is properly modeled.
 
-The original way of obtaining the reverse SDE, derived in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5), and seen in other works, is by looking at the joint distribution $p(t, x_t, s, x_s)$ at two different times $t$ and $s$ and by working with conditional distributions. We do it differently here, though. We look at the connection between the SDE and the probability flow, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
+The original way of obtaining the reverse SDE, derived in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5), and seen in other works (e.g. [Haussmann and Pardoux (1986)](https://doi.org/10.1214/aop/1176992362)), is by looking at the joint distribution $p(t, x_t, s, x_s)$ at two different times $t$ and $s$ and by working with conditional distributions. We do it differently here, though. We look at the connection between the SDE and the probability flow, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
 For the stochastic differential equation above, the probability flow ODE obtained by [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) reads (except for the symbol $\{Y_t\}_t$ instead of $\{X_t\}_t$) 
 ```math
@@ -222,10 +222,7 @@ The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on 
     [\bar W_t, \bar W_t]_t = [W_t, W_t]_t = t.
 ```
 
-The fact that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0},$ say $\bar W_{t_2} - \bar W_{t_1}, $0 \leq t_1 < t_2 \leq t,$ follows from showing that
-```math
-    \mathbb{E}[X_t(W_{t_2} - W_{t_1})] = 0.
-```
+The fact that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0},$ say $\bar W_{t_2} - \bar W_{t_1},$ $0 \leq t_1 < t_2 \leq t,$ follows from the facts that $X_t$ is adapted to $\{W_t\}_{t\geq 0}$ and that $W_t$ itself is independent of previous steps of $\{\bar W_t\}_{t \geq 0}.$ The proof of that is a bit involved, though, and can be found in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5). Here, we content ourselves in proving that in a specific simple case below.
 
 ## A simple scalar example
 
@@ -326,7 +323,8 @@ for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} 
 
 ## References
 
+1. [B. D. O. Anderson (1982). Reverse-time diffusion equation models, Stochastic Process. Appl., vol. 12, no. 3, 313–326, DOI: 10.1016/0304-4149(82)90051-5](https://doi.org/10.1016/0304-4149(82)90051-5)
+1. [U. G. Haussmann, E. Pardoux (1986). Time reversal of diffusions, Ann. Probab. 14, no. 4, 1188-1205](https://doi.org/10.1214/aop/1176992362)
+1. [D. Maoutsa, S. Reich, M. Opper (2020), "Interacting particle solutions of Fokker-Planck equations through gradient-log-density estimation", Entropy, 22(8), 802, DOI: 10.3390/e22080802](https://doi.org/10.3390/e22080802)
 1. [Y. Song, J. Sohl-Dickstein, D. P. Kingma, A. Kumar, S. Ermon, B. Poole (2020), "Score-based generative modeling through stochastic differential equations", arXiv:2011.13456](https://arxiv.org/abs/2011.13456)
 1. [T. Karras, M. Aittala, T. Aila, S. Laine (2022), Elucidating the design space of diffusion-based generative models, Advances in Neural Information Processing Systems 35 (NeurIPS 2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html)
-3. [B. D. O. Anderson (1982). Reverse-time diffusion equation models, Stochastic Process. Appl., vol. 12, no. 3, 313–326, DOI: 10.1016/0304-4149(82)90051-5](https://doi.org/10.1016/0304-4149(82)90051-5)
-4. [U. G. Haussmann, E. Pardoux (1986). Time reversal of diffusions, Ann. Probab. 14, no. 4, 1188-1205](https://doi.org/10.1214/aop/1176992362)
