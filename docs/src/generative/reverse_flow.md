@@ -1,5 +1,9 @@
 # Reverse probability flow
 
+```@meta
+Draft = false
+```
+
 ## Aim
 
 Review the reverse probability flow used for sampling, after the Stein score function has been trained, as developed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, and Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, and Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html), based on the probability flow ODE developed in these articles and on the reverse time diffusion equation model previously worked out by [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5).
@@ -320,6 +324,141 @@ we find
     \mathrm{d}{\tilde X}_{\tilde t} = - \frac{{\tilde X}_{\tilde t}}{T - \tilde t}\;\mathrm{d}{\tilde t} + \sigma\;\mathrm{d}{\tilde W}_{\tilde t},
 ```
 for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} = {\bar W}_{T - \tilde t}.$ This is the Brownian bridge equation, except that we start at ${\tilde X}_0 = X_T$ and end up at ${\tilde X}_T = X_0.$
+
+## Numerics
+
+```@example reverseflow
+using StatsPlots
+using Random
+using Distributions
+using Markdown
+
+nothing # hide
+```
+
+```@example reverseflow
+rng = Xoshiro(12345)
+nothing # hide
+```
+
+```@setup reverseflow
+function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
+    ps = probs(d)
+    cs = components(d)
+    ps1 = first(ps)
+    cs1 = first(cs)
+    pdfx1 = pdf(cs1, x)
+    pdfx = ps1 * pdfx1
+    glp = pdfx * gradlogpdf(cs1, x)
+    if iszero(ps1)
+        glp = zero(glp)
+    end
+    @inbounds for (psi, csi) in Iterators.drop(zip(ps, cs), 1)
+        if !iszero(psi)
+            pdfxi = pdf(csi, x)
+            if !iszero(pdfxi)
+                pipdfxi = psi * pdfxi
+                pdfx += pipdfxi
+                glp += pipdfxi * gradlogpdf(csi, x)
+            end
+        end
+    end
+    if !iszero(pdfx) # else glp is already zero
+        glp /= pdfx
+    end 
+    return glp
+end
+```
+
+```@setup reverseflow
+target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
+target_prob = MixtureModel([Normal(-1, 0.2), Normal(1, 0.2)], [0.5, 0.5])
+
+xrange = range(-2, 2, 200)
+dx = Float64(xrange.step)
+xx = permutedims(collect(xrange))
+target_pdf = pdf.(target_prob, xrange')
+target_score = gradlogpdf.(target_prob, xrange')
+
+sample_points = rand(rng, target_prob, 1, 1024)
+```
+
+Visualizing the sample data drawn from the distribution and the PDF.
+```@setup reverseflow
+plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
+histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
+plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
+scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
+```
+
+```@example reverseflow
+plt # hide
+```
+
+Visualizing the score function.
+```@setup reverseflow
+plt = plot(title="The score function and the sample", titlefont=10)
+
+plot!(plt, xrange, target_score', label="score function", markersize=2)
+scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
+```
+
+```@example reverseflow
+plt # hide
+```
+
+```@example reverseflow
+trange = 0.0:0.01:1.0
+trangeback = 1.0:-0.01:0.0
+```
+
+```@example reverseflow
+g(t) = 1
+
+Xt = zeros(size(trange, 1), size(sample_points, 2))
+dt = Float64(trange.step)
+dWt = sqrt(dt) .* randn(length(trange), length(sample_points))
+@assert axes(Xt, 1) == axes(trange, 1)
+@inbounds for m in axes(Xt, 2)
+    n1 = first(eachindex(axes(Xt, 1), axes(trange, 1)))
+    Xt[n1, m] = sample_points[m]
+    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(Xt, 1)), 1)
+        Xt[n, m] = Xt[n1, m] + g(trange[n1]) * dWt[n1, m]
+        n1 = n
+    end
+end
+```
+
+```@example reverseflow
+histogram(Xt[begin, :], bins=40)
+```
+
+```@example reverseflow
+histogram(Xt[end, :], bins=40)
+```
+
+```@example reverseflow
+plot(title="Sample paths", titlefont=10)
+plot!(trange, Xt, color=1, alpha=0.1, legend=false)
+plot!(trange, Xt[:, 1:10], color=2, linewidth=1.5, legend=false)
+```
+
+```@example reverseflow
+Xtback = zeros(size(trangeback, 1), size(sample_points, 2))
+
+dt = Float64(trangeback.step)
+@assert axes(Xtback, 1) == axes(trangeback, 1)
+@inbounds for m in axes(Xtback, 2)
+    n1 = first(eachindex(axes(Xtback, 1), axes(trangeback, 1)))
+    Xtback[n1, m] = Xt[end, m]
+    @inbounds for n in Iterators.drop(eachindex(axes(trangeback,1), axes(Xtback, 1)), 1)
+        Xt[n, m] = Xt[n1, m] + g(trange[n1]) * dWt[n1, m]
+        n1 = n
+    end
+end
+
+```
+
 
 ## References
 
