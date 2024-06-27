@@ -341,100 +341,40 @@ rng = Xoshiro(12345)
 nothing # hide
 ```
 
-```@setup reverseflow
-function Distributions.gradlogpdf(d::UnivariateMixture, x::Real)
-    ps = probs(d)
-    cs = components(d)
-    ps1 = first(ps)
-    cs1 = first(cs)
-    pdfx1 = pdf(cs1, x)
-    pdfx = ps1 * pdfx1
-    glp = pdfx * gradlogpdf(cs1, x)
-    if iszero(ps1)
-        glp = zero(glp)
-    end
-    @inbounds for (psi, csi) in Iterators.drop(zip(ps, cs), 1)
-        if !iszero(psi)
-            pdfxi = pdf(csi, x)
-            if !iszero(pdfxi)
-                pipdfxi = psi * pdfxi
-                pdfx += pipdfxi
-                glp += pipdfxi * gradlogpdf(csi, x)
-            end
-        end
-    end
-    if !iszero(pdfx) # else glp is already zero
-        glp /= pdfx
-    end 
-    return glp
-end
-```
-
-```@setup reverseflow
-target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
-target_prob = MixtureModel([Normal(-1, 0.2), Normal(1, 0.2)], [0.5, 0.5])
-
-xrange = range(-2, 2, 200)
-dx = Float64(xrange.step)
-xx = permutedims(collect(xrange))
-target_pdf = pdf.(target_prob, xrange')
-target_score = gradlogpdf.(target_prob, xrange')
-
-sample_points = rand(rng, target_prob, 1, 1024)
-```
-
-Visualizing the sample data drawn from the distribution and the PDF.
-```@setup reverseflow
-plt = plot(title="PDF and histogram of sample data from the distribution", titlefont=10)
-histogram!(plt, sample_points', normalize=:pdf, nbins=80, label="sample histogram")
-plot!(plt, xrange, target_pdf', linewidth=4, label="pdf")
-scatter!(plt, sample_points', s -> pdf(target_prob, s), linewidth=4, label="sample")
-```
-
-```@example reverseflow
-plt # hide
-```
-
-Visualizing the score function.
-```@setup reverseflow
-plt = plot(title="The score function and the sample", titlefont=10)
-
-plot!(plt, xrange, target_score', label="score function", markersize=2)
-scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-```
-
-```@example reverseflow
-plt # hide
-```
-
 ```@example reverseflow
 trange = 0.0:0.01:1.0
 trangeback = 1.0:-0.01:0.0
-```
+numsamples = 1024
 
-```@example reverseflow
-g(t) = 1
+sigma(t) = t
+sigmaprime(t) = 1
+g(t) = sqrt(2 * sigma(t) * sigmaprime(t))
 
-Xt = zeros(size(trange, 1), size(sample_points, 2))
+x0 = 0.0
+
+Xt = zeros(size(trange, 1), numsamples)
 dt = Float64(trange.step)
-dWt = sqrt(dt) .* randn(length(trange), length(sample_points))
+dWt = sqrt(dt) .* randn(length(trange), numsamples)
+Wt = zero(Xt)
 @assert axes(Xt, 1) == axes(trange, 1)
 @inbounds for m in axes(Xt, 2)
     n1 = first(eachindex(axes(Xt, 1), axes(trange, 1)))
-    Xt[n1, m] = sample_points[m]
+    Xt[n1, m] = x0
+    Wt[n1, m] = 0.0
     @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(Xt, 1)), 1)
         Xt[n, m] = Xt[n1, m] + g(trange[n1]) * dWt[n1, m]
+        Wt[n, m] = Wt[n1, m] + dWt[n1, m]
         n1 = n
     end
 end
 ```
 
 ```@example reverseflow
-histogram(Xt[begin, :], bins=40)
+histogram(title="histogram of Xt", titlefont=10, Xt[end, :], bins=40)
 ```
 
 ```@example reverseflow
-histogram(Xt[end, :], bins=40)
+histogram(title="histogram of Wt", titlefont=10, Wt[end, :], bins=40)
 ```
 
 ```@example reverseflow
@@ -444,21 +384,102 @@ plot!(trange, Xt[:, 1:10], color=2, linewidth=1.5, legend=false)
 ```
 
 ```@example reverseflow
-Xtback = zeros(size(trangeback, 1), size(sample_points, 2))
-
-dt = Float64(trangeback.step)
-@assert axes(Xtback, 1) == axes(trangeback, 1)
-@inbounds for m in axes(Xtback, 2)
-    n1 = first(eachindex(axes(Xtback, 1), axes(trangeback, 1)))
-    Xtback[n1, m] = Xt[end, m]
-    @inbounds for n in Iterators.drop(eachindex(axes(trangeback,1), axes(Xtback, 1)), 1)
-        Xt[n, m] = Xt[n1, m] + g(trange[n1]) * dWt[n1, m]
+barWt = zero(Xt)
+Vt = zero(Xt)
+for m in axes(barWt, 2)
+    n1 = first(eachindex(axes(barWt, 1), axes(trange, 1)))
+    barWt[n1, m] = 0.0
+    Vt[n1, m] = 0.0
+    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(Vt, 1)), 1)
+        Vt[n, m] = Vt[n1, m] - sqrt( 2 * sigmaprime(trange[n]) / sigma(trange[n]) ) * Xt[n1, m] * dt
+        barWt[n, m] = Wt[n1, m] + Vt[n1, m]
         n1 = n
     end
 end
-
 ```
 
+```@example reverseflow
+histogram(title="histogram of barWt", titlefont=10, barWt[end, :], bins=40)
+```
+
+```@example reverseflow
+plot(title="Sample paths barWt", titlefont=10)
+plot!(trange, barWt, color=1, alpha=0.1, legend=false)
+plot!(trange, barWt[:, 1:10], color=2, linewidth=1.5, legend=false)
+```
+
+```@example reverseflow
+Xtback = zeros(size(trange, 1), numsamples)
+
+dt = Float64(trange.step)
+@assert axes(Xtback, 1) == axes(trangeback, 1)
+for m in axes(Xtback, 2)
+    n1 = last(eachindex(axes(Xtback, 1), axes(trange, 1)))
+    Xtback[n1, m] = Xt[end, m]
+    for n in Iterators.drop(Iterators.reverse(eachindex(axes(trange,1), axes(Xtback, 1))), 1)
+        Xtback[n, m] = Xtback[n1, m] - 2 * sigmaprime(trange[n1]) / sigma(trange[n1]) * Xtback[n1, m] * dt - g(trange[n1]) * dWt[n1, m]
+        n1 = n
+    end
+end
+```
+
+```@example reverseflow
+plot(title="Sample paths reverse", titlefont=10)
+plot!(trange, Xtback, color=1, alpha=0.1, legend=false)
+plot!(trange, Xtback[:, 1:10], color=2, linewidth=1.5, legend=false)
+```
+
+```@example
+nothing
+```
+
+Hmm, let us try something simpler. We start with $X_0 = 0$ and consider the SDE with $f=0$ and $g=g(t) = \sqrt{2\sigma(t)\sigma'(t)},$ for a given $\sigma=\sigma(t),$
+```math
+\begin{cases}
+    \mathrm{d}X_t = \sqrt{2\sigma(t)\sigma'(t)}\;\mathrm{d}W_t, \\
+    X_t\bigg|_{t=0} = 0.
+\end{cases}
+```
+The solution is
+```math
+    X_t = \int_0^t \sqrt{2\sigma(s)\sigma'(s)} \;\mathrm{d}W_s = W_{\sigma(t)^2}.
+```
+The probability density function for the process is
+```math
+    p(t, x) = G(\sigma(t)) = \frac{1}{\sqrt{2\pi\sigma(t)^2}} e^{-\frac{1}{2}\frac{x^2}{\sigma(t)^2}},
+```
+where $G=G(\sigma)$ is the probability density function of the normal distribution $\mathcal{N}(0, \sigma^2).$
+
+Since
+```math
+\ln p(t, x) = -\frac{1}{2}\frac{x^2}{\sigma(t)^2} - \ln(\sqrt{2\pi\sigma(t)^2}),
+```
+the Stein score function of the process $\{X_t\}_{t\geq 0}$ is
+```math
+    \nabla_x \ln p(t, x) = -\frac{x}{\sigma(t)^2}.
+```
+
+Hence, the reverse equation
+```math
+    \mathrm{d}{X}_t = -g(t)^2\nabla_x \ln p(t, {X}_t) \;\mathrm{d}t + g(t)\mathrm{d}{\hat W}_t,
+```
+becomes
+```math
+    \mathrm{d}{X}_t = 2\frac{\sigma'(t)}{\sigma(t)} X_t\;\mathrm{d}t + \sqrt{2\sigma(t)\sigma'(t)}\mathrm{d}{\hat W}_t,
+```
+where
+```math
+    {\hat W}_t = {\bar W}_{T - t}, \quad {\bar W}_t = W_t - \int_0^t \sqrt{\frac{2\sigma'(s)}{\sigma(s)}} X_s \;\mathrm{d}s.
+```
+
+This is iterated recursively backwards in time, with
+```math
+X_{t_j} - X_{t_{j-1}} = \int_{t_{j-1}}^{t_j} 2\frac{\sigma'(s)}{\sigma(s)} X_s \;\mathrm{d}s + \int_{t_{j-1}}^{t_j} g(s) \;\mathrm{d}W_s.
+```
+which we approximate with
+```math
+X_{t_j} - X_{t_{j-1}} \approx 2\frac{\sigma'(t_j)}{\sigma(t_j)} X_{t_j} (t_j - t_{j-1}) + g(t_j) (W_{t_j} - W_{t_{j-1}}).
+```
 
 ## References
 
