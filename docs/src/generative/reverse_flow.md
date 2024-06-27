@@ -342,7 +342,7 @@ nothing # hide
 ```
 
 ```@example reverseflow
-trange = range(0.0, 1.0, step=0.004)
+trange = range(0.0, 1.0, step=0.01)
 numsamples = 1024
 
 sigma(t) = t
@@ -391,7 +391,7 @@ for m in axes(barWt, 2)
     Vt[n1, m] = 0.0
     @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(Xt, 1), axes(Vt, 1)), 1)
         Vt[n, m] = Vt[n1, m] - g(trange[n]) / sigma(trange[n])^2 * Xt[n1, m] * dt
-        barWt[n, m] = Wt[n1, m] + Vt[n1, m]
+        barWt[n, m] = Wt[n, m] + Vt[n, m]
         n1 = n
     end
 end
