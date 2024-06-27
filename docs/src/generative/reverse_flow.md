@@ -342,8 +342,7 @@ nothing # hide
 ```
 
 ```@example reverseflow
-trange = 0.0:0.01:1.0
-trangeback = 1.0:-0.01:0.0
+trange = range(0.0, 1.0, step=0.004)
 numsamples = 1024
 
 sigma(t) = t
@@ -390,7 +389,7 @@ for m in axes(barWt, 2)
     n1 = first(eachindex(axes(barWt, 1), axes(trange, 1)))
     barWt[n1, m] = 0.0
     Vt[n1, m] = 0.0
-    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(barXt, 1), axes(Vt, 1)), 1)
+    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(Xt, 1), axes(Vt, 1)), 1)
         Vt[n, m] = Vt[n1, m] - g(trange[n]) / sigma(trange[n])^2 * Xt[n1, m] * dt
         barWt[n, m] = Wt[n1, m] + Vt[n1, m]
         n1 = n
@@ -418,7 +417,7 @@ plot!(trange, barWt[:, 1:5], color=2, linewidth=1.5, legend=false)
 Xtback = zeros(size(trange, 1), numsamples)
 
 dt = Float64(trange.step)
-@assert axes(Xtback, 1) == axes(trangeback, 1)
+@assert axes(Xtback, 1) == axes(trange, 1)
 for m in axes(Xtback, 2)
     n1 = last(eachindex(axes(Xtback, 1), axes(trange, 1)))
     Xtback[n1, m] = Xt[end, m]
