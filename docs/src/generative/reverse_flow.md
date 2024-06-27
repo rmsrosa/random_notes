@@ -378,9 +378,9 @@ histogram(title="histogram of Wt", titlefont=10, Wt[end, :], bins=40)
 ```
 
 ```@example reverseflow
-plot(title="Sample paths", titlefont=10)
-plot!(trange, Xt, color=1, alpha=0.1, legend=false)
-plot!(trange, Xt[:, 1:10], color=2, linewidth=1.5, legend=false)
+plot(title="Sample paths of Xt", titlefont=10)
+plot!(trange, Xt[:, 1:200], color=1, alpha=0.2, legend=false)
+plot!(trange, Xt[:, 1:5], color=2, linewidth=1.5, legend=false)
 ```
 
 ```@example reverseflow
@@ -390,8 +390,8 @@ for m in axes(barWt, 2)
     n1 = first(eachindex(axes(barWt, 1), axes(trange, 1)))
     barWt[n1, m] = 0.0
     Vt[n1, m] = 0.0
-    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(Vt, 1)), 1)
-        Vt[n, m] = Vt[n1, m] - sqrt( 2 * sigmaprime(trange[n]) / sigma(trange[n]) ) * Xt[n1, m] * dt
+    @inbounds for n in Iterators.drop(eachindex(axes(trange,1), axes(barWt, 1), axes(barXt, 1), axes(Vt, 1)), 1)
+        Vt[n, m] = Vt[n1, m] - g(trange[n]) / sigma(trange[n])^2 * Xt[n1, m] * dt
         barWt[n, m] = Wt[n1, m] + Vt[n1, m]
         n1 = n
     end
@@ -403,9 +403,15 @@ histogram(title="histogram of barWt", titlefont=10, barWt[end, :], bins=40)
 ```
 
 ```@example reverseflow
-plot(title="Sample paths barWt", titlefont=10)
-plot!(trange, barWt, color=1, alpha=0.1, legend=false)
-plot!(trange, barWt[:, 1:10], color=2, linewidth=1.5, legend=false)
+plot(title="Sample paths Wt", titlefont=10, ylims=(-4, 4))
+plot!(trange, Wt[:, 1:200], color=1, alpha=0.2, legend=false)
+plot!(trange, Wt[:, 1:5], color=2, linewidth=1.5, legend=false)
+```
+
+```@example reverseflow
+plot(title="Sample paths barWt", titlefont=10, ylims=(-4, 4))
+plot!(trange, barWt[:, 1:200], color=1, alpha=0.2, legend=false)
+plot!(trange, barWt[:, 1:5], color=2, linewidth=1.5, legend=false)
 ```
 
 ```@example reverseflow
@@ -417,19 +423,26 @@ for m in axes(Xtback, 2)
     n1 = last(eachindex(axes(Xtback, 1), axes(trange, 1)))
     Xtback[n1, m] = Xt[end, m]
     for n in Iterators.drop(Iterators.reverse(eachindex(axes(trange,1), axes(Xtback, 1))), 1)
-        Xtback[n, m] = Xtback[n1, m] - 2 * sigmaprime(trange[n1]) / sigma(trange[n1]) * Xtback[n1, m] * dt - g(trange[n1]) * dWt[n1, m]
+        Xtback[n, m] = Xtback[n1, m] - 2 * sigmaprime(trange[n1]) / sigma(trange[n1]) * Xtback[n1, m] * dt - g(trange[n1]) * (barWt[n1, m] - barWt[n, m])
         n1 = n
     end
 end
 ```
 
 ```@example reverseflow
-plot(title="Sample paths reverse", titlefont=10)
-plot!(trange, Xtback, color=1, alpha=0.1, legend=false)
-plot!(trange, Xtback[:, 1:10], color=2, linewidth=1.5, legend=false)
+plot(title="Sample paths reverse Xt", titlefont=10)
+plot!(trange, Xtback[:, 1:200], color=1, alpha=0.2, legend=false)
+plot!(trange, Xtback[:, 1:5], color=2, linewidth=1.5, legend=false)
 ```
 
-```@example
+
+```@example reverseflow
+plot(title="Sample paths Xt (blue) and reverse Xt (red)", titlefont=10, legend=false)
+plot!(trange, Xt[:, 1:5], color=1, label="forward")
+plot!(trange, Xtback[:, 1:5], color=2, linewidth=1.5, label="reverse")
+```
+
+```@example reverseflow
 nothing
 ```
 
@@ -440,7 +453,7 @@ Hmm, let us try something simpler. We start with $X_0 = 0$ and consider the SDE 
     X_t\bigg|_{t=0} = 0.
 \end{cases}
 ```
-The solution is
+The solution is a time-changed Brownian motion,
 ```math
     X_t = \int_0^t \sqrt{2\sigma(s)\sigma'(s)} \;\mathrm{d}W_s = W_{\sigma(t)^2}.
 ```
@@ -465,20 +478,24 @@ Hence, the reverse equation
 ```
 becomes
 ```math
+    \mathrm{d}{X}_t = \frac{g(t)^2}{\sigma(t)^2} X_t\;\mathrm{d}t + g(t)\mathrm{d}{\hat W}_t,
+```
+or, in terms of $\sigma$ and $\sigma',$
+```math
     \mathrm{d}{X}_t = 2\frac{\sigma'(t)}{\sigma(t)} X_t\;\mathrm{d}t + \sqrt{2\sigma(t)\sigma'(t)}\mathrm{d}{\hat W}_t,
 ```
 where
 ```math
-    {\hat W}_t = {\bar W}_{T - t}, \quad {\bar W}_t = W_t - \int_0^t \sqrt{\frac{2\sigma'(s)}{\sigma(s)}} X_s \;\mathrm{d}s.
+    {\hat W}_t = {\bar W}_{T - t}, \qquad {\bar W}_t = W_t - \int_0^t \frac{g(s)}{\sigma(s)^2} X_s \;\mathrm{d}s = W_t - \int_0^t \sqrt{\frac{2\sigma'(s)}{\sigma(s)}} X_s \;\mathrm{d}s.
 ```
 
 This is iterated recursively backwards in time, with
 ```math
-X_{t_j} - X_{t_{j-1}} = \int_{t_{j-1}}^{t_j} 2\frac{\sigma'(s)}{\sigma(s)} X_s \;\mathrm{d}s + \int_{t_{j-1}}^{t_j} g(s) \;\mathrm{d}W_s.
+X_{t_j} - X_{t_{j-1}} = \int_{t_{j-1}}^{t_j} 2\frac{\sigma'(s)}{\sigma(s)} X_s \;\mathrm{d}s + \int_{t_{j-1}}^{t_j} g(s) \;\mathrm{d}{\hat W}_s.
 ```
 which we approximate with
 ```math
-X_{t_j} - X_{t_{j-1}} \approx 2\frac{\sigma'(t_j)}{\sigma(t_j)} X_{t_j} (t_j - t_{j-1}) + g(t_j) (W_{t_j} - W_{t_{j-1}}).
+X_{t_j} - X_{t_{j-1}} \approx 2\frac{\sigma'(t_j)}{\sigma(t_j)} X_{t_j} (t_j - t_{j-1}) + g(t_j) ({\hat W}_{t_j} - {\hat W}_{t_{j-1}}).
 ```
 
 ## References
