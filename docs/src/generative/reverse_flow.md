@@ -40,23 +40,25 @@ Back to $t = T - \tilde t$ yields
     x(t) = x(T) - \int_t^T f(s, x(s))\;\mathrm{d}s.
 ```
 
-The Euler method for the reverse flow is simply stepping backward from $t$ to $t - \Delta t,$ with the Taylor approximation reading
+The Euler method for the reverse flow is simply stepping backwards, from $t$ to $t - \Delta t,$ with the Taylor approximation reading
 ```math
     x(t_j) = x(t_{j+1}) - f(t_{j+1}, x(t_{j+1}))\Delta t,
 ```
 with
 ```math
-    t_j = T - j\Delta t,
+    t_j = j\Delta t,
 ```
-so that $t_0 = T$ and $t_n = 0,$ for
+for
 ```math
     \Delta t = T / n,
 ```
 and $n\in\mathbb{N}$ given.
 
-If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution as in the generative diffusion processes, then the reverse flow evolves back towards an approximation $Y_0$ of the initial distribution $X_0.$
+If the initial condition is a random variable $X_0,$ and the flow evolves to $X_T,$ then the reverse flow evolves back to $X_0.$ By approximating $X_T \sim Y_T$ by another random variable $Y_T,$ say a standard normal distribution as in the generative diffusion processes, then the reverse flow evolves backwards towards an approximation $Y_0$ of the initial distribution $X_0.$
 
-We remark that this is a *pathwise reversion,* meaning that each forward path $x(t)$ with initial condition $x(0)$ is traced back by the reverse equation starting at the final point $x(T).$ This is in contrast with the result for SDEs, for which, in general, only the probability distribution is recovered with the backward flow, not necessarily the individual samples paths. In order to trace back the exact forward paths, a specific Wiener process must be used.
+We remark that this is a *pathwise reversion,* meaning that each forward path $x(t)$ with initial condition $x(0)$ is traced back by the reverse equation starting at the final point $x(T).$ This is obtained without any knowledge of the prior solution, i.e. the backward integration only depends on the future of the solution. More precisely, we only need to know $X_T$ and the function $f(t, x)$ in order to solve (or numerically approximate) the solution $X_t,$ for $0 \leq t \leq T.$
+
+This is in contrast with the result for SDEs, for which, without knowledge of a forward solution $X_t(\omega),$ nor of the specific path $W_t(\omega),$ of the driving Weiner process, we are not able to trace back exactly the same solution only from the knowledge of $X_T(\omega).$ But the important fact is that we can still solve backwards the equation using a possibly different Wiener process and recover possibly different solutions of the forward equation, but which collectively give the same probability distribution. In order to trace back the exact forward paths, a specific Wiener process must be used.
 
 ## Reverse Itô diffusion
 
@@ -64,13 +66,13 @@ Consider now a forward evolution given by an Itô diffusion SDE
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-where the drift factor is a vector-valued function $f:I\times \mathbb{R}^d \rightarrow \mathbb{R}^d$, and the diffusion factor is a matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times d}.$
+where the drift factor is a vector-valued function $f:I\times \mathbb{R}^d \rightarrow \mathbb{R}^d$, the driving process $W_t \in \mathbb{R}^k$ is a vector of independent Wiener processes, and the diffusion factor is a matrix-valued, time-dependent function $G:I\times \mathbb{R}^d \rightarrow \mathbb{R}^{d\times k}.$
 
-In the following proof, we cannot deduce that this reverse equation traces back a given sample path $X_t(\omega),$ as in the ODE case. Instead, we only obtain that the reverse SDE generates the same probability distribution as the forward SDE.
+In the following proof, we cannot deduce that the reverse equation traces back exactly a given sample path $X_t(\omega),$ as in the ODE case. Instead, we only obtain that the reverse SDE generates the same probability distribution as the forward SDE. We will recover the same path only with a specific Wiener process, as done further below.
 
 Notice the reverse diffusion equation requires knowledge of the Stein score function, which fortunately is not a problem in the use case we have in mind, where the Stein score is properly modeled.
 
-The original way of obtaining the reverse SDE, derived in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5), and seen in other works (e.g. [Haussmann and Pardoux (1986)](https://doi.org/10.1214/aop/1176992362)), is by looking at the joint distribution $p(t, x_t, s, x_s)$ at two different times $t$ and $s$ and by working with conditional distributions. We do it differently here, though. We look at the connection between the SDE and the probability flow, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
+One way of obtaining the reverse SDE, as derived in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5), and seen in other works (e.g. [Haussmann and Pardoux (1986)](https://doi.org/10.1214/aop/1176992362)), is by looking at the joint distribution $p(t, x_t, s, x_s)$ at two different times $t$ and $s$ and by working with conditional distributions. We do it differently here, though: we exploit the connection between the SDE and the probability flow, introduced by [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) and generalized by [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) and [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html).
 
 For the stochastic differential equation above, the probability flow ODE obtained by [Karras, Aittala, Aila, Laine (2022)](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a98846e9d9cc01cfb87eb694d946ce6b-Abstract-Conference.html) reads (except for the symbol $\{Y_t\}_t$ instead of $\{X_t\}_t$) 
 ```math
@@ -119,12 +121,12 @@ where $\{{\tilde W}_{\tilde t}\}_{\tilde t}$ is a (possibly different) Wiener pr
     \end{align*}
 ```
 
-Back to the original time $t = T - \tilde t,$ setting ${\hat X}_t = {\tilde X}_{T - t} = {\tilde X}_{\tilde t},$ and making the change of variable $\tau = T - \tilde \tau$ in the integral term, this becomes
+Back to the original (forward) time $t = T - \tilde t,$ setting ${\hat X}_t = {\tilde X}_{T - t} = {\tilde X}_{\tilde t},$ and making the change of variable $\tau = T - \tilde \tau$ in the integral term, this becomes
 ```math
     \begin{align*}
         {\hat X}_t - {\hat X}_T & = \int_t^T \bigg( - f(\tau, {\hat X}_\tau) + \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
         & \qquad \qquad + G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d}\tau\\
-        & \qquad \qquad \qquad - \int_t^{T} G(\tau, {\hat X}_\tau)\mathrm{d}{\tilde W}_{T-\tau},
+        & \qquad \qquad \qquad - \int_t^{T} G(\tau, {\hat X}_\tau)\;\mathrm{d}{\tilde W}_{T-\tau},
     \end{align*}
 ```
 which can be written as
@@ -132,25 +134,25 @@ which can be written as
     \begin{align*}
         {\hat X}_T - {\hat X}_t & = \int_{t}^{T} \bigg( f(\tau, {\hat X}_\tau) - \nabla_x \cdot ( G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}} ) \\
         & \qquad \qquad - G(\tau, {\hat X}_\tau)G(\tau, {\hat X}_\tau)^{\mathrm{tr}}\nabla_x \log p(\tau, {\hat X}_\tau) \bigg) \;\mathrm{d} \tau\\
-        & \qquad \qquad \qquad + \int_{t}^T G(\tau, {\hat X}_\tau)\mathrm{d}{\hat W}_\tau,
+        & \qquad \qquad \qquad + \int_{t}^T G(\tau, {\hat X}_\tau){\small \triangledown}\mathrm{d}{\hat W}_\tau,
     \end{align*}
 ```
 with shorthand
 ```math
     \begin{align*}
         \mathrm{d}{\hat X}_t & = \bigg( f(t, {\hat X}_t) - \nabla_x \cdot ( G(t, {\hat X}_t)G(t, {\hat X}_t)^{\mathrm{tr}} ) \\
-        & \qquad \qquad - G(t, {\hat X}_t)G(t, {\hat X}_t)^{\mathrm{tr}}\nabla_x \log p(t, {\hat X}_t) \bigg) \;\mathrm{d}t + G(\tau, {\hat X}_t)\mathrm{d}{\hat W}_t,
+        & \qquad \qquad - G(t, {\hat X}_t)G(t, {\hat X}_t)^{\mathrm{tr}}\nabla_x \log p(t, {\hat X}_t) \bigg) \;\mathrm{d}t + G(\tau, {\hat X}_t){\small \triangledown}\mathrm{d}{\hat W}_t,
     \end{align*} 
 ```
 where
 ```math
     {\hat W}_t = {\tilde W}_{T - t},
 ```
-with the understanding that $\{{\hat W}_t\}_{0 \leq t \leq T}$ is a *backward Wiener process,* for which ${\hat W}_T = 0;$ the term ${\hat X}_t = {\tilde X}_{T - t}$ is independent of *previous* steps of the backward Wiener process, such as ${\hat W}_{t - \tau} - {\hat W}_t = {\tilde W}_{T - t + \tau} - {\tilde W}_{T - t},$ $\tau > 0;$ and the stochastic integral above is a *backward Itô integral,* with
+with the understanding that $\{{\hat W}_t\}_{0 \leq t \leq T}$ is a *backward Wiener process,* for which ${\hat W}_T = 0;$ the term ${\hat X}_t = {\tilde X}_{T - t}$ is independent of *previous* steps of the backward Wiener process, such as ${\hat W}_{t - \tau} - {\hat W}_t = {\tilde W}_{T - t + \tau} - {\tilde W}_{T - t},$ $\tau > 0;$ and the stochastic integral with ${\small \triangledown}\mathrm{d}{\hat W}_t$ is a *backward Itô integral,* given by
 ```math
-    \int_t^T {\hat H}_\tau \;\mathrm{d}{\hat W}_\tau = \lim \sum_{i=0}^{n-1} {\hat H}_{t_{i+1}} ( {\hat W}_{t_{i+1}} - {\hat W}_{t_{i}} ),
+    \int_t^T {\hat H}_\tau {\small \triangledown}\mathrm{d}{\hat W}_\tau = \lim \sum_{i=0}^{n-1} {\hat H}_{t_{i+1}} ( {\hat W}_{t_{i+1}} - {\hat W}_{t_{i}} ),
 ```
-where $t = \tau_0 < \tau_1 < \tau_n = T,$ and the limit is taken as $\max_{i=0, n-1}|\tau_{i+1} - \tau_i| \rightarrow 0.$ This is essentially the Itô integral rephrased backwards. Let us examine this more carefully.
+where $t = \tau_0 < \tau_1 < \tau_n = T,$ and the limit is taken as $\max_{i=0, n-1}|\tau_{i+1} - \tau_i| \rightarrow 0.$ This is essentially the Itô integral rephrased backwards, since the filtration is also reversed. Let us examine this more carefully.
 
 We start with the Itô integral
 ```math
@@ -179,11 +181,11 @@ But notice that, now, $\tau_j < \tau_{j-1}.$ In order to make this fact look mor
 ```
 The mesh runs from ${\hat \tau}_0 = \tau_N = T-t$ to ${\hat \tau}_N = \tau_0 = T.$ As the mesh is refined, this becomes the backward Itô integral
 ```math
-    -\int_t^T {\hat H}_{\hat \tau}\;\mathrm{d}{\hat W}_{\hat \tau}.
+    -\int_t^T {\hat H}_{\hat \tau}{\small \triangledown}\mathrm{d}{\hat W}_{\hat \tau}.
 ```
 Thus, we have obtained the following identity between the forward and backward Itô integrals,
 ```math
-    \int_0^{T - t} {\tilde H}_{\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau} = -\int_t^T {\hat H}_{\hat \tau}\;\mathrm{d}{\hat W}_{\hat \tau},
+    \int_0^{T - t} {\tilde H}_{\tilde \tau}\;\mathrm{d}{\tilde W}_{\tilde \tau} = -\int_t^T {\hat H}_{\hat \tau}{\small \triangledown}\mathrm{d}{\hat W}_{\hat \tau},
 ```
 with the relevant changes of variables
 ```math
@@ -205,23 +207,19 @@ With this noise, if $\{X_t\}_{t\geq 0}$ is the solution of the forward diffusion
 ```math
     \mathrm{d}X_t = f(t, X_t)\;\mathrm{d}t + G(t, X_t)\;\mathrm{d}W_t,
 ```
-then the (pathwise) reverse flow ${\tilde X}_{\tilde t} = X_{T - \tilde t}$ is a (weak) solution (because it solves a diffusion equation with a specific Wiener process) of
+then it also solves the reverse equation
 ```math
-    \mathrm{d}{\tilde X}_{\tilde t} = {\tilde f}(\tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}t + {\tilde G}(\tilde t, {\tilde X}_{\tilde t})\;\mathrm{d}{\bar W}_{\tilde t},
+    \mathrm{d}X_t = {\bar f}(t, X_t)\;\mathrm{d}t + G(t, X_t){\small \triangledown}\mathrm{d}{\bar W}_t,
 ```
-with
-```math
-    {\tilde G}(\tilde t, {\tilde X}_{\tilde t}) = G(T - \tilde t, {\tilde X}_{\tilde t})
-```
-and
+where
 ```math
     \begin{align*}
-        {\tilde f}(\tilde t, {\tilde X}_{\tilde t}) & = \bigg( - f(T - \tilde t, {\tilde X}_{\tilde t}) + \nabla_x \cdot ( G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}} ) \\
-        & \qquad \qquad + G(T - \tilde t, {\tilde X}_{\tilde t})G(T - \tilde t, {\tilde X}_{\tilde t})^{\mathrm{tr}}\nabla_x \log p(T - \tilde t, {\tilde X}_{\tilde t}) \bigg).
+        {\bar f}(t, x) & = f(t, x) - \nabla_x \cdot ( G(t, x)G(t, x)^{\mathrm{tr}} ) - G(t, x)G(t, x)^{\mathrm{tr}}\nabla_x \log p(t, x) \\
+        & = f(t, x) - \frac{1}{p(t, x)}\nabla_x \cdot (G(t, x)G(t, x)^{\mathrm{tr}} p(t, x)).
     \end{align*}
 ```
 
-The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on the characterization of the Wiener process as an almost surely continuous martingale with $W_0 = 0$ and with quadratic variation $[W_t, W_t] = t,$ for all $t\geq 0.$ Since the second term in the definition of $\bar W_t$ is a Riemann integral, its quadtratic variation is zero, and thus
+The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on the characterization of Wiener processes as almost surely continuous martingales with $W_0 = 0$ and with quadratic variation $[W_t, W_t] = t,$ for all $t\geq 0.$ Since the second term in the definition of $\bar W_t$ is a Riemann integral, its quadtratic variation is zero, and thus
 ```math
     [\bar W_t, \bar W_t]_t = [W_t, W_t]_t = t.
 ```
@@ -325,6 +323,62 @@ we find
 ```
 for ${\tilde X}_{\tilde t} = X_{T - \tilde t} = X_t$ and ${\tilde W}_{\tilde t} = {\bar W}_{T - \tilde t}.$ This is the Brownian bridge equation, except that we start at ${\tilde X}_0 = X_T$ and end up at ${\tilde X}_T = X_0.$
 
+## An example with a time-dependent diffusion coefficient
+
+Let us consider now a different example, with a time-varying diffusion coefficient. We start with $X_0 = 0$ and consider the SDE with $f=0$ and $g=g(t) = \sqrt{2\sigma(t)\sigma'(t)},$ for a given $\sigma=\sigma(t),$
+```math
+\begin{cases}
+    \mathrm{d}X_t = \sqrt{2\sigma(t)\sigma'(t)}\;\mathrm{d}W_t, \\
+    X_t\bigg|_{t=0} = 0.
+\end{cases}
+```
+The solution is a time-changed Brownian motion,
+```math
+    X_t = \int_0^t \sqrt{2\sigma(s)\sigma'(s)} \;\mathrm{d}W_s = W_{\sigma(t)^2}.
+```
+The probability density function for the process is
+```math
+    p(t, x) = G(\sigma(t)) = \frac{1}{\sqrt{2\pi\sigma(t)^2}} e^{-\frac{1}{2}\frac{x^2}{\sigma(t)^2}},
+```
+where $G=G(\sigma)$ is the probability density function of the normal distribution $\mathcal{N}(0, \sigma^2).$
+
+Since
+```math
+\ln p(t, x) = -\frac{1}{2}\frac{x^2}{\sigma(t)^2} - \ln(\sqrt{2\pi\sigma(t)^2}),
+```
+the Stein score function of the process $\{X_t\}_{t\geq 0}$ is
+```math
+    \nabla_x \ln p(t, x) = -\frac{x}{\sigma(t)^2}.
+```
+
+Hence, the reverse equation
+```math
+    \mathrm{d}{X}_t = -g(t)^2\nabla_x \ln p(t, {X}_t) \;\mathrm{d}t + g(t){\small \triangledown}\mathrm{d}{\hat W}_t,
+```
+becomes
+```math
+    \mathrm{d}{X}_t = \frac{g(t)^2}{\sigma(t)^2} X_t\;\mathrm{d}t + g(t){\small \triangledown}\mathrm{d}{\hat W}_t,
+```
+or, in terms of $\sigma$ and $\sigma',$
+```math
+    \mathrm{d}{X}_t = 2\frac{\sigma'(t)}{\sigma(t)} X_t\;\mathrm{d}t + \sqrt{2\sigma(t)\sigma'(t)}\mathrm{d}{\bar W}_t,
+```
+where
+```math
+    {\bar W}_t = W_t - \int_0^t \frac{g(s)}{\sigma(s)^2} X_s \;\mathrm{d}s = W_t - \int_0^t \sqrt{\frac{2\sigma'(s)}{\sigma(s)}} X_s \;\mathrm{d}s.
+```
+
+This is iterated recursively backwards in time, with
+```math
+X_{t_j} - X_{t_{j-1}} = \int_{t_{j-1}}^{t_j} 2\frac{\sigma'(s)}{\sigma(s)} X_s \;\mathrm{d}s + \int_{t_{j-1}}^{t_j} g(s){\small \triangledown}\mathrm{d}{\hat W}_s.
+```
+which we approximate with
+```math
+X_{t_j} - X_{t_{j-1}} \approx 2\frac{\sigma'(t_j)}{\sigma(t_j)} X_{t_j} (t_j - t_{j-1}) + g(t_j) ({\hat W}_{t_j} - {\hat W}_{t_{j-1}}).
+```
+
+We implement this example below, in order to recover, backwards, the specific paths of the forward diffusion.
+
 ## Numerics
 
 ```@example reverseflow
@@ -403,15 +457,26 @@ histogram(title="histogram of barWt", titlefont=10, barWt[end, :], bins=40)
 
 ```@example reverseflow
 plot(title="Sample paths Wt", titlefont=10, ylims=(-4, 4))
-plot!(trange, Wt[:, 1:200], color=1, alpha=0.2, legend=false)
-plot!(trange, Wt[:, 1:5], color=2, linewidth=1.5, legend=false)
+plot!(trange, Wt[:, 1:200], color=1, alpha=0.2, label=false)
+plot!(trange, Wt[:, 1:5], color=2, linewidth=1.5, label=false)
+plot!(trange, mean(barWt, dims=2), color=3, label="mean")
+plot!(trange, sqrt.(mean(Wt .^2, dims=2)), color=4, label="std. dev.")
+plot!(trange, -sqrt.(mean(Wt .^2, dims=2)), color=4, label=false)
+plot!(trange, t -> sqrt(t), color=5, label="t ↦ √t")
+plot!(trange, t -> -sqrt(t), color=5, label=false)
 ```
 
 ```@example reverseflow
 plot(title="Sample paths barWt", titlefont=10, ylims=(-4, 4))
-plot!(trange, barWt[:, 1:200], color=1, alpha=0.2, legend=false)
-plot!(trange, barWt[:, 1:5], color=2, linewidth=1.5, legend=false)
+plot!(trange, barWt[:, 1:200], color=1, alpha=0.2, label=false)
+plot!(trange, barWt[:, 1:5], color=2, linewidth=1.5, label=false)
+plot!(trange, mean(barWt, dims=2), color=3, label="mean")
+plot!(trange, sqrt.(mean(barWt .^2, dims=2)), color=4, label="std. dev.")
+plot!(trange, -sqrt.(mean(barWt .^2, dims=2)), color=4, label=false)
+plot!(trange, t -> sqrt(t), color=5, label="t ↦ √t")
+plot!(trange, t -> -sqrt(t), color=5, label=false)
 ```
+Oddly enough, the distribution of $\bar W_t$ is a little bit squeezed, but the reverse flow is working nonetheless. But something is amiss.
 
 ```@example reverseflow
 Xtback = zeros(size(trange, 1), numsamples)
@@ -421,7 +486,7 @@ dt = Float64(trange.step)
 for m in axes(Xtback, 2)
     n1 = last(eachindex(axes(Xtback, 1), axes(trange, 1)))
     Xtback[n1, m] = Xt[end, m]
-    for n in Iterators.drop(Iterators.reverse(eachindex(axes(trange,1), axes(Xtback, 1))), 1)
+    for n in Iterators.drop(Iterators.reverse(eachindex(axes(trange,1), axes(Xtback, 1), axes(barWt, 1))), 1)
         Xtback[n, m] = Xtback[n1, m] - 2 * sigmaprime(trange[n1]) / sigma(trange[n1]) * Xtback[n1, m] * dt - g(trange[n1]) * (barWt[n1, m] - barWt[n, m])
         n1 = n
     end
@@ -434,67 +499,14 @@ plot!(trange, Xtback[:, 1:200], color=1, alpha=0.2, legend=false)
 plot!(trange, Xtback[:, 1:5], color=2, linewidth=1.5, legend=false)
 ```
 
-
 ```@example reverseflow
-plot(title="Sample paths Xt (blue) and reverse Xt (red)", titlefont=10, legend=false)
+plot(title="Some sample paths of both Xt (blue) and reverse Xt (red)", titlefont=10, legend=false)
 plot!(trange, Xt[:, 1:5], color=1, label="forward")
 plot!(trange, Xtback[:, 1:5], color=2, linewidth=1.5, label="reverse")
 ```
 
 ```@example reverseflow
 nothing
-```
-
-Hmm, let us try something simpler. We start with $X_0 = 0$ and consider the SDE with $f=0$ and $g=g(t) = \sqrt{2\sigma(t)\sigma'(t)},$ for a given $\sigma=\sigma(t),$
-```math
-\begin{cases}
-    \mathrm{d}X_t = \sqrt{2\sigma(t)\sigma'(t)}\;\mathrm{d}W_t, \\
-    X_t\bigg|_{t=0} = 0.
-\end{cases}
-```
-The solution is a time-changed Brownian motion,
-```math
-    X_t = \int_0^t \sqrt{2\sigma(s)\sigma'(s)} \;\mathrm{d}W_s = W_{\sigma(t)^2}.
-```
-The probability density function for the process is
-```math
-    p(t, x) = G(\sigma(t)) = \frac{1}{\sqrt{2\pi\sigma(t)^2}} e^{-\frac{1}{2}\frac{x^2}{\sigma(t)^2}},
-```
-where $G=G(\sigma)$ is the probability density function of the normal distribution $\mathcal{N}(0, \sigma^2).$
-
-Since
-```math
-\ln p(t, x) = -\frac{1}{2}\frac{x^2}{\sigma(t)^2} - \ln(\sqrt{2\pi\sigma(t)^2}),
-```
-the Stein score function of the process $\{X_t\}_{t\geq 0}$ is
-```math
-    \nabla_x \ln p(t, x) = -\frac{x}{\sigma(t)^2}.
-```
-
-Hence, the reverse equation
-```math
-    \mathrm{d}{X}_t = -g(t)^2\nabla_x \ln p(t, {X}_t) \;\mathrm{d}t + g(t)\mathrm{d}{\hat W}_t,
-```
-becomes
-```math
-    \mathrm{d}{X}_t = \frac{g(t)^2}{\sigma(t)^2} X_t\;\mathrm{d}t + g(t)\mathrm{d}{\hat W}_t,
-```
-or, in terms of $\sigma$ and $\sigma',$
-```math
-    \mathrm{d}{X}_t = 2\frac{\sigma'(t)}{\sigma(t)} X_t\;\mathrm{d}t + \sqrt{2\sigma(t)\sigma'(t)}\mathrm{d}{\hat W}_t,
-```
-where
-```math
-    {\hat W}_t = {\bar W}_{T - t}, \qquad {\bar W}_t = W_t - \int_0^t \frac{g(s)}{\sigma(s)^2} X_s \;\mathrm{d}s = W_t - \int_0^t \sqrt{\frac{2\sigma'(s)}{\sigma(s)}} X_s \;\mathrm{d}s.
-```
-
-This is iterated recursively backwards in time, with
-```math
-X_{t_j} - X_{t_{j-1}} = \int_{t_{j-1}}^{t_j} 2\frac{\sigma'(s)}{\sigma(s)} X_s \;\mathrm{d}s + \int_{t_{j-1}}^{t_j} g(s) \;\mathrm{d}{\hat W}_s.
-```
-which we approximate with
-```math
-X_{t_j} - X_{t_{j-1}} \approx 2\frac{\sigma'(t_j)}{\sigma(t_j)} X_{t_j} (t_j - t_{j-1}) + g(t_j) ({\hat W}_{t_j} - {\hat W}_{t_{j-1}}).
 ```
 
 ## References
