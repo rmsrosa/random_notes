@@ -41,7 +41,8 @@ allpages = [
             "generative/ddpm.md",
             "Multiple denoising score matching" => "generative/mdsm.md",
             "Probability flow" => "generative/probability_flow.md",
-            "Score-based SDE model" => "generative/score_based_sde.md"
+            "Reverse probability flow" => "generative/reverse_flow.md",
+            "Score-based SDE model" => "generative/score_based_sde.md",
         ]
     ],
     "Sensitivity analysis" => [
@@ -64,6 +65,7 @@ makedocs(
         sidebar_sitename = true,
         canonical = "https://github.com/rmsrosa/random_notes",
         edit_link = "main",
+        inventory_version = "0.1.0"
     ),
 )
 
