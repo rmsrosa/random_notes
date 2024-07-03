@@ -1,5 +1,9 @@
 # Score matching a neural network
 
+```@meta
+Draft = false
+```
+
 ## Introduction
 
 ### Aim
@@ -176,11 +180,11 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 Here it is how we implement the objective ${\tilde J}_{\mathrm{ISM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example adscorematching
 function loss_function_EISM_Zygote(model, ps, st, sample_points)
-    sample_points
-    y_pred, st = Lux.apply(model, sample_points, ps, st)
-    dy_pred = Zygote.gradient(s -> sum(model(s, ps, st)[1]), sample_points)[1]
+    smodel = StatefulLuxLayer{true}(model, ps, st)
+    y_pred = smodel(sample_points)
+    dy_pred = only(Zygote.gradient(sum ∘ smodel, sample_points))
     loss = mean(dy_pred .+ y_pred .^2 / 2)
-    return loss, st, ()
+    return loss, smodel.st, ()
 end
 ```
 
@@ -189,10 +193,11 @@ We also implement a regularized version as proposed by [Kingma and LeCun (2010)]
 ```@example adscorematching
 function loss_function_EISM_Zygote_regularized(model, ps, st, data)
     sample_points, lambda = data
-    y_pred, st = Lux.apply(model, sample_points, ps, st)
-    dy_pred = Zygote.gradient(s -> sum(model(s, ps, st)[1]), sample_points)[1]
+    smodel = StatefulLuxLayer{true}(model, ps, st)
+    y_pred = smodel(sample_points)
+    dy_pred = only(Zygote.gradient(sum ∘ smodel, sample_points))
     loss = mean(dy_pred .+ y_pred .^2 / 2 .+ lambda .* dy_pred .^2 )
-    return loss, st, ()
+    return loss, smodel.st, ()
 end
 ```
 
@@ -228,22 +233,26 @@ dev_cpu = cpu_device()
 Check if Zygote via Lux is working fine to differentiate the loss functions for training.
 ```@example adscorematching
 @time Lux.Training.compute_gradients(vjp_rule, loss_function_EISM_Zygote, sample_points, tstate_org)
+nothing # hide
 ```
 
 It is pretty slow to run it the first time, since it envolves compiling a specialized method for it. Remember there is already a gradient on the loss function, so this amounts to a double automatic differentiation. The subsequent times are faster, but still slow for training:
 
 ```@example adscorematching
 @time Lux.Training.compute_gradients(vjp_rule, loss_function_EISM_Zygote, sample_points, tstate_org)
+nothing # hide
 ```
 
 Now the version with regularization.
 
 ```@example adscorematching
 @time Lux.Training.compute_gradients(vjp_rule, loss_function_EISM_Zygote_regularized, data, tstate_org)
+nothing # hide
 ```
 
 ```@example adscorematching
 @time Lux.Training.compute_gradients(vjp_rule, loss_function_EISM_Zygote_regularized, data, tstate_org)
+nothing # hide
 ```
 
 #### Training loop
@@ -273,7 +282,7 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ISM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example adscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, sample_points, loss_function_EISM_Zygote, 300, 20, 100)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, sample_points, loss_function_EISM_Zygote, 500, 20, 100)
 nothing # hide
 ```
 
@@ -355,7 +364,7 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ISM{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example adscorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_EISM_Zygote_regularized, 300, 20, 100)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_EISM_Zygote_regularized, 500, 20, 100)
 nothing # hide
 ```
 
