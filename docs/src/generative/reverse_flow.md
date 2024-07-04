@@ -219,10 +219,24 @@ where
     \end{align*}
 ```
 
-The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on the characterization of Wiener processes as almost surely continuous martingales with $W_0 = 0$ and with quadratic variation $[W_t, W_t] = t,$ for all $t\geq 0.$ Since the second term in the definition of $\bar W_t$ is a Riemann integral, its quadtratic variation is zero, and thus
+The fact that $\{\bar W_t\}_{t\geq 0}$ is actually a Wiener process is based on the characterization of Wiener processes as almost surely continuous martingales with $W_0 = 0$ and with quadratic variation $[W_t, W_t] = t,$ for all $t\geq 0.$
+
+The fact that it is a martingale follows from the fact that the integral term is itself a martingale. Indeed, this follows from
+```math
+    \begin{align*}
+        \mathbb{E}\bigg[ \int_t^{t+\tau} & \frac{1}{p(s, X_s)}\nabla_x \cdot (p(s, X_s) G(s, X_s)) \;\mathrm{d}s\bigg] = \int_\Omega \int_t^{t+\tau} \frac{1}{p(s, X_s(\omega))}\nabla_x \cdot (p(s, X_s(\omega)) G(s, X_s(\omega))) \;\mathrm{d}s\;\mathrm{d}\mathbb{P}(\omega) \\
+        & =  \int_t^{t+\tau} \int_{\mathbb{R}} \frac{1}{p(s, x)}\nabla_x \cdot (p(s, x) G(s, x)) p(s, x)\;\mathrm{d}x\;\mathrm{d}s \\
+        & = \int_t^{t+\tau} \int_{\mathbb{R}} \nabla_x \cdot (p(s, x) G(s, x)) \;\mathrm{d}x\;\mathrm{d}s \\
+        & = 0,
+    \end{align*}
+```
+for arbitrary $t, \tau \geq 0,$ provided we have sufficient decay of $p(s, x) G(s, x),$ as $x\rightarrow \pm\infty.$
+
+Now, since the second term in the definition of $\bar W_t$ is a Riemann integral, its quadratic variation is zero, and thus
 ```math
     [\bar W_t, \bar W_t]_t = [W_t, W_t]_t = t.
 ```
+Hence, from the Lévy characterization, $\{\bar W_t\}_{t\geq 0}$ is a Wiener process.
 
 The fact that $X_t$ is independent of *previous* steps of $\{\bar W_t\}_{t \geq 0},$ say $\bar W_{t_2} - \bar W_{t_1},$ $0 \leq t_1 < t_2 \leq t,$ follows from the facts that $X_t$ is adapted to $\{W_t\}_{t\geq 0}$ and that $W_t$ itself is independent of previous steps of $\{\bar W_t\}_{t \geq 0}.$ The proof of that is a bit involved, though, and can be found in [Anderson (1982)](https://doi.org/10.1016/0304-4149(82)90051-5). Here, we content ourselves in proving that in a specific simple case below.
 
