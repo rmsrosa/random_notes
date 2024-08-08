@@ -1,5 +1,9 @@
 # Langevin sampling
 
+```@meta
+Draft = false
+```
+
 ```@setup scoreandlangevin
 using StatsPlots
 using Random
@@ -130,7 +134,7 @@ One of the cornerstones of score-based generative models is the method of sampli
 
 The velocity of a particle moving in a fluid has long been known to be reduced by friction forces with the surrounding fluid particles. For relatively slowly moving particles, when the surrouding fluid flow is essentially laminar, this friction force is regarded to be proportional to the velocity, in what is known as the *Stokes law.* When the motion is relatively fast and the flow around the particle is turbulent, this friction tends to be proportional to the square of the velocity.
 
-If this were the only force, though, a particle initially at rest would remain forever at rest. That is not the case, as observed by the botanist [Robert Brown (1828)](https://doi.org/10.1080%2F14786442808674769). His observations led to what is now known as Brownian motion, and which is formally modeled as a Wiener process (see e.g. [Einstein (1905)](https://doi.org/10.1002/andp.19053220806) and [Mörters and Peres (2010)](https://www.cambridge.org/il/academic/subjects/statistics-probability/probability-theory-and-stochastic-processes/brownian-motion?format=HB&isbn=9780521760188)). A Wiener process describes the (random) position of a particle which is initially at rest and is put into motion by the erratic collisions with the nearby fluid particles.
+If this were the only force, though, a particle initially at rest on a still fluid would remain forever at rest. That is not the case, as observed by the botanist [Robert Brown (1828)](https://doi.org/10.1080%2F14786442808674769). His observations led to what is now known as *Brownian motion,* and which is formally modeled as a Wiener process (see e.g. [Einstein (1905)](https://doi.org/10.1002/andp.19053220806) and [Mörters and Peres (2010)](https://www.cambridge.org/il/academic/subjects/statistics-probability/probability-theory-and-stochastic-processes/brownian-motion?format=HB&isbn=9780521760188)). A Wiener process describes the (random) position of a particle which is initially at rest and is put into motion by the erratic collisions with the nearby fluid particles.
 
 When in motion, both forces are actually in effect, a deterministic one dependent on the velocity and a random one due to irregular collisions. In a short time scale, the inertia forces are negligible and we recover the Brownian motion. For larger times scales, the Langevin is more appropriate since it takes both forces into account.
 
@@ -138,39 +142,39 @@ When in motion, both forces are actually in effect, a deterministic one dependen
 
 In the Langevin model, both viscous and random collision forces affect the momentum of the particle ([Paul Langevin (1908)](https://gallica.bnf.fr/ark:/12148/bpt6k3100t/f530.item)). In this model, the position $x_t$ of a particle of mass $m$ at time $t$ is given by
 ```math
-    m \ddot x_t = - \mu \dot x_t + \alpha \xi_t,
+    m \ddot x_t = - a \mu \dot x_t + \alpha \xi_t,
 ```
-where $\mu$ is a proportionality viscosity coefficient associated with the frictional drag force $-\mu\dot x_t$ proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a white noise term $\xi_t$ modeling the random collisions with the fluid particles. The two coefficients are connected by
+where $a$ is a caractheristic length of the particle; $\mu$ is the molecular viscosity, associated with the frictional drag force assumed proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a white noise term $\xi_t$ modeling the random collisions with the fluid particles. The two coefficients are connected by
 ```math
-    \alpha = \sqrt{2\mu k_B T},
+    \alpha = \sqrt{\frac{2\mu k_B T}{a}},
 ```
 where $k_B$ is the Boltzmann constant and $T$ is the temperature of the fluid.
 
 The white noise is highly irregular, so the equation above is made rigorous with the theory of stochastic differential equations when casted in the form
 ```math
-    \mathrm{d}V_t = \nu V_t \;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
+    \mathrm{d}Y_t = -\nu Y_t \;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
 ```
-where $\{V_t\}_t$ is a stochastic processes representing the evolution of the velocity in time, $\nu = \mu / m$, $\sigma$ is called the *diffusion* parameter, and $\{W_t\}_t$ is a Wiener process, whose formal derivative represents the white noise. The solution $\{V_t\}_t$ of the equation above is known as the **Ornstein-Uhlenbeck** stochastic process. The relation between $\sigma$ and $\nu$ becomes
+where $\{Y_t\}_t$ is a stochastic processes representing the evolution of the velocity in time; $\nu = a\mu / m$ is a kinematic damping factor (with dimension $1/\texttt{time}$); $\sigma=\alpha/m$ is called the *diffusion* parameter; and $\{W_t\}_t$ is a Wiener process, whose formal derivative represents the white noise. The solution $\{Y_t\}_t$ of the equation above is known as the **Ornstein-Uhlenbeck** stochastic process. The relation between $\sigma$ and $\nu$ becomes
 ```math
-    \sigma = \sqrt{\frac{2\nu k_B T}{m}}.
+    \sigma = \sqrt{\frac{2\nu k_B T}{am}}.
 ```
 
-This is all fine for a nearly free particle, affected only by friction and by smaller nearby particles. More generally, one also considers a particle under an extra force field with potential $U=U(x)$. In this case, the equation is modified to
+This is all fine for a nearly free particle, affected only by friction and by smaller nearby particles. More generally, one may also consider a particle under an extra force field with potential $U=U(x)$. In this case, the equation is modified to
 ```math
-    m \ddot x_t = - \mu \dot x_t - \nabla U(x_t) + \alpha \xi_t,
+    m \ddot x_t = - a\mu \dot x_t - m\nabla U(x_t) + \alpha \xi_t,
 ```
 The rigorous stochastic formulation takes the form of a system,
 ```math
     \begin{cases}
-        \mathrm{d}X_t = V_t\;\mathrm{d}t, \\
-        \mathrm{d}V_t = (-\nu V_t - \nabla U(X_t))\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
+        \mathrm{d}X_t = Y_t\;\mathrm{d}t, \\
+        \mathrm{d}Y_t = (-\nu Y_t - \nabla U(X_t))\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
     \end{cases}
 ```
 These are called the **Langevin equation** or **Langevin system.**
 
 ### The overdamped limit
 
-The term $m \ddot x_t$ represents the inertial force. When the motion is relatively slow, this inertia might be negligible when compared with the viscous foce. Dropping this term yields the equation
+The term $m \ddot x_t$ represents the inertial force. When the motion is relatively slow, this inertia might be negligible when compared with the drag force. Dropping this term yields the equation
 ```math
     0 = - \mu \dot x_t - \nabla U(x_t) + \alpha \xi_t.
 ```
@@ -178,7 +182,7 @@ The corresponding stochastic system reduces to a single equation
 ```math
     \nu \mathrm{d}X_t = - \nabla U(X_t)\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
 ```
-The time scale for this approximation to hold is a short time scale represented by $\tilde t = t / \nu$. Rescaling leads to the *overdamped Langevin equation*
+The time scale for this approximation to hold is a "short" time scale represented by $\tilde t = t / \nu$. Notice that $\nu$ has indeed the dimension of frequency, i.e. inverse of time (it is not a kinematic viscosity of the fluid).  Rescaling leads to the *overdamped Langevin equation*
 ```math
     \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
 ```
@@ -204,7 +208,7 @@ we write the new position as
 ```
 Thus, the velocity satisfies
 ```math
-    {\tilde V}_{\tilde t} = \frac{\mathrm{d}{\tilde X}_{\tilde t}}{\mathrm{d}\tilde t} = \nu V_t.
+    {\tilde Y}_{\tilde t} = \frac{\mathrm{d}{\tilde X}_{\tilde t}}{\mathrm{d}\tilde t} = \nu Y_t.
 ```
 Since ${\tilde X}_{\tilde t} = X_t$, we set
 ```math
@@ -216,7 +220,7 @@ The differentials satisfy
         \mathrm{d}\tilde t & = \frac{1}{\nu}\;\mathrm{d}t, \\
         \mathrm{d}{\tilde X}_{\tilde t} & = \mathrm{d}X_t, \\
         \nabla_{\tilde x}\tilde U(\tilde x) & = \nabla_x U(x), \\
-        \mathrm{d}{\tilde V}_{\tilde t} & = \nu\;\mathrm{d}V_t.
+        \mathrm{d}{\tilde Y}_{\tilde t} & = \nu\;\mathrm{d}Y_t.
     \end{align*}
 ```
 
@@ -227,33 +231,33 @@ The Wiener noise $\tilde W_{\tilde t} = W_{t} = W_{\nu \tilde t}$ satifies the s
 
 Thus,
 ```math
-    \mathrm{d}\tilde X_{\tilde t} = \mathrm{d}X_t = V_t\;\mathrm{d}t = \frac{1}{\nu} \tilde V_{\tilde t} \nu \mathrm{d}\tilde t = V_{\tilde t}\;\mathrm{d}\tilde t,
+    \mathrm{d}\tilde X_{\tilde t} = \mathrm{d}X_t = Y_t\;\mathrm{d}t = \frac{1}{\nu} \tilde Y_{\tilde t} \nu \mathrm{d}\tilde t = Y_{\tilde t}\;\mathrm{d}\tilde t,
 ```
 and
 ```math
     \begin{align*}
-        \mathrm{d}\tilde V_{\tilde t} & = \nu\;\mathrm{d}V_t = \nu\left((-\nu V_t - \nabla_x U(X_t))\;\mathrm{d}t + \sigma \;\mathrm{d}W_t \right) \\
-        & = \nu \left( \left( -\tilde V_{\tilde t} - \nabla_{\tilde x} \tilde U(\tilde X_{\tilde t}) \right)\nu \mathrm{d}\tilde t + \sigma \sqrt{\nu}\;\tilde W_{\tilde t} \right) \\
-        & = \nu^2\left( -\tilde V_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \nu^{3/2}\sigma\;\mathrm{d}\tilde W_{\tilde t}.
+        \mathrm{d}\tilde Y_{\tilde t} & = \nu\;\mathrm{d}Y_t = \nu\left((-\nu Y_t - \nabla_x U(X_t))\;\mathrm{d}t + \sigma \;\mathrm{d}W_t \right) \\
+        & = \nu \left( \left( -\tilde Y_{\tilde t} - \nabla_{\tilde x} \tilde U(\tilde X_{\tilde t}) \right)\nu \mathrm{d}\tilde t + \sigma \sqrt{\nu}\;\tilde W_{\tilde t} \right) \\
+        & = \nu^2\left( -\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \nu^{3/2}\sigma\;\mathrm{d}\tilde W_{\tilde t}.
     \end{align*}
 ```
 Since $\sigma = \sqrt{2\nu k_B T / m}$, this becomes
 ```math
-    \mathrm{d}\tilde V_{\tilde t} = \nu^2\left( \left(-\tilde V_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t} \right)
+    \mathrm{d}\tilde Y_{\tilde t} = \nu^2\left( \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t} \right)
 ```
 Dividing by $\nu^2$, we find the rescaled system
 ```math
     \begin{cases}
-        \mathrm{d}\tilde X_t = \tilde V_{\tilde t}\;\mathrm{d}\tilde t, \\
-        \frac{1}{\nu^2}\mathrm{d}\tilde V_t = \left(-\tilde V_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
+        \mathrm{d}\tilde X_t = \tilde Y_{\tilde t}\;\mathrm{d}\tilde t, \\
+        \frac{1}{\nu^2}\mathrm{d}\tilde Y_t = \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
     \end{cases}
 ```
 
 Letting $\nu \rightarrow \infty$ on the second equation yields
 ```math
-    0 = \left(-\tilde V_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}
+    0 = \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}
 ```
-Substituting $\mathrm{d}\tilde X_t = \tilde V_{\tilde t}\;\mathrm{d}\tilde t$ and moving this term to the left hand side lead to
+Substituting $\mathrm{d}\tilde X_t = \tilde Y_{\tilde t}\;\mathrm{d}\tilde t$ and moving this term to the left hand side lead to
 ```math
     \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
 ```
