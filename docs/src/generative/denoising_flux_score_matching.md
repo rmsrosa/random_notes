@@ -1,9 +1,5 @@
 # Denoising score-matching in Flux.jl
 
-```@meta
-Draft = true
-```
-
 ## Introduction
 
 ### Aim

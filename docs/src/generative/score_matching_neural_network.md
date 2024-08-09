@@ -1,9 +1,5 @@
 # Score matching a neural network
 
-```@meta
-Draft = false
-```
-
 ## Introduction
 
 ### Aim
