@@ -140,13 +140,17 @@ When in motion, both forces are actually in effect, a deterministic one dependen
 
 ### Langevin equation
 
+We start with the Langevin equation for a free particle and then introduce the equation with a potential field.
+
+#### Langevin equation for a free particle
+
 In the Langevin model, both viscous and random collision forces affect the momentum of the particle ([Paul Langevin (1908)](https://gallica.bnf.fr/ark:/12148/bpt6k3100t/f530.item)). In this model, the position $x_t$ of a particle of mass $m$ at time $t$ is given by
 ```math
     m \ddot x_t = - a \mu \dot x_t + \alpha \xi_t,
 ```
-where $a$ is a caractheristic length of the particle; $\mu$ is the molecular viscosity, associated with the frictional drag force assumed proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a white noise term $\xi_t$ modeling the random collisions with the fluid particles. The two coefficients are connected by
+where $a$ is a caractheristic length of the particle; $\mu$ is the molecular viscosity, associated with the frictional drag force assumed proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a *white noise* term $\xi_t$ modeling the random collisions with the fluid particles, i.e. $\xi_t$ is a Gaussian process with zero mean, $\mathbb{E}[\xi_t] = 0,$ and delta correlated, $\mathbb{E}[\xi_t\xi_s] = \delta_0(t - s).$ The two coefficients are connected by
 ```math
-    \alpha = \sqrt{\frac{2\mu k_B T}{a}},
+    \alpha = \sqrt{2a\mu k_B T},
 ```
 where $k_B$ is the Boltzmann constant and $T$ is the temperature of the fluid.
 
@@ -156,13 +160,18 @@ The white noise is highly irregular, so the equation above is made rigorous with
 ```
 where $\{Y_t\}_t$ is a stochastic processes representing the evolution of the velocity in time; $\nu = a\mu / m$ is a kinematic damping factor (with dimension $1/\texttt{time}$); $\sigma=\alpha/m$ is called the *diffusion* parameter; and $\{W_t\}_t$ is a Wiener process, whose formal derivative represents the white noise. The solution $\{Y_t\}_t$ of the equation above is known as the **Ornstein-Uhlenbeck** stochastic process. The relation between $\sigma$ and $\nu$ becomes
 ```math
-    \sigma = \sqrt{\frac{2\nu k_B T}{am}}.
+    \sigma = \sqrt{\frac{2\nu k_B T}{m}}.
 ```
+
+#### Langevin equation with an energy potential
 
 This is all fine for a nearly free particle, affected only by friction and by smaller nearby particles. More generally, one may also consider a particle under an extra force field with potential $U=U(x)$. In this case, the equation is modified to
 ```math
     m \ddot x_t = - a\mu \dot x_t - m\nabla U(x_t) + \alpha \xi_t,
 ```
+
+#### Rigorous stochastic formulation
+
 The rigorous stochastic formulation takes the form of a system,
 ```math
     \begin{cases}
@@ -172,105 +181,261 @@ The rigorous stochastic formulation takes the form of a system,
 ```
 These are called the **Langevin equation** or **Langevin system.**
 
+### Physical dimensions
+
+We want to check the physical dimensions of the terms in the Langevin equation
+```math
+    m \ddot x_t = - a \mu \dot x_t - m\nabla U(x_t) + \alpha \xi_t,
+```
+where
+```math
+    \alpha = \sqrt{2a\mu k_B T},
+```
+
+#### Basic physical dimensions
+
+We denote the physical dimensions by
+```math
+    \quad M = \texttt{ mass,} \quad L = \texttt{ length,} \quad T = \texttt{ time,} \quad \Theta = \texttt{ temperature.} 
+```
+
+#### Physical dimension of variables and parameters
+
+The variable $x_t$ denotes position at time $t,$ hence its physical dimension, $[x_t],$ is length,
+```math
+    [x_t] = L.
+```
+
+The time derivative has dimension of one over time, i.e.
+```math
+    \left[\frac{\mathrm{d}}{\mathrm{d} t}\right] = \frac{1}{T}.
+```
+
+The Dirac delta $\delta_0(\cdot)$ in the definition of white noise is the (time) derivative of the Heaviside function $H(t) = \chi_{[0, \infty)}(t).$ The Heaviside is adimensional, so
+```math
+    [\delta_0] = \frac{1}{T}.
+```
+Since the dimension of the correlation is
+```math
+    \left[\mathbb{E}[\xi_t\xi_s]\right] = [\xi_t]^2
+```
+and
+```math
+    [\xi_t]^2 = \left[\mathbb{E}[\xi_t\xi_s]\right] = \left[\delta_0\right] = \frac{1}{T},
+```
+we find that
+```math
+    [\xi_t] = \frac{1}{\sqrt{T}}.
+```
+
+For consistency reasons, the dimension of $\mu$ has to be
+```math
+    [\mu] = \frac{M}{LT}.
+```
+
+The potential field is the potential energy over the mass of the particle under the potential field, thus
+```math
+    [U(x)] = \frac{L^2}{T^2}.
+```
+
+The dimension of the Boltzmann constant is that of energy over temperature, i.e.
+```math
+    [k_B] = \frac{ML^2}{T^2\Theta}.
+```
+With that, the dimension of $\alpha$ becomes
+```math
+    [\alpha] = \sqrt{[a][\mu] [k_B] [T]} = \sqrt{L \frac{M}{LT} \frac{ML^2}{T^2\Theta} \Theta} = \sqrt{\frac{M^2L^2}{T^3}} = \frac{ML}{T^{3/2}}.
+```
+
+#### Physical dimensions of the Langevin equation
+
+Now we check that all the terms in the Langevin equation have the same physical dimension of force, since it is an expression of Newton's second law of motion. Indeed, the first term has dimension
+```math
+    [m\ddot x_t] = [m] \left[\frac{\mathrm{d}^2}{\mathrm{d}t^2}\right] [x_t] = M \frac{1}{T^2} L = \frac{ML}{T^2}.
+```
+The second term has dimension
+```math
+    [a\mu \dot x_t] = [a] [\mu] \left[\frac{\mathrm{d}}{\mathrm{d}t}\right] [x_t] = L \frac{M}{LT} \frac{1}{T} L = \frac{ML}{T^2}.
+```
+The potential term has dimension
+```math
+    [m\nabla U(x_t)] = M \frac{1}{L} \frac{L^2}{T^2} = \frac{ML}{T^2}.
+```
+
+The last term has dimension
+```math
+    [\alpha \xi_t] = [\alpha] [\xi_t] = \frac{ML}{T^{3/2}}\frac{1}{T^{1/2}} = \frac{ML}{T^2}.
+```
+
+#### Physical dimension of the stochastic equation for the random velocity
+
+Looking now at the equation
+```math
+    \mathrm{d}Y_t = -\nu Y_t \;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
+```
+we first observe that
+```math
+    [\nu] = \left[\frac{a\mu}{m}\right] = L \frac{M}{LT} \frac{1}{M} = \frac{L}{T}
+```
+and
+```math
+    [\sigma] = \left[\frac{\alpha}{m}\right] = \frac{ML}{T^{3/2}} \frac{1}{M} = \frac{L}{T^{3/2}}.
+```
+Since the $W_t \sim \mathcal{N}(0, t) = \sqrt{t}\mathcal{N}(0, 1),$ we see that
+```math
+    [\mathrm{d}W_t] = [W_t] = \sqrt{T}.
+```
+This is consistent with the idea that the Wiener process is formally the time derivative of the white noise $\xi_t.$
+
+Now, we see that
+```math
+    [\mathrm{d}Y_t] = [Y_t] = \frac{L}{T},
+```
+while
+```math
+    [\nu Y_t \;\mathrm{d}t] = \frac{1}{T} \frac{L}{T} T = \frac{L}{T},
+```
+and
+```math
+    [\sigma \;\mathrm{d}W_t] = \frac{L}{T^{3/2}} T^{1/2} = \frac{L}{T},
+```
+establishing the consistency of the equation in terms of physical dimension.
+
 ### The overdamped limit
 
-The term $m \ddot x_t$ represents the inertial force. When the motion is relatively slow, this inertia might be negligible when compared with the drag force. Dropping this term yields the equation
+In the Langevin equation
 ```math
-    0 = - \mu \dot x_t - \nabla U(x_t) + \alpha \xi_t.
+    m \ddot x_t = - a \mu \dot x_t + \alpha \xi_t, \qquad \alpha = \sqrt{2a\mu k_B T},
 ```
+the term $m \ddot x_t$ represents the inertial force. When the motion is relatively slow, this inertia might be negligible when compared with the drag force. Dropping this term yields the equation
+```math
+    0 = - \mu \dot x_t - \nabla U(x_t) + \alpha \xi_t,
+```
+which we can write as the usual form of the *overdamped Langevin equation*
+```math
+    \mu \dot x_t = - \nabla U(x_t) + \alpha \xi_t.
+```
+
 The corresponding stochastic system reduces to a single equation
 ```math
     \nu \mathrm{d}X_t = - \nabla U(X_t)\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
 ```
-The time scale for this approximation to hold is a "short" time scale represented by $\tilde t = t / \nu$. Notice that $\nu$ has indeed the dimension of frequency, i.e. inverse of time (it is not a kinematic viscosity of the fluid).  Rescaling leads to the *overdamped Langevin equation*
+The time scale for this approximation is of the order of $1/\nu.$ Indeed, if we look at the relation
 ```math
-    \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
+    m\frac{\mathrm{d}Y_t}{\mathrm{d}t} \ll - a\mu Y_t
 ```
-We will do the details of this change of variables below, when performing a different approach of taking the overdamped asymptotic limit $\nu \rightarrow \infty$.
-
-For the moment, notice that, in the absence of a force field $U=U(x)$, we are left (dropping the tildes in the rescaled equation) with
+and formally simplify $Y_t,$ we have
 ```math
-    \mathrm{d}X_t = \sqrt{\frac{2k_B T}{m}} \;\mathrm{d}W_t,
+    \frac{m}{\Delta t} \ll a\mu,
+```
+i.e.
+```math
+    \Delta t \gg \frac{m}{a\mu} = \frac{1}{\nu}.
+```
+Recall that $\nu$ has indeed the dimension of frequency, i.e. inverse of time (it is not a kinematic viscosity of the fluid).
+
+In the absence of a force field $U=U(x)$, we are left with
+```math
+    \nu \mathrm{d}X_t = \sigma \;\mathrm{d}W_t.
 ```
 which is the Brownian motion equation, with the solution
 ```math
-    X_t = \sqrt{\frac{2k_B T}{m}} W_t.
+    X_t = \frac{\sigma}{\nu} = \sqrt{\frac{2k_B T}{a\mu}} W_t.
 ```
 In this way, we recover the Brownian motion from the Langevin equation as the overdamped limit without a force field.
 
-Now we go back to the rescaling to a more representative time scale and deduce the overdamped approximation at the limit $\nu \rightarrow \infty$. More details in [Section 6.5](https://doi.org/10.1007/978-1-4939-1323-7_6) of [Grigorios Pavliotis (2014)](https://doi.org/10.1007/978-1-4939-1323-7). Making the change of time scale to
+Notice the right hand side above has indeed the dimension of length,
 ```math
-    \tilde t = \frac{t}{\nu},
-```
-we write the new position as
-```math
-    {\tilde X}_{\tilde t} = X_t = X_{\nu \tilde t}.
-```
-Thus, the velocity satisfies
-```math
-    {\tilde Y}_{\tilde t} = \frac{\mathrm{d}{\tilde X}_{\tilde t}}{\mathrm{d}\tilde t} = \nu Y_t.
-```
-Since ${\tilde X}_{\tilde t} = X_t$, we set
-```math
-    \tilde U(\tilde x) = U(x).
-```
-The differentials satisfy
-```math
-    \begin{align*}
-        \mathrm{d}\tilde t & = \frac{1}{\nu}\;\mathrm{d}t, \\
-        \mathrm{d}{\tilde X}_{\tilde t} & = \mathrm{d}X_t, \\
-        \nabla_{\tilde x}\tilde U(\tilde x) & = \nabla_x U(x), \\
-        \mathrm{d}{\tilde Y}_{\tilde t} & = \nu\;\mathrm{d}Y_t.
-    \end{align*}
+    \left[\sqrt{\frac{2k_B T}{a\mu}} W_t \right] = \sqrt{\frac{ML^2}{\Theta T^2}\Theta \frac{1}{L}\frac{LT}{M}} \sqrt{T} = \sqrt{\frac{L^2}{T}} \sqrt{T} = L.
 ```
 
-The Wiener noise $\tilde W_{\tilde t} = W_{t} = W_{\nu \tilde t}$ satifies the scaling
+### Adimensionalization
+
+With a proper rescaling, we obtain the *adimensional overdamped Langevin equation*
 ```math
-    \mathrm{d}\tilde W_{\tilde t} = \sqrt{\nu}\;\mathrm{d}W_t.
+    \mathrm{d}\tilde X_t = - \nabla_{\tilde x}{\tilde U}({\tilde X}_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{2}\;\mathrm{d}{\tilde W}_{\tilde t}.
 ```
 
+We do the details of this change of variables below. See also [Section 6.5](https://doi.org/10.1007/978-1-4939-1323-7_6) of [Grigorios Pavliotis (2014)](https://doi.org/10.1007/978-1-4939-1323-7).
+
+We start with the equation
+```math
+    \nu \mathrm{d}X_t = - \nabla U(X_t)\;\mathrm{d}t + \sigma \;\mathrm{d}W_t,
+```
+and divide it by $a\nu,$ so that
+```math
+    \frac{1}{a}\mathrm{d}X_t = - \frac{1}{a\nu}\nabla U(X_t)\;\mathrm{d}t + \frac{\sigma}{a\nu} \;\mathrm{d}W_t.
+```
+
+Since $\sigma = \sqrt{2\nu k_B T / m}$ and $\nu = a\mu / m,$ we write
+```math
+    \frac{\sigma}{a\nu} = \frac{\sqrt{2\nu k_B T / m}}{a\nu} = \sqrt{\frac{2\nu k_B T}{a^2 m \nu^2}} = \sqrt{\frac{2 k_B T}{a^2 m \nu}} = \sqrt{\frac{2k_B T}{a^3\mu}}.
+```
 Thus,
 ```math
-    \mathrm{d}\tilde X_{\tilde t} = \mathrm{d}X_t = Y_t\;\mathrm{d}t = \frac{1}{\nu} \tilde Y_{\tilde t} \nu \mathrm{d}\tilde t = Y_{\tilde t}\;\mathrm{d}\tilde t,
-```
-and
-```math
-    \begin{align*}
-        \mathrm{d}\tilde Y_{\tilde t} & = \nu\;\mathrm{d}Y_t = \nu\left((-\nu Y_t - \nabla_x U(X_t))\;\mathrm{d}t + \sigma \;\mathrm{d}W_t \right) \\
-        & = \nu \left( \left( -\tilde Y_{\tilde t} - \nabla_{\tilde x} \tilde U(\tilde X_{\tilde t}) \right)\nu \mathrm{d}\tilde t + \sigma \sqrt{\nu}\;\tilde W_{\tilde t} \right) \\
-        & = \nu^2\left( -\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \nu^{3/2}\sigma\;\mathrm{d}\tilde W_{\tilde t}.
-    \end{align*}
-```
-Since $\sigma = \sqrt{2\nu k_B T / m}$, this becomes
-```math
-    \mathrm{d}\tilde Y_{\tilde t} = \nu^2\left( \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t} \right)
-```
-Dividing by $\nu^2$, we find the rescaled system
-```math
-    \begin{cases}
-        \mathrm{d}\tilde X_t = \tilde Y_{\tilde t}\;\mathrm{d}\tilde t, \\
-        \frac{1}{\nu^2}\mathrm{d}\tilde Y_t = \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
-    \end{cases}
+    \frac{1}{a}\mathrm{d}X_t = - \frac{1}{a\nu}\nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{a^3\mu}}\;\mathrm{d}W_t.
 ```
 
-Letting $\nu \rightarrow \infty$ on the second equation yields
+The time and length scales are changed to
 ```math
-    0 = \left(-\tilde Y_{\tilde t} - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\right)\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}
+    \tilde t = \nu t, \quad \tilde x = \frac{x}{a}.
 ```
-Substituting $\mathrm{d}\tilde X_t = \tilde Y_{\tilde t}\;\mathrm{d}\tilde t$ and moving this term to the left hand side lead to
+Accordingly, we set
 ```math
-    \mathrm{d}\tilde X_t = - \nabla_{\tilde x}\tilde U(\tilde X_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}\tilde W_{\tilde t}.
+    \tilde X_{\tilde t} = \frac{1}{a} \tilde X_{\tilde t / \nu} = \frac{1}{a} X_t.
 ```
-Hence, we obtain the overdamped Langevin equation. Dropping the tildes, we write the equation as
+Thus,
 ```math
-    \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}W_{t}.
+    \frac{1}{a} \mathrm{d}X_t = \mathrm{d}{\tilde X}_{\tilde t}.
 ```
+
+We also define the adimensional potential
+```math
+    \tilde U(\tilde x) = \frac{1}{a^2\nu^2}U(a\tilde x) = \frac{1}{a^2\nu^2} U(x).
+```
+Thus,
+```math
+    - \frac{1}{a\nu}\nabla_x U(X_t)\;\mathrm{d}t = - \frac{1}{a\nu} \nabla_x \left(a^2\nu^2 {\tilde U}\left(\frac{X_t}{a}\right) \right)\;\frac{\mathrm{d}\tilde t}{\nu} = - a\nabla_x \left( {\tilde U}\left(\frac{X_t}{a}\right)\right)\;\mathrm{d}\tilde t = - a\nabla_{\tilde x} {\tilde U}({\tilde X}_{\tilde t})\frac{1}{a}\;\mathrm{d}\tilde t,
+```
+so that
+```math
+    - \frac{1}{a\nu}\nabla_x U(X_t)\;\mathrm{d}t = - \nabla_{\tilde x} {\tilde U}({\tilde X}_{\tilde t})\;\mathrm{d}\tilde t.
+```
+
+Finally we set
+```math
+    {\tilde W}_{\tilde t} = \sqrt{\frac{k_B T}{a^3\mu}} W_{\tilde t / \nu} = \sqrt{\frac{k_B T}{a^3\mu}} W_t,
+```
+so that
+```math
+    \sqrt{\frac{2k_B T}{a^3\mu}} \;\mathrm{d}W_t = \sqrt{2}\mathrm{d}{\tilde W}_{\tilde t}. 
+```
+Notice that
+```math
+    \left[ \sqrt{\frac{2k_B T}{a^3\mu}} \right] = \sqrt{\frac{ML^2}{\Theta T^2} \Theta\frac{LT}{L^3 M}} = \sqrt{\frac{1}{T}}, \qquad \left[\mathrm{d}W_t\right] = \sqrt{T},
+```
+so ${\tilde W}_{\tilde t}$ is indeed adimensional.
+
+Combining the terms, we obtain the adimensional equation
+```math
+    \mathrm{d}{\tilde X}_{\tilde t} = - \nabla_{\tilde x} {\tilde U}({\tilde X}_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{2}\;\mathrm{d}{\tilde W}_{\tilde t}.
+```
+
+The factor $\sqrt{2}$ could have been included in the definition of ${\tilde W}_{\tilde t},$ but it was left out because it will compensate the one-halft term coming from the Itô formula and both eventually cancel out when computing the invariant distribution.
+
+#### The limit as $\nu \rightarrow \infty.$
+
+If one does the rescaling above in the full equation
+```math
+    m \ddot x_t = - a\mu \dot x_t - m\nabla U(x_t) + \alpha \xi_t,
+```
+one obtains the overdamped limit exactly when taking the limit $\nu \rightarrow \infty.$ We leave this as an exercise.
 
 ### The asymptotic distribution
 
 In the inviscid and deterministic case, the Langevin equation reads
 ```math
-    m \ddot x_t = - \nabla U(x_t),
+    m \ddot x_t = - m \nabla U(x_t),
 ```
 and the level sets
 ```math
@@ -278,7 +443,7 @@ and the level sets
 ```
 of the *total energy* are invariant by the solution group. In the viscous deterministic case
 ```math
-    m \ddot x_t = - \mu \dot x_t - \nabla U(x_t),
+    m \ddot x_t = - a\mu \dot x_t - m\nabla U(x_t),
 ```
 the solutions tend to the equilibria states $\min_x U(x)$, or more precisely to the variety
 ```math
