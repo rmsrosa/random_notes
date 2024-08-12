@@ -861,7 +861,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_uniform_simple, data, tst
 ```
 
 ```@setup ddpmscorematching
-function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
+function train(tstate, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
     loss = first(loss_function_uniform_simple(model, ps, st, data))
