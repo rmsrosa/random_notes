@@ -315,7 +315,7 @@ Lux.Training.compute_gradients(vjp_rule, loss_function_mdsm, data, tstate_org)
 
 Here is the typical main training loop suggest in the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) tutorials, but sligthly modified to save the history of losses per iteration.
 ```@example multipledenoisingscorematching
-function train(tstate::Lux.Experimental.TrainState, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
+function train(tstate, vjp, data, loss_function, epochs, numshowepochs=20, numsavestates=0)
     losses = zeros(epochs)
     tstates = [(0, tstate)]
     for epoch in 1:epochs
