@@ -6,6 +6,7 @@ allpages = [
         "Kernel Density Estimation" => "probability/kernel_density_estimation.md",
     ],
     "Sampling methods" => [
+        "Overview" => "sampling/overview.md",
         "Random number generators" => "sampling/prng.md",
         "Probability integral transform" => "sampling/invFtransform.md",
         "Box-Muller transform" => "sampling/box_muller.md",
