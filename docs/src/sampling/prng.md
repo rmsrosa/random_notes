@@ -1,9 +1,5 @@
 # Pseudo random number generators (PRNGs)
 
-```@meta
-Draft = false
-```
-
 A fundamental task in probability programming is the generation of seemingly random numbers. The starting point is that of a uniform distribution. This is not a trivial problem, though. John von Neumann apparently once said the following
 
 > "Any one who considers arithmetical means of producing random digits is, of course, in a state of sin." - John von Neumann (quoted by D. E. Knuth, in "The Art of Computer Programming II", Addison-Wesley Longman Publishing Co. 1997)
