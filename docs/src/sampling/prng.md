@@ -38,13 +38,11 @@ X[1] = x0
 for i in 2:n
     X[i] = mod( a * X[i-1] + c, m)
 end
-
-plt1 = scatter(1:n, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1)
-
-plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50)
 ```
 
 ```@example prngs
+plt1 = scatter(1:n, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1) # hide
+plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50) # hide
 plot(plt1, plt2, layout = 2, size = (800, 400)) # hide
 ```
 
@@ -59,13 +57,11 @@ X[1] = x0
 for i in 2:m-1
     X[i] = mod( a * X[i-1] + c, m)
 end
-
-plt1 = scatter(1:m-1, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1)
-
-plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50)
 ```
 
 ```@example prngs
+plt1 = scatter(1:m-1, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1) # hide
+plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50) # hide
 plot(plt1, plt2, layout = 2, size = (800, 400)) # hide
 ```
 
@@ -81,13 +77,11 @@ X[1] = x0
 for i in 2:m-1
     X[i] = mod( a * X[i-1] + c, m)
 end
-
-plt1 = scatter(1:m-1, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1)
-
-plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50)
 ```
 
 ```@example prngs
+plt1 = scatter(1:m-1, X, title = "Generated sequence\n(a = $a, c = $c, m = $m)", titlefont = 10, label = false, markersize = 1) # hide
+plt2 = histogram(X, label = false, xaxis = "X", yaxis = "contagem", title = "Histogram", titlefont = 10, bins = 50) # hide
 plot(plt1, plt2, layout = 2, size = (800, 400)) # hide
 ```
 

@@ -1,9 +1,5 @@
 # Rejection sampling method
 
-```@meta
-Draft = false
-```
-
 The **Rejection Sampling** method, or **Acceptance-rejection method,** was proposed by von Neumann (1951). See, for instance, [Liu (2004)](https://doi.org/10.1007/978-0-387-76371-2) and [Gamerman and Lopes (2006)](https://doi.org/10.1201/9781482296426).
 
 ## Setting
