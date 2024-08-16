@@ -1,9 +1,5 @@
 # Langevin sampling
 
-```@meta
-Draft = false
-```
-
 ```@setup scoreandlangevin
 using StatsPlots
 using Random

@@ -2,10 +2,22 @@ using Documenter
 
 allpages = [
     "Random Notes" => "index.md",
-    "Probability" => [
-        "Basic things" => [
-            "probability/kernel_density_estimation.md"
-        ]
+    "Probability Essentials" => [
+        "Kernel Density Estimation" => "probability/kernel_density_estimation.md",
+    ],
+    "Sampling methods" => [
+        "Overview" => "sampling/overview.md",
+        "Random number generators" => "sampling/prng.md",
+        "Probability integral transform" => "sampling/invFtransform.md",
+        "Box-Muller transform" => "sampling/box_muller.md",
+        "Rejection sampling" => "sampling/rejection_sampling.md",
+        "Markov Chain Monte Carlo (MCMC)" => [
+            "Overview" => "sampling/mcmc.md",
+            "Metropolis and Metropolis-Hastings" => "sampling/metropolis.md",
+            "Gibbs sampling" => "sampling/gibbs.md",
+            "Hamiltonian Monte Carlo (HMC)" => "sampling/hmc.md"
+        ],
+        "sampling/langevin_sampling.md",
     ],
     "Bayesian inference" => [
         "Bayes Theory" => [
@@ -13,12 +25,7 @@ allpages = [
             "Bayesian inference" => "bayesian/bayes_inference.md",
             "Bernstein–von Mises theorem" => "bayesian/bernstein_vonmises.md"
         ],
-        "Probabilistic programming" => [
-            "Overview" => "bayesian/probprog.md",
-            "Markov Chain Monte Carlo (MCMC)" => "bayesian/mcmc.md",
-            "Gibbs sampling" => "bayesian/gibbs.md",
-            "Hamiltonian Monte Carlo (HMC)" => "bayesian/hmc.md"
-        ],
+        "Bayesian probabilistic programming" => "bayesian/bayesian_probprog.md",
         "Examples" => [
             "Estimating π via frequentist and Bayesian methods" => "bayesian/find_pi.md",
             "Many Ways to Linear Regression" => "bayesian/linear_regression.md",
@@ -30,7 +37,6 @@ allpages = [
         "Score matching" => [
             "Overview" => "generative/overview.md",
             "generative/stein_score.md",
-            "generative/langevin_sampling.md",
             "generative/score_matching_aapo.md",
             "generative/score_matching_neural_network.md",
             "generative/parzen_estimation_score_matching.md",
