@@ -4,7 +4,7 @@
 Draft = false
 ```
 
-The **Rejection Sampling** method, or **Acceptance-rejection method,** was proposed by von Neumann (1951).
+The **Rejection Sampling** method, or **Acceptance-rejection method,** was proposed by von Neumann (1951). See, for instance, [Liu (2004)](https://doi.org/10.1007/978-0-387-76371-2) and [Gamerman and Lopes (2006)](https://doi.org/10.1201/9781482296426).
 
 ## Setting
 
@@ -221,7 +221,7 @@ so we can take
 M = 204
 ```
 
-We can see this bound is a bit tighter than the previous one, but it is still not tight enough as we can see by the high rate of rejection of more than 90%.
+We can see this bound is a bit tighter than the previous one, but it is still not tight enough as we can see by the high rate of rejection of more than 90% (the estimated value is $Z/M \approx 0.0858$).
 ```@setup rejectionsampling
 M = 204
 variance = 2
@@ -273,7 +273,7 @@ We can certainly improve acceptance rate by looking for a tighter bound. A numer
 ```math
     \max_{-6 \leq x \leq 6} \left(\frac{f(x)}{q(x)}\right) \approx 87.5.
 ```
-Using this bound, we more than double the acceptance rate and have a better estimate of the distribution.
+Using this bound, the expected acceptance rate is $Z \approx 17.50 / 88 \approx 0.1989,$ so we more than double the acceptance rate, and we have a better approximation of the distribution.
 
 ```@setup rejectionsampling
 M = 88
@@ -370,4 +370,6 @@ scatter!(accepted_samples, accepted_uniform_samples, markersize=2, label="accept
 
 ## References
 
-1. J. von Neumann, "Various techniques used in connection with random digits. Monte Carlo methods" *Nat. Bureau Standards,* 12 (1951), 36–38.
+1. [Dani Gamerman, Hedibert F. Lopes, "Markov Chain Monte Carlo Stochastic Simulation for Bayesian Inference," Second Edition, Chapman and Hall/CRC, New York, 2006](https://doi.org/10.1201/9781482296426)
+1. [Jun S. Liu, "Monte Carlo Strategies in Scientific Computing," Springer Series in Statistics, Springer-Verlag New York 2004](https://doi.org/10.1007/978-0-387-76371-2)
+1. John von Neumann, "Various techniques used in connection with random digits. Monte Carlo methods" *Nat. Bureau Standards,* 12 (1951), 36–38.
