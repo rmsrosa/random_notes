@@ -97,7 +97,7 @@ Let us draw samples from a synthetic distribution with density proportional to a
     f(x) = (3x^3 + 2x^2 - 4x)^2e^{-x^2}.
 ```
 ```@setup rejectionsampling
-using Plots
+using StatsPlots
 using Random
 using Distributions
 
