@@ -23,7 +23,7 @@ The sequence is, necessarily, periodic and generates at most $m-1$ different num
 
 Compare, for instance, the two cases below
 ```@setup prngs
-using Plots
+using StatsPlots
 
 a = 8
 c = 1
