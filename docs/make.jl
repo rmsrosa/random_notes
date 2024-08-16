@@ -8,9 +8,14 @@ allpages = [
     "Sampling methods" => [
         "Overview" => "sampling/overview.md",
         "Random number generators" => "sampling/prng.md",
-        "Probability integral transform" => "sampling/invFtransform.md",
-        "Box-Muller transform" => "sampling/box_muller.md",
-        "Rejection sampling" => "sampling/rejection_sampling.md",
+        "Transform methods" => [
+            "Probability integral transform" => "sampling/invFtransform.md",
+            "Box-Muller transform" => "sampling/box_muller.md",
+        ],
+        "Accept-Reject methods" => [
+            "Rejection sampling" => "sampling/rejection_sampling.md",
+            "Empirical supremum rejection sampling" => "sampling/empiricalsup_rejection.md"
+        ],
         "Markov Chain Monte Carlo (MCMC)" => [
             "Overview" => "sampling/mcmc.md",
             "Metropolis and Metropolis-Hastings" => "sampling/metropolis.md",
