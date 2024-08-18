@@ -21,14 +21,11 @@ Under this setting, we obtain samples of $X$ by sampling from $X'$ and accepting
 
 1. Start with an educated guess $C$ to hopefully bound $f(x)$ by $Cq(x).$
 1. Draw a sample $x'$ of $X',$ which we call a *candidate sample;*
-2. Compute the *acceptance ratio* $r(x', C),$ where
-```math
-    r(x, C) = \frac{f(x)}{Cq(x)}.
-```
+2. Compute the *acceptance ratio* $r(x', C),$ where $r(x, C) = \frac{f(x)}{Cq(x)}.$
 3. Draw a sample $u$ from the uniform distribution $\operatorname{Uniform}(0, 1).$
 4. Accept/reject-update step:
-    a. If $u \leq r(x'),$ accept the sample $x'$ as a sample $x=x'$ of the desired random variable $X;$
-    b. Otherwise, if $u > r(x'),$ reject the sample $x',$ check whether $r(x') > 1,$ in which case the multiplicative factor $C$ is updated by $C=f(x')/q(x'),$ and then repeat the process drawing a new candidate and so on, until a candidate sample is accepted.
+    1. If $u \leq r(x'),$ accept the sample $x'$ as a sample $x=x'$ of the desired random variable $X;$
+    2. Otherwise, if $u > r(x'),$ reject the sample $x',$ check whether $r(x') > 1,$ in which case the multiplicative factor $C$ is updated by $C=f(x')/q(x'),$ and then repeat the process drawing a new candidate and so on, until a candidate sample is accepted.
 5. Repeat for as many samples as desired.
 
 ## References

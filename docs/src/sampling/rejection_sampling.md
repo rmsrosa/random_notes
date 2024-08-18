@@ -26,8 +26,8 @@ Under this setting, we obtain samples of $X$ by sampling from $X'$ and accepting
 ```
 3. Draw a sample $u$ from the uniform distribution $\operatorname{Uniform}(0, 1).$
 4. Accept/reject step:
-    a. If $u \leq r(x'),$ accept the sample $x'$ as a sample $x=x'$ of the desired random variable $X;$
-    b. otherwise, if $u > r(x'),$ reject the sample $x'$ and repeat the process drawing a new candidate and so on, until a candidate sample is accepted.
+    1. If $u \leq r(x'),$ accept the sample $x'$ as a sample $x=x'$ of the desired random variable $X;$
+    2. otherwise, if $u > r(x'),$ reject the sample $x'$ and repeat the process drawing a new candidate and so on, until a candidate sample is accepted.
 5. Repeat for as many samples as desired.
 
 How do you check that this really yields samples of $X?$
