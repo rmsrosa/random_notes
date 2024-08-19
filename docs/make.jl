@@ -19,6 +19,7 @@ allpages = [
         "Markov Chain Monte Carlo (MCMC)" => [
             "Overview" => "sampling/mcmc.md",
             "Metropolis and Metropolis-Hastings" => "sampling/metropolis.md",
+            "Convergence of Metropolis-Hastings" => "sampling/convergence_metropolis.md",
             "Gibbs sampling" => "sampling/gibbs.md",
             "Hamiltonian Monte Carlo (HMC)" => "sampling/hmc.md"
         ],
