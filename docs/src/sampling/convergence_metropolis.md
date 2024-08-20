@@ -25,7 +25,7 @@ We need to clarify some terminology first. We start with the notion of ${\tilde 
         {\tilde P}(E) > 0 \Longrightarrow \sum_{n\in \mathcal{N}} A_n(x, E) > 0, \quad \forall x\in \mathcal{X}.
     ```
 
-Since the summation is countable, this is equivalent to assuming that, for any measurable set $E$ with $P$-positive measure $P(E) > 0$ and any $x\in \mathcal{X},$ there exists $n=n(E, x) \in\mathcal{N}$ such that $A_n(x, E) > 0.$ This means that any measureable set with positive measure is eventually reached, with positive measure, starting from any point in $\mathcal{X}.$
+Since the summation is countable, this is equivalent to assuming that, for any measurable set $E$ with $P$-positive measure $P(E) > 0$ and any $x\in \mathcal{X},$ there exists $n=n(E, x) \in\mathcal{N}$ such that $A_n(x, E) > 0.$ This means that any measurable set with positive measure is eventually reached, with positive measure, starting from any point in $\mathcal{X}.$
 
 For the aperiodicity, we need the concept of *small set.* (see Section 5.2, page 102, of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)).
 
@@ -35,22 +35,13 @@ For the aperiodicity, we need the concept of *small set.* (see Section 5.2, page
         A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E).
     ```
 
-With that, we have the definition of aperiodicity.
-
-!!! note "Definition (aperiodic chain)"
-    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ Then, the chain is called **aperiodic** when, for some small set $C$ with ${\tilde p}(C) > 0,$ the greatest common divisor of all the integers $n\in\mathbb{N}$ such that
-    ```math
-        A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E),
-    ```
-    is $1.$
-
 The motivation behind this notion is that we can normalize $\nu(E)$ to a probability distribution $M(E) = \nu(E \cap C) / \nu(C)$ and write
 ```math
     A_n(x, E) = M(E) + K_n(x, E), \quad \forall E\in\mathcal{B}(\mathcal{X}),
 ```
 where $K_n(x, E) = M(E) + A_n(x, E),$ and we see that $M$ is a distribution that does not depend on the initial point $x.$ This allows us to get some uniform bounds. But that does not give us much intuition to why it is called a small set, or in what sense that would be small. This can be illustrated by a random walk example $X_{n+1} = X_n + W_n,$ where $W_n \sim \mathcal{N}(0, 1)$ (see e.g. pg 11 of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)). If we take a set $C_r=[-r, r],$ where $r > 0,$ then, for each $x\in C,$ the PDF $\mathcal{N}(y; x, 1) = e^{-(x - y)^2/2}/\sqrt{2\pi},$ $y\in\mathbb{R},$ of the normal distribution $\mathcal{N}(x, 1)$ with mean $x$ and variance $1$ is such that
 ```math
-    \mathcal{N}(y; x, 1) \geq \mathcal{N}(2r, 0, 1) = \frac{1}{\sqrt{2\pi}}e^{-2r^2}, \quad \forall x\in C_r = [-r, r].
+    \mathcal{N}(y; x, 1) \geq \mathcal{N}(2r; 0, 1) = \frac{1}{\sqrt{2\pi}}e^{-2r^2}, \quad \forall x\in C_r = [-r, r].
 ```
 Thus, if we take $\nu_r$ to be the uniform distribution over $C_r$ and noticing that the Lebesgue measure of $C_r$ is $2r$ and that $\mathcal{A}(x, \cdot) = \mathcal{N}(x, 1)$ is the transition probability of this random walk, we have
 ```math
@@ -86,6 +77,15 @@ end
 ```@example smallset
 plot(plts..., layout=(3, 1), size=(600, 900)) # hide
 ```
+
+With the notion of small set, we have the definition of aperiodicity.
+
+!!! note "Definition (aperiodic chain)"
+    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ Then, the chain is called **aperiodic** when, for some small set $C$ with ${\tilde p}(C) > 0,$ the greatest common divisor of all the integers $n\in\mathbb{N}$ such that
+    ```math
+        A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E),
+    ```
+    is $1.$
 
 ## Metropolis-Hastings properties
 
