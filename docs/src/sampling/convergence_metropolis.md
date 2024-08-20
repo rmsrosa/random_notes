@@ -1,6 +1,12 @@
 # Convergence of the Metropolis-Hastings method
 
-The convergence of the Metropolis-Hastings and Gibbs MCMC methods were proved in the early 1990's in a number of articles, under reasonable assumptions. The rate of convergence, however, can be either sub-exponential (a.k.a. sub-geometric) or exponential (geometric), depending on the assumptions. These convergences are based on classical conditions of stability of Markov Chains. We will follow here the paper [Mengersen & Tweedie (1996)](https://doi.org/10.1214/aos/1033066201) and the second edition of the classic book [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630) (the first edition [Meyn & Tweeedie (1993)](https://doi.org/10.1007/978-1-4471-3267-7) was published a few years before the article).
+```@meta
+Draft = false
+```
+
+The convergences of the Metropolis-Hastings and Gibbs MCMC methods were proved in the early 1990's, in a number of articles, under reasonable assumptions. The rate of convergence, however, can be either sub-exponential (a.k.a. sub-geometric) or exponential (geometric), depending on the assumptions. These convergences are based on classical conditions of stability of Markov Chains. We will follow here the paper [Mengersen & Tweedie (1996)](https://doi.org/10.1214/aos/1033066201) and the second edition of the classic book [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630) (the first edition [Meyn & Tweeedie (1993)](https://doi.org/10.1007/978-1-4471-3267-7) was published a few years before the article).
+
+## Fundamental Markov chain concepts
 
 The fundamental result, for Markov chains, that we use here is the following
 
@@ -24,19 +30,64 @@ Since the summation is countable, this is equivalent to assuming that, for any m
 For the aperiodicity, we need the concept of *small set.* (see Section 5.2, page 102, of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)).
 
 !!! note "Definition (small set)"
-    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ A set $C$ is called a **small set** if there exist $n\in\mathbb{N}$ and some measure $\nu$ carried by $C,$
+    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ A set $C$ is called a **small set** if there exist $n\in\mathbb{N}$ and some measure $\nu$ carried by $C$ such that
     ```math
-        A_n(x, E) \geq \delta \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E).
+        A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E).
     ```
 
 With that, we have the definition of aperiodicity.
 
-!!! note "Definition (aperiodic chain)
-    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ Then, the chain is called **aperiodic** when, for some small set $C$ with ${\tilde p}(C) > 0,$ the greatest common divisor of all the $n$ such that
+!!! note "Definition (aperiodic chain)"
+    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ Then, the chain is called **aperiodic** when, for some small set $C$ with ${\tilde p}(C) > 0,$ the greatest common divisor of all the integers $n\in\mathbb{N}$ such that
     ```math
-        A_n(x, E) \geq \delta \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E),
+        A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E),
     ```
     is $1.$
+
+The motivation behind this notion is that we can normalize $\nu(E)$ to a probability distribution $M(E) = \nu(E \cap C) / \nu(C)$ and write
+```math
+    A_n(x, E) = M(E) + K_n(x, E), \quad \forall E\in\mathcal{B}(\mathcal{X}),
+```
+where $K_n(x, E) = M(E) + A_n(x, E),$ and we see that $M$ is a distribution that does not depend on the initial point $x.$ This allows us to get some uniform bounds. But that does not give us much intuition to why it is called a small set, or in what sense that would be small. This can be illustrated by a random walk example $X_{n+1} = X_n + W_n,$ where $W_n \sim \mathcal{N}(0, 1)$ (see e.g. pg 11 of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)). If we take a set $C_r=[-r, r],$ where $r > 0,$ then, for each $x\in C,$ the PDF $\mathcal{N}(y; x, 1) = e^{-(x - y)^2/2}/\sqrt{2\pi},$ $y\in\mathbb{R},$ of the normal distribution $\mathcal{N}(x, 1)$ with mean $x$ and variance $1$ is such that
+```math
+    \mathcal{N}(y; x, 1) \geq \mathcal{N}(2r, 0, 1) = \frac{1}{\sqrt{2\pi}}e^{-2r^2}, \quad \forall x\in C_r = [-r, r].
+```
+Thus, if we take $\nu_r$ to be the uniform distribution over $C_r$ and noticing that the Lebesgue measure of $C_r$ is $2r$ and that $\mathcal{A}(x, \cdot) = \mathcal{N}(x, 1)$ is the transition probability of this random walk, we have
+```math
+    \mathcal{A}(x, \cdot) \geq \delta_r \nu_r(\cdot), \quad \delta_r = \frac{2r}{\sqrt{2\pi}}e^{-r^2}.
+```
+The value of $\delta_r$ has its maximum at $r = \pm \sqrt{2}{2},$ decreasing to zero either as we increase $r$ towards $\infty$ or decrease it towards zero. In a sense, $\delta_r\nu_r(C_r)$ is small, regardless of $r > 0.$
+
+```@setup smallset
+using Plots
+
+f(x) = exp(-x^2/2) / sqrt(2π)
+
+yy = -4:0.01:4
+
+plts = []
+
+for r in (0.2, 0.5, 1.0)
+    δ = exp(-2r^2) / sqrt(2π)
+    g(y) = δ * (abs(y) ≤ r)
+
+
+    plt = plot(xaxis="\$y\$", ylims=(-0.01, 0.5), title="transition densities \$y \\mapsto a(x, y)\$ for \$x\\in C_r=[-r, r]\$, where \$r=$(r)\$\nand plot of \$\\delta_r\\chi_{C_r}(y)\$", titlefont=10, legend=false)
+
+    for x in -r:0.04:r
+        plot!(plt, yy, y -> f(y - x), color=1)
+    end
+
+    plot!(plt, yy, g, color=2, fill=true)
+    push!(plts, plt)
+end
+```
+
+```@example smallset
+plot(plts..., layout=(3, 1), size=(600, 900)) # hide
+```
+
+## Metropolis-Hastings properties
 
 With these definitions in mind and with the results above, we check that the Metropolis-Hastings chain is $p$-irreducible and aperiodic and, thus, it convergences, in total variation, to the desired distribution $p,$ when $n\rightarrow \infty.$
 
