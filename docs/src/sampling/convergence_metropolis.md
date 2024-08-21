@@ -30,24 +30,28 @@ Since the summation is countable, this is equivalent to assuming that, for any m
 For the aperiodicity, we need the concept of *small set.* (see Section 5.2, page 102, of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)).
 
 !!! note "Definition (small set)"
-    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ A set $C$ is called a **small set** if there exist $n\in\mathbb{N}$ and some measure $\nu$ carried by $C$ such that
+    Let $(X_n)_n$ be a Markov chain with $n$-transition probability $A_n(x, \cdot).$ A set $C$ is called a **small set** if there exist $n\in\mathbb{N},$ $\delta > 0,$ and a probability measure $\nu$ such that
     ```math
-        A_n(x, E) \geq \nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E).
+        A_n(x, E) \geq \delta\nu(E), \quad \forall x\in E, \;\forall E\in\mathcal{B}(E).
     ```
 
-The motivation behind this notion is that we can normalize $\nu(E)$ to a probability distribution $M(E) = \nu(E \cap C) / \nu(C)$ and write
+Equivalently, some authors take $\delta = 1$ and ask $\nu$ to be a nontrivial measure, without necessarily being normalized to a probability measure.
+
+The motivation behind this notion is that we can write
 ```math
-    A_n(x, E) = M(E) + K_n(x, E), \quad \forall E\in\mathcal{B}(\mathcal{X}),
+    A_n(x, E) = \delta\nu(E) + (1-\delta)K_n(x, E), \quad \forall E\in\mathcal{B}(\mathcal{X}),
 ```
-where $K_n(x, E) = M(E) + A_n(x, E),$ and we see that $M$ is a distribution that does not depend on the initial point $x.$ This allows us to get some uniform bounds. But that does not give us much intuition to why it is called a small set, or in what sense that would be small. This can be illustrated by a random walk example $X_{n+1} = X_n + W_n,$ where $W_n \sim \mathcal{N}(0, 1)$ (see e.g. pg 11 of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)). If we take a set $C_r=[-r, r],$ where $r > 0,$ then, for each $x\in C,$ the PDF $\mathcal{N}(y; x, 1) = e^{-(x - y)^2/2}/\sqrt{2\pi},$ $y\in\mathbb{R},$ of the normal distribution $\mathcal{N}(x, 1)$ with mean $x$ and variance $1$ is such that
+where $K_n(x, E) = (A_n(x, E) - \nu(E))/(1-\delta),$ and notice that the $n$-transition probability has a nontrivial portion $\nu$ that does not depend on the initial point $x.$ This allows us to get some uniform bounds.
+
+But that does not give us much intuition to why it is called a small set, or in what sense that would be small. This can be illustrated by a random walk example $X_{n+1} = X_n + W_n,$ where $W_n \sim \mathcal{N}(0, 1)$ (see e.g. pg 11 of [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630)). If we take a set $C_r=[-r, r],$ where $r > 0,$ then, for each $x\in C,$ the PDF $\mathcal{N}(y; x, 1) = e^{-(x - y)^2/2}/\sqrt{2\pi},$ $y\in\mathbb{R},$ of the normal distribution $\mathcal{N}(x, 1)$ with mean $x$ and variance $1$ is such that
 ```math
     \mathcal{N}(y; x, 1) \geq \mathcal{N}(2r; 0, 1) = \frac{1}{\sqrt{2\pi}}e^{-2r^2}, \quad \forall x\in C_r = [-r, r].
 ```
-Thus, if we take $\nu_r$ to be the uniform distribution over $C_r$ and noticing that the Lebesgue measure of $C_r$ is $2r$ and that $\mathcal{A}(x, \cdot) = \mathcal{N}(x, 1)$ is the transition probability of this random walk, we have
+Thus, if we take $\nu_r$ to be the uniform distribution over $C_r,$ and noticing that the Lebesgue measure of $C_r$ is $2r$ and that $\mathcal{A}(x, \cdot) = \mathcal{N}(x, 1)$ is the transition probability of this random walk, we have
 ```math
     \mathcal{A}(x, \cdot) \geq \delta_r \nu_r(\cdot), \quad \delta_r = \frac{2r}{\sqrt{2\pi}}e^{-r^2}.
 ```
-The value of $\delta_r$ has its maximum at $r = \pm \sqrt{2}{2},$ decreasing to zero either as we increase $r$ towards $\infty$ or decrease it towards zero. In a sense, $\delta_r\nu_r(C_r)$ is small, regardless of $r > 0.$
+The value of $\delta_r$ has its maximum at $r = \pm \sqrt{2}{2},$ decreasing to zero either as we increase $r$ towards $\infty$ or decrease it towards zero. In a sense, $\delta_r\nu_r(\cdot)$ is small, regardless of $r > 0.$
 
 ```@setup smallset
 using Plots
