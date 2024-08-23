@@ -1,5 +1,9 @@
 # Rejection sampling method
 
+```@meta
+Draft = false
+```
+
 The **Rejection Sampling** method, or **Acceptance-rejection method,** was proposed by von Neumann (1951). See, for instance, [Liu (2004)](https://doi.org/10.1007/978-0-387-76371-2) and [Gamerman and Lopes (2006)](https://doi.org/10.1201/9781482296426).
 
 ## Setting
@@ -110,7 +114,7 @@ xx = -6:0.01:6
 ```
 
 ```@example rejectionsampling
-plot(xx, f, title="Plot of \$f(x)\$", titlefont=10, linewidth=2, legend=false) # hide
+plot(xx, f, title="Plot of \$f(x)\$", titlefont=10, linewidth=2, xlims=(-6,6), legend=false) # hide
 ```
 
 One can actually compute the normalizing constant we can write
@@ -148,9 +152,9 @@ p(x) = f(x) / Z
 ```
 
 ```@example rejectionsampling
-plot(title="Plots of PDF \$p\$ and proportional function \$f\$ of desired distribution", titlefont=10) # hide
-plot!(xx, f, linewidth=2, label="f") # hide
-plot!(xx, p, linewidth=2, label="pdf") # hide
+plot(title="Plots of PDF \$p\$ and proportional function \$f\$ of desired distribution", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
+plot!(xx, f, label="f") # hide
+plot!(xx, p, label="pdf") # hide
 ```
 
 Now we need a bound with respect to the density of an easy distribution to sample. We may take $X'$ to be the standard normal distribution, for which the density is
@@ -188,7 +192,7 @@ g(x) = M * q(x)
 ```
 
 ```@example rejectionsampling
-plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10) # hide
+plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 plot!(xx, f, label="\$f(x)\$") # hide
 plot!(xx, g, label="\$Mq(x)\$") # hide
 ```
@@ -227,7 +231,7 @@ g(x) = M * q(x)
 ```
 
 ```@example rejectionsampling
-plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10) # hide
+plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 plot!(xx, f, label="\$f(x)\$") # hide
 plot!(xx, g, label="\$Mq(x)\$") # hide
 ```
@@ -242,15 +246,15 @@ accepted_samples = [x for (x,a) in zip(proposed_samples, acceptance_flag) if a]
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10) # hide
+plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(proposed_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, q, linewidth=2, label="pdf") # hide
+plot!(xx, q, label="pdf") # hide
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10) # hide
+plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(accepted_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, p, linewidth=2, label="pdf") # hide
+plot!(xx, p, label="pdf") # hide
 ```
 
 ```@setup rejectionsampling
@@ -258,9 +262,9 @@ accepted_uniform_samples = [u for (u,a) in zip(uniform_samples, acceptance_flag)
 ```
 
 ```@example rejectionsampling
-plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10) # hide
-plot!(xx, x -> f(x) / maximum(f.(xx)), linewidth=2, alpha=0.5, label="f/max(f)") # hide
-plot!(xx, x -> f(x) / g(x), linewidth=2, label="ratio") # hide
+plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
+plot!(xx, x -> f(x) / maximum(f.(xx)), alpha=0.5, label="f/max(f)") # hide
+plot!(xx, x -> f(x) / g(x), label="ratio") # hide
 scatter!(proposed_samples, uniform_samples, markersize=2, alpha=0.2, label="uniform") # hide
 scatter!(accepted_samples, accepted_uniform_samples, markersize=2, label="accepted") # hide
 ```
@@ -277,7 +281,7 @@ g(x) = M * q(x)
 ```
 
 ```@example rejectionsampling
-plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10) # hide
+plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 plot!(xx, f, label="\$f(x)\$") # hide
 plot!(xx, g, label="\$Mq(x)\$") # hide
 ```
@@ -292,15 +296,15 @@ accepted_samples = [x for (x,a) in zip(proposed_samples, acceptance_flag) if a]
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10) # hide
+plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(proposed_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, q, linewidth=2, label="pdf") # hide
+plot!(xx, q, label="pdf") # hide
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10) # hide
+plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(accepted_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, p, linewidth=2, label="pdf") # hide
+plot!(xx, p, label="pdf") # hide
 ```
 
 ```@setup rejectionsampling
@@ -308,9 +312,9 @@ accepted_uniform_samples = [u for (u,a) in zip(uniform_samples, acceptance_flag)
 ```
 
 ```@example rejectionsampling
-plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10) # hide
-plot!(xx, x -> f(x) / maximum(f.(xx)), linewidth=2, alpha=0.5, label="f/max(f)") # hide
-plot!(xx, x -> f(x) / g(x), linewidth=2, label="ratio") # hide
+plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
+plot!(xx, x -> f(x) / maximum(f.(xx)), alpha=0.5, label="f/max(f)") # hide
+plot!(xx, x -> f(x) / g(x), label="ratio") # hide
 scatter!(proposed_samples, uniform_samples, markersize=2, alpha=0.2, label="uniform") # hide
 scatter!(accepted_samples, accepted_uniform_samples, markersize=2, label="accepted") # hide
 ```
@@ -326,7 +330,7 @@ g(x) = M * q(x)
 ```
 
 ```@example rejectionsampling
-plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10) # hide
+plot(title="Plot of \$f(x)\$ and \$Mq(x)\$", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 plot!(xx, f, label="\$f(x)\$") # hide
 plot!(xx, g, label="\$Mq(x)\$") # hide
 ```
@@ -340,16 +344,16 @@ accepted_samples = [x for (x,a) in zip(proposed_samples, acceptance_flag) if a]
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10) # hide
+plot(title="histogram of proposed samples and PDF of proposal random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(proposed_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, q, linewidth=2, label="pdf") # hide
+plot!(xx, q, label="pdf") # hide
 vline!([mu], label="mean")
 ```
 
 ```@example rejectionsampling
-plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10) # hide
+plot(title="histogram of accepted samples and PDF of desired random variable", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 histogram!(accepted_samples, normalize=:pdf, bins=40, label="histogram") # hide
-plot!(xx, p, linewidth=2, label="pdf") # hide
+plot!(xx, p, label="pdf") # hide
 ```
 
 ```@setup rejectionsampling
@@ -357,9 +361,9 @@ accepted_uniform_samples = [u for (u,a) in zip(uniform_samples, acceptance_flag)
 ```
 
 ```@example rejectionsampling
-plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10) # hide
+plot(title="comparison of all uniform values and accepted ones\nacceptance ratio: $(round(sum(accepted_samples)/num_proposals, sigdigits=2))", titlefont=10, linewidth=2, xlims=(-6,6)) # hide
 plot!(xx, x -> f(x) / maximum(f.(xx)), linewidth=2, alpha=0.5, label="f/max(f)") # hide
-plot!(xx, x -> f(x) / g(x), linewidth=2, label="ratio") # hide
+plot!(xx, x -> f(x) / g(x), label="ratio") # hide
 scatter!(proposed_samples, uniform_samples, markersize=2, alpha=0.2, label="uniform") # hide
 scatter!(accepted_samples, accepted_uniform_samples, markersize=2, label="accepted") # hide
 ```
