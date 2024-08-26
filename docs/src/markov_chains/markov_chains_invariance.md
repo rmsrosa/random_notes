@@ -18,9 +18,9 @@ A Markov chain may or may not have an invariant distribution and it may have a u
 
 ### A two-state Markov chain
 
-Let $\mathcal{X} = \{1, 2\}$ and consider the Markov chain characterized by the transition distribution
+Let $\mathcal{X} = \{1, 2\}$ and consider the Markov chain characterized by the one-step transition distribution
 ```math
-    K_1 = (K_1(i, j))_{i,j=1}^2 = \begin{bmatrix}
+    K = (K(i, j))_{i,j=1}^2 = \begin{bmatrix}
         1 - \alpha & \alpha \\
         \beta & 1 - \beta
     \end{bmatrix},
@@ -61,7 +61,7 @@ In the finite-state case, we always have at least one invariant probability dist
 
 Consider a random walk $X_n = X_n + W_n,$ on $\mathcal{X} = \mathbb{N},$ where the $W_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $0$ or $+1.$ This means the one-step transition probability is
 ```math
-    K_1(i, j) = \frac{1}{2}\delta_{i, j} + \frac{1}{2}\delta_{i,j-1},
+    K(i, j) = \frac{1}{2}\delta_{i, j} + \frac{1}{2}\delta_{i,j-1},
 ```
 where $\delta_{i,j}$ is the Kroenecker delta, equal to $1,$ when $i=j,$ and to $0,$ otherwise. Thus any sample path has $1/2$ probability of staying at $j=1$ and $1/2$ probability to move from $i$ up to $j=i+1.$ In (infinite-)matrix form, it has both the diagonal and the superdiagonal with entries $1/2$ and all the other entries equal to zero.
 
@@ -77,13 +77,13 @@ so that
 ```math
     \sum_{n\in\mathbb{N}} p_n = \sum_{n\in\mathbb{N}} p_1 = \infty,
 ```
-which makes it impossible to be a probability distribution, with $\sum_{n\in\mathbb{N}} p_n = 1.$ This means the chain admits no invariant probability distribution.
+which makes it impossible to be a probability distribution, with $\sum_{n\in\mathbb{N}} p_n = 1.$ This means the chain admits no invariant probability distribution. The problem here is the fact that we ask the probability to be finite. In fact, the counting measure, or any multiple of it, is an invariant measure, which is not finite. (See the next example, which is similar).
 
 ### A symmetric random walk on the integers
 
-Even if we are allowed to move up or down, we may not have an invariant distribution. Consider, for instance, the random walk $X_n = X_n + W_n,$ on $\mathcal{X} = \mathbb{Z},$ where the $W_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $+1$ or $-1.$ This means the one-step transition probability is
+Even if we are allowed to move up or down, we may not have an invariant probability distribution. Consider, for instance, the random walk $X_n = X_n + W_n,$ on $\mathcal{X} = \mathbb{Z},$ where the $W_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $+1$ or $-1.$ This means the one-step transition probability is
 ```math
-    K_1(i, j) = \frac{1}{2}\delta_{i, j-1} + \frac{1}{2}\delta_{i,j+1},
+    K(i, j) = \frac{1}{2}\delta_{i, j-1} + \frac{1}{2}\delta_{i,j+1},
 ```
 where $\delta_{i,j}$ is the Kroenecker delta, equal to $1,$ when $i=j,$ and to $0,$ otherwise, so it has $1/2$ probability to move from $i$ to $j=i+1$ and $1/2$ probability to move from $i$ to $j=i-1.$ In (infinite-)matrix form, it has both the subdiagonal and superdiagonal with entries $1/2$ and all the other entries equal to zero.
 
@@ -96,3 +96,16 @@ But this equation contradicts the conditions $p_n \geq 0$ and $\sum_n p_n = 1.$ 
     p_m > \frac{p_{m-1} + p_{m+1}}{2},
 ```
 contradicting the inequality above for the stationary distribution. Thus, one cannot have an invariant probability distribution for this Markov chain.
+
+If we look for an invariant measure which is not necessarily finite, then we find out that the *counting distribution* is invariant. In fact, the counting distribution can be written as
+```math
+    P(E) = \sum_{n\in \mathbb{Z}} \delta_n(E),
+```
+where $\delta_n$ is the Dirac distribution at $n,$ i.e. $\delta_n(E) = 1,$ if $n\in E, and $= 0,$ otherwise. Then,
+```math
+    \begin{align*}
+        (PK)(E) & = \sum_{n\in \mathbb{Z}} \frac{1}{2}\left(\delta_{n-1}(E) + \delta_{n+1}(E)\right) = \frac{1}{2}\sum_{n\in \mathbb{N}} \delta_{n-1}(E) + \frac{1}{2}\sum_{n\in\mathbb{N}}\delta_n(E) \\
+        & = \frac{1}{2}\sum_{i\in \mathbb{N}} \delta_{i}(E) + \frac{1}{2}\sum_{i\in\mathbb{N}}\delta_i(E) = \frac{1}{2}P(E) + \frac{1}{2}P(E) = P(E),
+    \end{align*}
+```
+showing that $P$ is invariant (or any constant multiple of $P$).
