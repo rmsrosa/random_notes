@@ -4,7 +4,13 @@ allpages = [
     "Random Notes" => "index.md",
     "Probability Essentials" => [
         "Kernel Density Estimation" => "probability/kernel_density_estimation.md",
-        "probability/markov_chains.md"
+        "Markov chains" => [
+            "probability/markov_chains.md",
+            "probability/markov_chains_invariance.md",
+            "probability/markov_chains_irreducibility_and_recurrence.md",
+            "probability/markov_chains_aperiodicity.md",
+            "probability/markov_chains_convergence_notions.md",
+        ]
     ],
     "Sampling methods" => [
         "Overview" => "sampling/overview.md",
