@@ -1,12 +1,12 @@
-# Markov chains
+# Discrete-time Markov chains
 
-Many important probabilistic models fit the framework of a Markov chain, including the Markov Chain Monte Carlo (MCMC) methods. Here we explore some of its concepts and properties.
+Many important probabilistic models fit the framework of a Markov chain, including the Markov Chain Monte Carlo (MCMC) methods. Here we explore some of its concepts and properties. Markov chains can be indexed with either discrete or continous "time" variables, but here we only consider the discrete-time case.
 
-## Discrete-time Markov chains
+## Definition
 
 Markov chains are families of random variables $(X_n)_{n\in N},$ over an index set $N,$ such that, essentially, only the most recent known state determines the future of the chain. The index set $I$ can be continuous or discrete, but here we are only interested on the discrete case $\mathbb{Z}_{\geq 0} = \{0, 1, 2, \ldots, \},$ or sometimes just $\mathbb{N}=\{1, 2, \ldots, \}.$ The index set is usually referred to as the *time* variable, while the values of the random variables live on a space $\mathcal{X}$ called the *state* or *event* space.
 
-The event space $\mathcal{X}$ can be either discrete (finite or infinite) or continuous. We are mostly interested in the case $\mathcal{X} = \mathbb{R}^d,$ $d\in\mathbb{N},$ but some examples are given with $\mathcal{X} = \{1, \ldots, n\},$ $\mathcal{X}=\mathbb{Z},$ for illustrative purposes. In any case, we always assume it is a topological space
+The event space $\mathcal{X}$ can be either discrete (finite or infinite) or continuous. We are mostly interested in the continuous case $\mathcal{X} = \mathbb{R}^d,$ $d\in\mathbb{N},$ but some examples are given with $\mathcal{X} = \{1, \ldots, n\},$ $\mathcal{X}=\mathbb{Z},$ for illustrative purposes and intuitive assessment. In any case, we always assume it is a topological space, often a metrizable space.
 
 The random variables are functions $X_n:\Omega \rightarrow \mathcal{X}$ which are assumed to be measurable from a probability space $(\Omega, \mathcal{F}, \mathbb{P}),$ with $\sigma$-algebra $\mathcal{F}$ and probability distribution $\mathbb{P},$ to a measurable space, which we take here to be $(\mathcal{X}, \mathcal{B}(\mathcal{X})),$ where $\mathcal{B}(\mathcal{X})$ denotes the Borel $\sigma$-algebra of the topological space $\mathcal{X}.$
 
@@ -14,11 +14,11 @@ In the discrete-time case, the Markov property for the discrete-time process $(X
 ```math
     \mathbb{P}(X_{n+1}|X_0\in E_0, X_1 \in E_1, \ldots, X_n\in E_n) = \mathbb{P}(X_{n+1}|X_n\in E_n),
 ```
-for all Borel sets $E_0, \ldots, E_n.$
+for all Borel sets $E_0, \ldots, E_n.$ The continuos-time version has a similar condition, based on the notion of filtration of a $\sigma$-algebra, but we do not need to consider this in the time-discrete case.
 
 ## Transition probabilities
 
-Markov chains can be described by the transition probabilities.
+Markov chains can be described by transition probabilities. We will define them in both non-homogeneous and homogeneous cases in time, but after that we will only consider the homogeneous case.
 
 ### The non-homogeneous time-discrete case
 
@@ -26,7 +26,7 @@ A Markov chain can be fully characterized by the **transition probabilities**
 ```math
     K_{n, m}(E, F) = \mathbb{P}(X_m\in F|X_n\in E),
 ```
-for any pair  $E, F\subset \mathcal{X}$ of Borel sets, where $n, m = 0, 1, \ldots.$ In particular, we denote
+for any pair $E, F\subset \mathcal{X}$ of Borel sets, where $n, m = 0, 1, \ldots.$ In particular, we denote
 ```math
     K_{n, m}(x, F) = \mathbb{P}(X_{n+1}\in F|X_n = x),
 ```

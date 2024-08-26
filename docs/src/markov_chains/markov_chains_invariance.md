@@ -4,12 +4,17 @@ Of particular interest, for time-homogeneous Markov chains, are the stationary d
 
 ## Definition
 
-More precisely, a distribution $P$ on $\mathcal{X}$ is invariant when $PK = P,$ i.e.
+More precisely, a probability distribution $P$ on $\mathcal{X}$ is **(time-)invariant** or **stationary** for a time-homogenous discrete-time Markov chain $(X_n)_n$ when $P = PK,$ i.e.
 ```math
-    P(E) = \int_{\mathcal{X}} K_1(x, E);\mathrm{d}P(x).
+    P(E) = \int_{\mathcal{X}} K(x, E);\mathrm{d}P(x),
 ```
+where $K(x, E) = K_1(x, E) = K_{n,n+1}(x, E)$ is the one-step transition probability of the Markov chain and the $K$ in the equation $P = PK$ is the associated Markov operator on the space $\mathcal{P}(\mathcal{X})$ of probability distributions on $\mathcal{X}.$
+
+Sometimes it might be useful to consider measures with are not necessarily probability distributions. They may be finite or infinite, and $\sigma$-finite or not. In any case, we call a measure $\mu$ **(time-)invariant** or **stationary** for the Markov chain if $\mu = \mu K.$
 
 ## Examples
+
+A Markov chain may or may not have an invariant distribution and it may have a unique invariant distribution or several ones. This is a main topic of interest in the theory of Markov chains. Below, we give a few examples with these cases of uniqueness, non-uniqueness, and non-existence of invariant probability measures, also called stationary distributions.
 
 ### A two-state Markov chain
 
