@@ -1,5 +1,7 @@
 # Irreducibility and recurrence
 
+Irreducibility is a fundamental concept related to the uniqueness of an invariant measure, when it exists, but it does not necessarily implies that it exists.
+
 ## Irreducibility
 
 A time-homogeneous Markov chain $(X_n)_n$ with $n$-step transition probability $K_n(x, \cdot)$ is called **$P$-irreducible,** with respect to a probability distribution $P,$ if
@@ -14,9 +16,21 @@ The Markov chain is called **strongly $P$-irreducible** when $n(x, E) = 1$ for a
 
 Irreducibility means that any measurable set with positive measure is eventually reached by the chain, with positive probability, starting from any point in $\mathcal{X}.$
 
-## Stopping time and number of passages
+There are several concepts related to irreducibility
 
-Given a Borel set $E\subset \mathcal{X},$ the **stopping time** $\tau_E$ at $E$ of the Markov chain is defined as
+### First return
+
+
+### First return time and stopping time
+
+The integer $n(x, E)$ in the equivalent definition of irreducibility can be taken to be the *first* such integer, which gives the notion of *first return* time. We do not need irreducibility to define the first return as long as we agree that it is infinity when it does not return.
+
+More precisely, given a Borel set $E\subset \mathcal{X}$ and a point $x,$ of a given time-discrete Markov chain $(X_n)_n,$ the **first return** of $x$ to $E$ is defined by
+```math
+    n(x, E) = \inf\left\{n\in\mathcal{N}\cup\{+\infty\}; \; n = \infty or X_n|_{X_0 = x} \in E\right\}.
+```
+
+Given a Borel set $E\subset \mathcal{X},$ the **stopping time** $\tau_E$ at $E$ of the Markov chain is defined to be
 ```math
     \tau_E = \inf\{ n\in\mathbb{N}\cup\{+\infty\}; \; n = +\infty \textrm{ or } X_n\in E\}.
 ```
@@ -27,6 +41,8 @@ The quantity
     P(\tau_E < \infty | X_0 = x)
 ```
 is the *probability of return to $E$ in a finite number of steps.*
+
+### Number of passages
 
 Another useful quantity is the **number of passages** in $E,$
 ```math
