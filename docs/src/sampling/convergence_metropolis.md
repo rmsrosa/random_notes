@@ -4,7 +4,7 @@
 Draft = false
 ```
 
-The convergences of the Metropolis-Hastings and Gibbs MCMC methods were proved in the early 1990's, in a number of articles, under reasonable assumptions. The rate of convergence, however, can be either sub-exponential (a.k.a. sub-geometric) or exponential (geometric), depending on the assumptions. These convergences are based on classical conditions of stability of Markov Chains. We will follow here the paper [Mengersen & Tweedie (1996)](https://doi.org/10.1214/aos/1033066201) and the second edition of the classic book [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630) (the first edition [Meyn & Tweeedie (1993)](https://doi.org/10.1007/978-1-4471-3267-7) was published a few years before the article).
+The convergences of the Metropolis-Hastings and Gibbs MCMC methods were proved in the early 1990's, in a number of articles, under reasonable assumptions. The rate of convergence, however, can be either sub-geometric or geometric, depending on the assumptions. These convergences are based on classical conditions of stability of Markov Chains. We will follow here the paper [Mengersen & Tweedie (1996)](https://doi.org/10.1214/aos/1033066201) and the second edition of the classic book [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630) (the first edition [Meyn & Tweeedie (1993)](https://doi.org/10.1007/978-1-4471-3267-7) was published a few years before the article).
 
 ## Fundamental Markov chain concepts
 
@@ -28,8 +28,30 @@ We start with the notion of ${\tilde P}$-irreducibility (see Section 4.2, page 8
     ```math
         {\tilde P}(E) > 0 \Longrightarrow \sum_{n\in \mathbb{N}} A_n(x, E) > 0, \quad \forall x\in \mathcal{X}.
     ```
+    This is equivalent to assuming that, for all $x\in\mathcal{X}$ and all measurable set $E$ with ${\tilde P}(E) > 0,$ there exists $n(x, E)$ such that $A_n(x, E) > 0.$ The Markov chain is called **strongly ${\tilde P}$-irreducible** when $n(x, E) = 1$ for all such $x$ and $E.$
 
-Since the summation is countable, this is equivalent to assuming that, for any measurable set $E$ with $P$-positive measure $P(E) > 0$ and any $x\in \mathcal{X},$ there exists $n=n(E, x) \in\mathbb{N}$ such that $A_n(x, E) > 0.$ This means that any measurable set with positive measure is eventually reached, with positive measure, starting from any point in $\mathcal{X}.$
+Irreducibility means that any measurable set with positive measure is eventually reached by the chain, with positive probability, starting from any point in $\mathcal{X}.$
+
+The definition of irreversibility can be also be made with the notion of stopping time at a set.
+
+!!! note "Definition (stopping time)"
+    Let $(X_n)_n$ be a Markov chain with transition probability $A_n(x, \cdot).$ Given a measurable set $E\subset \mathcal{X},$ the **stopping time** $\tau_E$ at $E$ of the Markov chain is defined as $\tau_E = \infty,$ if $\tau_E\notin E,$ for all $n\in\mathbb{N},$ or
+    ```math
+        \tau_E = \inf\{n\in\mathbb{N}; \; X_n\in E\},
+    ```
+    otherwise.
+
+Thus, the chain is ${\tilde P}$-irreducible when ${\tilde P}(\tau_E < 0 | X_0 = x) > 0,$ for every $x$ and every ${\tilde P}(E) > 0.$
+
+### Recurrence
+
+${\tilde P}$-Irreducibility implies that any set $E$ of positive ${\tilde P}$-measure is reached, at some step $n(x, E),$ from any point $x$ in space. A stronger property is that of *recurrence,* when the set is visited infinitely often.
+
+!!! note "Recurrence"
+    A Markov chain $(X_n)_n$ with transition probability $A_n(x, \cdot)$ is called **${\tilde P}$-irreducible,** with respect to a probability distribution ${\tilde P},$ if
+    ```math
+        {\tilde P}(E) > 0 \Longrightarrow \sum_{n\in \mathbb{N}} A_n(x, E) > 0, \quad \forall x\in \mathcal{X}.
+    ```
 
 ### Small sets
 
@@ -154,6 +176,10 @@ With the notion of small set, we have the definition of aperiodicity.
 ## Metropolis-Hastings properties
 
 With these definitions in mind and with the results above, we check that the Metropolis-Hastings chain is $p$-irreducible and aperiodic and, thus, it convergences, in total variation, to the desired distribution $p,$ when $n\rightarrow \infty.$
+
+## Further concepts and properties
+
+
 
 ## References
 

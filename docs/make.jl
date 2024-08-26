@@ -4,6 +4,7 @@ allpages = [
     "Random Notes" => "index.md",
     "Probability Essentials" => [
         "Kernel Density Estimation" => "probability/kernel_density_estimation.md",
+        "probability/markov_chains.md"
     ],
     "Sampling methods" => [
         "Overview" => "sampling/overview.md",
