@@ -1,4 +1,4 @@
-# Irreducibility
+# Irreducibility and recurrence in the continuous-space case
 
 Irreducibility is a fundamental concept related to the uniqueness of an invariant measure, when it exists, but it does not necessarily implies that it exists.
 
@@ -55,36 +55,3 @@ Another useful quantity is the random variable for the **number of passages** in
 ### Example 
 
 Alternating chain example (e.g. $X_{n+1} = X_n \pm 2,$, so only even or odd integers are reached, so it is not irreducible). Continuous example (e.g. something like $X_{n+1} = [X_n] \pm [X_n] + 2 + Beta$)
-
-## Irreducibility in the discrete-state case
-
-In the discrete-state case, $P$-irreducibility can be stated with point sets, so that the Markov chain is $P$-irreducible if, and only if,
-```math
-    x, y\in\mathcal{X},\; P(y) > 0 \Longrightarrow \exists n=n(x, y)\in\mathbb{N}, \; K_n(x, y) > 0.
-```
-
-### Positivity of an invariant probability distribution
-
-If a discrete-state Markov chain has an invariant probability distribution $P$ and it is $P$-irreducible, then $P$ must be everywhere strictly positive, i.e. $P(x) > 0,$ for all $x\in \mathcal{X}.$
-
-Indeed, since $P$ is nontrivial, there exists $y\in\mathcal{X}$ such that $P(y) > 0.$ Now, for any $x,$ since the chain is $P$ irreducible, we have $K_n(x, y) > 0,$ for some $n\in\mathbb{N}.$
-
-Since $P$ is invariant, we have $P K_n = P,$ and then
-```math
-    P(x) = \sum_{z\in\mathcal{X}} K_n(z, x) P(z).
-```
-This can be estimated from below by restricting the summation to $z = y,$ so that
-```math
-    P(x) = \sum_{z\in\mathcal{X}} K_n(z, x) P(z) \geq K_n(y, x) P(z) > 0,
-```
-where we used that $K_n(y, x) > 0$ and $P(z) > 0.$ Thus,
-```math
-    P(x) > 0, \quad \forall x\in\mathcal{X},
-```
-showing that $P$ is everywhere strictly positive.
-
-### Uniqueness of the invariant probability distribution
-
-Suppose, again, that we have a finite-state Markov chain with an invariant probability distribution $P$ which is $P$-irreducible. We have just seen that $P$ must be everywhere strictly positive, i.e. $P(x) > 0,$ for all $x\in \mathcal{X}.$ We now use this to show that the invariant probability distribution must be unique.
-
-
