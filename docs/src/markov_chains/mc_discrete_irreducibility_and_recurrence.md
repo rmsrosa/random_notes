@@ -84,6 +84,8 @@ Another useful quantity is the random variable denoting the *number of passages*
         \eta_x = \sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}}.
     ```
 
+Notice we did not include the starting time $n=0$ in the definition. Some authors do, while some others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler(2006)](https://doi.org/10.1201/9781315273600) does).
+
 When $x$ is connected to $y,$ there is a positive probability that there is at least one passage from $x$ to $y,$ i.e. $\eta_y \geq 1$ is greater than one, with positive probability. Thus, we have the following equivalences.
 
 !!! note "Fact"
@@ -101,8 +103,8 @@ When the chain is irreducible, every state is attainable from anywhere, includin
 
 More precisely, we have the following definition.
 
-!!! note "Definition (recurrent state)"
-    a state $x$ is called **recurrent** when
+!!! note "Definition (recurrent and transient states)"
+    A state $x$ is called **recurrent** when
     ```math
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1.
     ```
@@ -111,7 +113,95 @@ More precisely, we have the following definition.
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) < 1.
     ```
 
-But it turns out that when this probability is smaller than 1, its is actually zero, as we will see at some point.
+Equivalent definitions of recurrence can be made with the notions of number of passages and return time. In that regard, we have the following result, which we borrow, essentially, from [Lawler(2006)](https://doi.org/10.1201/9781315273600), except that we do not include the time $n=0$ in the number of passages, so the formula is slightly different.
+
+!!! note "Theorem"
+    For any state $x\in\mathcal{X},$ we have
+    ```math
+        x \textrm{ is recurrent } \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) = 1 \quad \Longleftrightarrow \quad \mathbb{E}[\eta_x | X_0 = x] = \infty,
+    ```
+    and
+    ```math
+        x \textrm{ is transient } \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) < 1 \quad \Longleftrightarrow \quad \mathbb{E}[\eta_x | X_0 = x] < \infty.
+    ```
+    Moreover, we have the relation
+    ```math
+        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{\left( 1 - \mathbb{P}(\tau_x < \infty | X_0 = x) \right)^2},
+    ```
+    with the understanding that the left hand side is infinite wen the probability in the right hand side is 1.
+    
+!!! note "Proof"
+    We have that $\tau_x = \infty$ iff $X_n$ never returns to $x.$ If $\tau_x < \infty,$ then it returns to $x$ in finite time at least once. If $\tau_x < \infty$ with probability one, then, with probability one, it will return again and again to $x,$ still with probability one, since the countable intersection of sets of full measure still has full measure. Thus,
+    ```math
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1 \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) = 1.
+    ```
+    This proves that $x$ is recurrent if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) = 1,$ which is the first part of the equivalence in the recurrence case. The complement of that is precisely that $x$ is transient if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) < 1.$
+
+    For the remaining equivalences, let us suppose, first, that $x$ is transient. Then, as we have seen,
+    ```math
+        q = \mathbb{P}(\tau_x < \infty | X_0 = x) < 1.
+    ```
+    We compute the expectation of the number of passages by
+    ```math
+        \begin{align*}
+            \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[ \sum_{n=1}^\infty \mathbb{1}_{X_n = x} \bigg| X_0 = x\right] = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{X_n = x} \bigg| X_0 = x\right] \\
+            & = \sum_{n=1}^\infty \mathbb{P}(X_n = x | X_0 = x) = \sum_{n=1}^\infty p_n(x, x).
+        \end{align*}
+    ```
+    We can also compute this in a different way. Since $\eta_x$ is always an integer, its expectation is given by
+    ```math
+        \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m \mathbb{P}(\eta_x = m | X_0 = x).
+    ```
+    We need a way to calculate $\mathbb{P}(\eta_x = m | X_0 = x),$ for each integer $m\in\mathbb{N}.$ When $\eta_x = m,$ it means it returns to $x$ $m$ times and then it does not return anymore. This means that $\mathbb{P}(\eta_x = m | X_0 = x) = q^m.$ Thus,
+    ```math
+        \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m q^m.
+    ```
+    Let $S = \sum_{m=1}^\infty m q^m,$ so that $qS = \sum_{m=1}^\infty m q^{m+1} = \sum_{m=2}^\infty (m-1)q^m,$ and hence
+    ```math
+        (1 - q)S = S - qS = q + \sum_{m=1}^\infty q^m = \sum_{m=1}^\infty q^m = \frac{q}{1 - q}.
+    ```
+    Thus, $S = q / (1 - q)^2,$ which means
+    ```math
+        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{\left(1 - \mathbb{P}(\tau_x < \infty | X_0 = x)\right)^2}.
+    ```
+    (In [Lawler(2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q)^2.$)
+    
+    When
+    ```math
+        q = \mathbb{P}(\tau_x < \infty | X_0 = x) = 1,
+    ```
+    then
+    ```math
+        \mathbb{P}(\tau_x < \infty | X_0 = x) \geq r,
+    ```
+    for any $0 < r < 1,$ and we get, similarly, that
+    ```math
+        \mathbb{E}[\eta_x | X_0 = x] \geq \sum_{m=1}^\infty m r^m = \frac{r}{(1 - r)} \rightarrow \infty,
+    ```
+    as $r \rightarrow 1,$ so that $\mathbb{E}[\eta_x | X_0 = x] = \infty.$
+    
+    This proves the identity between the expectation and the probability. In particular, the expectation is finite if, and only if, the probability is strictly less than one, which proves the remaining equivalences.
+
+These equivalences are true, in general, only in the countable case; see page 222 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2).
+
+Another important aspect is that, when the probability of returning infinitely often is smaller than 1, its is actually zero.
+
+!!! note "Fact"
+    If $x$ is a transient state, then, in fact,
+    ```math
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0.
+    ```
+
+In the countable-space case that we are considering, an equivalent definition of recurrence can be made with the notion of return time.
+
+
+Another equivalent definition of recurrence can be made with the notion number of passages. Indeed, when the chain keeps coming back infinitely often to a state $x,$ counting such times adds up to infinity. When this happens with probability one or even with positive probability, then the expectation of such counts is also infinite. On the other hand, if $x$ is transient, then, in fact, $\mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0,$ so $\eta_x$ is finite almost surely, but that doesn't quise say that its expectation is finite. However, it is true, somehow, that we have the following equivalence.
+
+!!! note "Fact"
+    A state $x$ is recurrent if, and only if,
+    ```math
+        \mathbb{E}\left[\eta_x\right | X_0 = x] = \infty.
+    ```
 
 When every state is recurrent we say that the chain is recurrent.
 
@@ -119,20 +209,6 @@ When every state is recurrent we say that the chain is recurrent.
     The Markov chain is called **recurrent** when every state is recurrent, i.e.
     ```math
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1, \quad \forall x\in\mathcal{X}.
-    ```
-
-Equivalent definitions can be made with the notion of return time.
-```math
-    \mathbb{P}(\tau_x < \infty | X_0 = x) = 1,
-```
-for every $x\in\mathcal{X}.$ This means that, starting from any $x\in\mathcal{X},$ the chain almost surely returns to $x$ in finite time. (But this is equivalent to recurrence only in the countable case; see page 222 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2).)
-
-When it keeps coming back infinitely often, counting such times adds up to infinity. When this happens with probability one, then the expectation of such counts is also infinite. In other words, we have the following equivalence.
-
-!!! note "Fact"
-    A state $x$ is recurrent if, and only if,
-    ```math
-        \mathbb{E}\left[\eta_x\right | X_0 = x] = \infty.
     ```
 
 For instance, we have seen that the random walk $X_{n+1} = X_n + B_n,$ where $B_n$ are Bernoulli i.i.d. with states $+1$ with probability $p$ and $-1$ with probability $1 - p,$ where $0 < p < 1,$ but it is not recurrent. For any $x, \in\mathcal{X}=\mathbb{Z}$ and $n\in\mathbb{N},$ the transition probability $K_n(x, y)$ is zero if $|y - x|$ and $n$ have different parity or when $n < |y - x|,$ and is given by the binomial distribution
@@ -334,3 +410,4 @@ Suppose, again, that we have a finite-state Markov chain with an invariant proba
 ## References
 
 1. [C. P. Robert, G. Casella (2004), "Monte Carlo Statistical Methods", Second Edition, Springer Texts in Statistics, Springer New York, NY](https://doi.org/10.1007/978-1-4757-4145-2)
+1. [G. F. Lawler(2006), "Introduction to Stochastic Processes", 2nd Edition. Chapman and Hall/CRC, New York.](https://doi.org/10.1201/9781315273600)
