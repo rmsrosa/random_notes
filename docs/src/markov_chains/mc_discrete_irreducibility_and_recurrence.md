@@ -1,14 +1,14 @@
 # Irreducibility and recurrence in the discrete-space case
 
-Irreducibility and recurrence are fundamental concepts related to the existence and uniqueness of an invariant measure.
+Irreducibility and recurrence are fundamental concepts related to the existence and uniqueness of an invariant measure. We explore such concepts here.
+
+## Setting
+
+Here, we always assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov chain with a discrete state space. We assume the indices are $n=0, 1, 2, \ldots,$ and by discrete space we mean specifically that $\mathcal{X}$ is a countable space with the discrete topology, being either finite or infinite. The one-step transition distribution is denoted by $K(x, y) = \mathbb{P}(X_{n+1} = y | X_n = x),$ independently of $n=0, 1, \ldots,$ while the $n$-step is denoted $K_n(x, y) = \mathbb{P}(X_{k+n} = y | X_k = x),$ for $n=1, 2, \ldots,$ independently of $k=0, 1, \ldots.$
 
 ## Definitions
 
 We start with some fundamental definitions.
-
-### Setting
-
-Here, we always assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov chain with a discrete state space. We assume the indices are $n=0, 1, 2, \ldots,$ and by discrete space we mean specifically that $\mathcal{X}$ is a countable space with the discrete topology, being either finite or infinite. The one-step transition distribution is denoted by $K(x, y) = \mathbb{P}(X_{n+1} = y | X_n = x),$ independently of $n=0, 1, \ldots,$ while the $n$-step is denoted $K_n(x, y) = \mathbb{P}(X_{k+n} = y | X_k = x),$ for $n=1, 2, \ldots,$ independently of $k=0, 1, \ldots.$
 
 ### Irreducibility
 
@@ -98,6 +98,29 @@ When $x$ is connected to $y,$ there is a positive probability that there is at l
     ```
 
 ### Recurrence and Transience
+
+When the chain starts from a state $x$ and returns to it at a later time, chances are that it will return again and again, due to the Markovian property of the chain. This can be measure by the probability of a state to be visited infinitely often, expressed by
+```math
+    \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x).
+```
+It turns out that this is either one or zero!
+
+!!! note "Proposition""
+    Consider a state $x\in\mathbb{X}.$ Then either
+    ```math
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1
+    ```
+    or
+    ```math
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0
+    ```
+
+!!! note "Proof"
+    Let
+    ```math
+        q = \mathbb{P}(\tau_x < \infty | X_0 = x).
+    ```
+    The idea is to show, using the Markovian property, that the probability of having two consecutive visits to $x$ is always $q.$ Then, the probability of having $m$ visits is $q^m.$ Finally, the probability of having infinitely many visits is $\lim_{m\rightarrow \infty} q^m.$ Thus, either $0 \leq q < 1$ and then $\lim_{m\rightarrow \infty} q^m = 0$ or $q = 1$ and $\lim_{m\rightarrow \infty} q^m = 1.$
 
 When the chain is irreducible, every state is attainable from anywhere, including the state itself, so that, due to the time-homogenous assumption, every state is revisited infinitely often. But that doesn't say how significant such visits are, in a probabilistic way. When this happens with probability one, we say the state is recurrent, otherwise we say it is transient.
 
