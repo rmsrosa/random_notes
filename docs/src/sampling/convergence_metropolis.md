@@ -114,7 +114,7 @@ More explicitly, we have, for any Borel set $E,$ and any $x\in C_r,$
 The value of $\delta_r$ has its maximum at $r = 1/2,$ with value $e^{-1/2}/\sqrt{2\pi} \approx 0.24,$ decreasing to zero either as we increase $r$ towards $\infty$ or decrease it towards zero. In a sense, $\delta_r\nu_r(\cdot)$ is small, regardless of $r > 0.$
 
 ```@setup smallset
-using Plots
+using StatsPlots
 
 f(x) = exp(-x^2/2) / sqrt(2π)
 
