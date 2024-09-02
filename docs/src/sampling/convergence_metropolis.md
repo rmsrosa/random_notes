@@ -1,9 +1,5 @@
 # Convergence of the Metropolis-Hastings method
 
-```@meta
-Draft = false
-```
-
 The convergences of the Metropolis-Hastings and Gibbs MCMC methods were proved in the early 1990's, in a number of articles, under reasonable assumptions. The rate of convergence, however, can be either sub-geometric or geometric, depending on the assumptions. These convergences are based on classical conditions of stability of Markov Chains. We will follow here the paper [Mengersen & Tweedie (1996)](https://doi.org/10.1214/aos/1033066201) and the second edition of the classic book [Meyn & Tweeedie (2009)](https://doi.org/10.1017/CBO9780511626630) (the first edition [Meyn & Tweeedie (1993)](https://doi.org/10.1007/978-1-4471-3267-7) was published a few years before the article).
 
 ## Fundamental Markov chain concepts
