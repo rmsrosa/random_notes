@@ -8,6 +8,7 @@ allpages = [
     "Discrete-time Markov chains" => [
         "markov_chains/mc_definitions.md",
         "markov_chains/mc_invariance.md",
+        "markov_chains/mc_countableX_recurrence.md",
         "markov_chains/mc_discrete_irreducibility_and_recurrence.md",
         "markov_chains/mc_irreducibility_and_recurrence.md",
         "markov_chains/mc_aperiodicity.md",
