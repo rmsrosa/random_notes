@@ -1,9 +1,5 @@
 # Probability integral transform method
 
-```@meta
-Draft = false
-```
-
 In some cases, such as for the exponential distributions, it is easy to invert the cumulative distribution function and use that to transform samples of the uniform distributions to samples of the desired distribution. This is based on the following result.
 
 !!! note "Probability Integral Transform (Universality of the Uniform Distribution)"

@@ -5,15 +5,29 @@ allpages = [
     "Probability Essentials" => [
         "Kernel Density Estimation" => "probability/kernel_density_estimation.md",
     ],
+    "Discrete-time Markov chains" => [
+        "markov_chains/mc_definitions.md",
+        "markov_chains/mc_invariance.md",
+        "markov_chains/mc_discrete_irreducibility_and_recurrence.md",
+        "markov_chains/mc_irreducibility_and_recurrence.md",
+        "markov_chains/mc_aperiodicity.md",
+        "markov_chains/mc_convergence_notions.md",
+    ],
     "Sampling methods" => [
         "Overview" => "sampling/overview.md",
         "Random number generators" => "sampling/prng.md",
-        "Probability integral transform" => "sampling/invFtransform.md",
-        "Box-Muller transform" => "sampling/box_muller.md",
-        "Rejection sampling" => "sampling/rejection_sampling.md",
+        "Transform methods" => [
+            "Probability integral transform" => "sampling/invFtransform.md",
+            "Box-Muller transform" => "sampling/box_muller.md",
+        ],
+        "Accept-Reject methods" => [
+            "Rejection sampling" => "sampling/rejection_sampling.md",
+            "Empirical supremum rejection sampling" => "sampling/empiricalsup_rejection.md"
+        ],
         "Markov Chain Monte Carlo (MCMC)" => [
             "Overview" => "sampling/mcmc.md",
             "Metropolis and Metropolis-Hastings" => "sampling/metropolis.md",
+            "Convergence of Metropolis-Hastings" => "sampling/convergence_metropolis.md",
             "Gibbs sampling" => "sampling/gibbs.md",
             "Hamiltonian Monte Carlo (HMC)" => "sampling/hmc.md"
         ],
