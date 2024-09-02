@@ -71,7 +71,7 @@ Combining these characterizations, we have that
 
 !!! note "Fact"
     ```math
-        (X_n)_n \textrm{ is recurrent } \quad \Longleftrightarrow \quad \mathbb{P}(\tau_y < \infty | X_0 = x) > 0, \quad \forall x, y\in\mathcal{X}.
+        (X_n)_n \textrm{ is irreducible } \quad \Longleftrightarrow \quad \mathbb{P}(\tau_y < \infty | X_0 = x) > 0, \quad \forall x, y\in\mathcal{X}.
     ```
 
 ### Number of passages
@@ -106,7 +106,7 @@ When the chain starts from a state $x$ and returns to it at a later time, chance
 It turns out that this is either one or zero!
 
 !!! note "Proposition""
-    Consider a state $x\in\mathbb{X}.$ Then either
+    Consider a state $x\in\mathcal{X}.$ Then either
     ```math
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1
     ```
