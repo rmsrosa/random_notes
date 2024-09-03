@@ -223,7 +223,7 @@ Equivalent definitions of recurrence can be made with the notions of number of p
     ```
     Moreover, we have the relation
     ```math
-        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{\left( 1 - \mathbb{P}(\tau_x < \infty | X_0 = x) \right)^2},
+        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{1 - \mathbb{P}(\tau_x < \infty | X_0 = x)},
     ```
     with the understanding that the left hand side is infinite when the probability in the right hand side is 1.
     
@@ -257,11 +257,11 @@ Equivalent definitions of recurrence can be made with the notions of number of p
     ```math
         (1 - q)S = S - qS = q + \sum_{m=1}^\infty q^m = \sum_{m=1}^\infty q^m = \frac{q}{1 - q}.
     ```
-    Thus, $S = q / (1 - q)^2,$ which means
+    Thus,
     ```math
-        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{\left(1 - \mathbb{P}(\tau_x < \infty | X_0 = x)\right)^2}.
+        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{1 - \mathbb{P}(\tau_x < \infty | X_0 = x)}.
     ```
-    (In [Lawler(2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q)^2.$)
+    (In [Lawler(2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q).$)
     
     When
     ```math
@@ -344,7 +344,7 @@ Thus, by the Borel-Cantelli Lemma,
 ```
 since
 ```math
-    \sum_{n\in\mathbb{N}} \mathbb{P}\left(X_m = x | X_0 = x\right) = \sum_{n\in\mathbb{N}, n \textrm{ even}} \begin{pmatrix} n \\ \frac{n}{2} \end{pmatrix} p^{n/2}(1-p)^{n/2} = \sum_{n\in\mathbb{N}} \begin{pmatrix} 2n \\ n \end{pmatrix} p^n(1-p)^n \leq \sum_{n\in\mathbb{N}} \frac{(2n)!}{2(n!)} (1/2)^n
+    \sum_{n\in\mathbb{N}} \mathbb{P}\left(X_m = x | X_0 = x\right) = \sum_{n\in\mathbb{N}, n \textrm{ even}} \begin{pmatrix} n \\ \frac{n}{2} \end{pmatrix} p^{n/2}(1-p)^{n/2} = \sum_{n\in\mathbb{N}} \begin{pmatrix} 2n \\ n \end{pmatrix} p^n(1-p)^n \approx \sum_{n\in\mathbb{N}} \frac{(2n)!}{2(n!)} (1/2)^n
 ```
 
 ## Existence of invariant distribution
