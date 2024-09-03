@@ -22,7 +22,7 @@ We call it *return time,* but, in the definition itself, we do not condition it 
 ```math
     \mathbb{P}(\tau_x < \infty)
 ```
-is just the *probability of reaching $x$ in a finite number of steps.* When conditioning it to $X_0 = x,$ then,
+is just the *probability of reaching $x$ in a finite number of steps.* It is more like a "first arrival" time. When conditioning it to $X_0 = x,$ then,
 ```math
     \mathbb{P}(\tau_x < \infty | X_0 = x)
 ```
@@ -50,9 +50,9 @@ Notice we did not include the starting time $n=0$ in the definition. Some author
 
 There are some important relations between return time and number of visits. Indeed, the first return time is finite if, and only if, the state is visited at least once. This is valid for each sample point. We can express this as
 ```math
-    \tau_x(\omega) < \infty \quad \Longleftrightarrow \quad \eta_x(\omega) \geq 1,
+    \tau_x(\omega) < \infty \quad \Longleftrightarrow \quad \eta_x(\omega) \geq 1, \quad \forall \omega \in \Omega.
 ```
-for every $\omega\in\Omega.$ As a consequence,
+As a consequence,
 ```math
     \mathbb{P}(\tau_x < \infty | X_0 = x) = \mathbb{P}(\eta_x \geq 1 | X_0 = x).
 ```
@@ -62,7 +62,7 @@ The complement of that is
     \mathbb{P}(\tau_x = \infty | X_0 = x) = \mathbb{P}(\eta_x = 0 | X_0 = x).
 ```
 
-More generally, the chances of having multiple visits is a power of the return time. This follows from the Markovian property, since once back to $x$ for the $m-1$ time, the chances of coming back again is the same as coming back for the first time.
+More generally, the chances of having multiple visits is a power of the return time. This follows from the Markovian property, since once back to $x$ for the $m-1$ time, the chances of coming back again is the same as coming back for the first time. And the chances of not returning after the $m-1$ visit is the same as the chances of never arriving any time.
 
 !!! note "Proposition (return time and number of visits)"
     Let $x\in\mathcal{X}$ and set
@@ -77,10 +77,10 @@ More generally, the chances of having multiple visits is a power of the return t
     ```math
         \mathbb{P}(\eta_x = m | X_0 = x) = q^m(1 - q),
     ```
-    for any $m\in\mathbb{N}.$
+    for any $m = 0, 1, 2, \ldots.$
 
 !!! note "Proof"
-    We have
+    By definition, we have $\eta_x \geq 0,$ thus the equality $\mathbb{P}(\eta_x \geq m | X_0 = x) = q^m$ for $m = 0$ is trivial. Now, for $m\in\mathcal{N},$ we have
     ```math
         \begin{align*}
             \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \\
@@ -120,9 +120,9 @@ More generally, the chances of having multiple visits is a power of the return t
     ```math
         \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}(\tau_x < \infty | X_0 = x)^m = q^m,
     ```
-    for all $m\in\mathbb{N},$ which proves the first statement.
+    for all $m\in\mathbb{N},$ which completes the proof of the first statement.
 
-    Now, the events $\tau_x = m$ and $\tau_x \geq m+1$ are independent, so that
+    Now, for any $m=0, 1, 2, \ldots,$ the events $\tau_x = m$ and $\tau_x \geq m+1$ are independent, so that
     ```math
         \begin{align*}
             \mathbb{P}(\eta_x = m | X_0 = x) & = \mathbb{P}(\eta_x \geq m | X_0 = x) - \mathbb{P}(\eta_x \geq m + 1 | X_0 = x) \\
