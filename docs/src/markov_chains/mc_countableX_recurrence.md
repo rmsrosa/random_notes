@@ -4,7 +4,7 @@ Recurrence is a fundamental concept related to the existence of invariant measur
 
 ## Setting
 
-Here, we assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov chain with a countable state space. More precisely, we assume the indices are $n=0, 1, 2, \ldots,$ and that the space $\mathcal{X}$ is finite or countably infinite. The one-step transition distribution is denoted by $K(x, y) = \mathbb{P}(X_{n+1} = y | X_n = x),$ and is independent of $n=0, 1, \ldots,$ due to the time-homogeneous assumption. Similary, the $n$-step transition distribution is denoted $K_n(x, y) = \mathbb{P}(X_{k+n} = y | X_k = x),$ for $n=1, 2, \ldots,$ independently of $k=0, 1, \ldots.$
+Here, we assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov chain with a countable state space. More precisely, we assume the indices are $n=0, 1, 2, \ldots,$ and that the space $\mathcal{X}$ is finite or countably infinite. The sample space is the probability space $(\Omega, \mathcal{F}, \mathbb{P}),$ where $\mathcal{F}$ is the $\sigma$-algebra on the set $\Omega$ and $\mathbb{P}$ is the probability distribution. The one-step transition distribution is denoted by $K(x, y) = \mathbb{P}(X_{n+1} = y | X_n = x),$ and is independent of $n=0, 1, \ldots,$ thanks to the time-homogeneous assumption. Similary, the $n$-step transition distribution is denoted $K_n(x, y) = \mathbb{P}(X_{k+n} = y | X_k = x),$ for $n=1, 2, \ldots,$ independently of $k=0, 1, \ldots.$
 
 ## Definitions
 
@@ -18,19 +18,21 @@ We start with some fundamental definitions.
         \tau_x = \inf\left\{n\in\mathbb{N}\cup\{+\infty\}; \; n = \infty \textrm{ or } X_n = x\right\}.
     ```
 
-The quantity
+We call it *return time,* but, in the definition itself, we do not condition it on $X_0 = x,$ so it is not always a "return" time. Per se, the quantity
 ```math
     \mathbb{P}(\tau_x < \infty)
 ```
-is the *probability of reaching $x$ in a finite number of steps,* while
-```math
-    \mathbb{P}(\tau_y < \infty | X_0 = x)
-```
-is the *probability of reaching $y$ from $x$ in a finite number of steps,* and 
+is just the *probability of reaching $x$ in a finite number of steps.* When conditioning it to $X_0 = x,$ then,
 ```math
     \mathbb{P}(\tau_x < \infty | X_0 = x)
 ```
-is the *probability of returning to $x$ in a finite number of steps.*
+is indeed the *probability of returning to $x$ in a finite number of steps.*
+
+Meanwhile, for $y \neq x,$
+```math
+    \mathbb{P}(\tau_y < \infty | X_0 = x)
+```
+is the *probability of reaching $y$ from $x$ in a finite number of steps.* 
 
 ### Number of passages
 
@@ -42,7 +44,93 @@ Another useful quantity is the random variable denoting the *number of passages*
         \eta_x = \sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}}.
     ```
 
-Notice we did not include the starting time $n=0$ in the definition. Some authors do, while some others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler(2006)](https://doi.org/10.1201/9781315273600) does).
+Notice we did not include the starting time $n=0$ in the definition. Some authors do, while others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler(2006)](https://doi.org/10.1201/9781315273600) does).
+
+### Relations between return time and number of visits
+
+There are some important relations between return time and number of visits. Indeed, the first return time is finite if, and only if, the state is visited at least once. This is valid for each sample point. We can express this as
+```math
+    \tau_x(\omega) < \infty \quad \Longleftrightarrow \quad \eta_x(\omega) \geq 1,
+```
+for every $\omega\in\Omega.$ As a consequence,
+```math
+    \mathbb{P}(\tau_x < \infty | X_0 = x) = \mathbb{P}(\eta_x \geq 1 | X_0 = x).
+```
+
+The complement of that is
+```math
+    \mathbb{P}(\tau_x = \infty | X_0 = x) = \mathbb{P}(\eta_x = 0 | X_0 = x).
+```
+
+More generally, the chances of having multiple visits is a power of the return time. This follows from the Markovian property, since once back to $x$ for the $m-1$ time, the chances of coming back again is the same as coming back for the first time.
+
+!!! note "Proposition (return time and number of visits)"
+    Let $x\in\mathcal{X}$ and set
+    ```math
+        q = \mathbb{P}(\tau_x < \infty | X_0 = x).
+    ```
+    Then,
+    ```math
+        \mathbb{P}(\eta_x \geq m | X_0 = x) = q^m,
+    ```
+    and
+    ```math
+        \mathbb{P}(\eta_x = m | X_0 = x) = q^m(1 - q),
+    ```
+    for any $m\in\mathbb{N}.$
+
+!!! note "Proof"
+    We have
+    ```math
+        \begin{align*}
+            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \\
+            & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-1} \Leftrightarrow j = 0, n_1, \ldots, n_{m-1}\bigg) \\
+            & \quad \times \mathbb{P}\bigg( \exist n_1, \ldots, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \\
+            & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-2} \Leftrightarrow j = 0, n_1, \ldots, n_{m-2}\bigg) \\
+            & \quad \times \cdots \\
+            & \quad \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
+        \end{align*}
+    ```
+
+    By the Markov property of the chain, only the most recent conditioned state is important, so that
+    ```math
+        \begin{align*}
+            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\left( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, 1\leq i \leq n_m \Leftrightarrow i = n_1, \ldots,n_m | X_0 = x\right) \\
+            & = \mathbb{P}\bigg( \exist n_{m-1}, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \bigg| X_{n_{m-1}} = x\bigg) \\
+            & \;\; \times \mathbb{P}\bigg( \exist n_{m-2}, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \bigg| X_{n_{m-2}} = x \bigg) \\
+            & \;\; \times \cdots \\
+            & \;\; \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
+        \end{align*}
+    ```
+
+    By the time-homogeneous property, we can shift each probability by $-n_{k-1}$ to see that only the time differences $d_k = n_{k} - n_{k-1}$ matters, for $k=1, \ldots, m,$ with all the events conditioned at the initial time $n_0 = 0,$, i.e.
+    ```math
+        \begin{align*}
+            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist d_m \in \mathbb{N}, X_i = x, 0 < i \leq d_m \Leftrightarrow i = d_m \bigg| X_0 = x\bigg) \\
+            & \;\; \times \mathbb{P}\bigg( \exist d_{m-1} \in \mathbb{N}, X_i = x, 0 < i \leq d_{m-1} \Leftrightarrow i = d_{m-1} \bigg| X_0 = x \bigg) \\
+            & \;\; \times \cdots \\
+            & \;\; \times \mathbb{P}\bigg( \exist d_1 \in \mathbb{N}, X_i = x, 0 < i \leq d_1 \Leftrightarrow i = d_1 \bigg| X_0 = x \bigg)
+        \end{align*}
+    ```
+    The difference is just a matter of notation, for which we can denote them all by $d,$ and write
+    ```math
+        \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}\bigg( \exist d \in \mathbb{N}, X_i = x, 0 < i \leq d \Leftrightarrow i = d \bigg| X_0 = x\bigg)^m.
+    ```
+    The existence of one such $d$ is equivalent to $\eta_x \geq 1,$ which is equivalent to $\tau_x < \infty,$ se we can write
+    ```math
+        \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}(\tau_x < \infty | X_0 = x)^m = q^m,
+    ```
+    for all $m\in\mathbb{N},$ which proves the first statement.
+
+    Now, the events $\tau_x = m$ and $\tau_x \geq m+1$ are independent, so that
+    ```math
+        \begin{align*}
+            \mathbb{P}(\eta_x = m | X_0 = x) & = \mathbb{P}(\eta_x \geq m | X_0 = x) - \mathbb{P}(\eta_x \geq m + 1 | X_0 = x) \\
+            & = q^m - q^{m+1} \\
+            & = q^m (1 - q),
+        \end{align*}
+    ```
+    which completes the proof.    
 
 ### Recurrence and Transience
 
@@ -52,7 +140,7 @@ The idea is that a state that is not visited after some instant in time is, in s
 ```math
     \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x).
 ```
-If the probability is one, we will almost surely observe this state infinitely many times. If the probability is zero, we will almost never observe this state infinitely many times. What if the probability is in between zero and one? Would we classify it as recurrent or as transient? Could the state be in a dubious state, in some instances being visited infinitely often and in other instances, not, as in a superposition of conditions? Fortunately, this cannot happen. The probability is either one or zero, and we can definitely characterize it as recurrent or transient.
+If the probability is one, we will almost surely observe this state infinitely many times. If the probability is zero, we will almost surely observe this state at most a finite number of times. What if the probability is in between zero and one? Could it be in a superpositioned state, i.e. in some instances it is visited infinitely often while in other instances it is visited only finitely-many times? Fortunately, this cannot happen. The probability is either zero or one, and we can definitely characterize it as recurrent or transient.
 
 !!! note "Proposition""
     Consider a state $x\in\mathcal{X}.$ Then either
@@ -65,44 +153,62 @@ If the probability is one, we will almost surely observe this state infinitely m
     ```
 
 !!! note "Proof"
-    Suppose we start at $X_0 = x$ and asks whether $X_n = x$ at some later time $n\in\mathbb{N}.$ Clearly, there exists one such $n$ if the chain returns to $x$ at least once. Using the concepts of first return time $\tau_x$ and number of visist $\eta_x,$ we can express this as
+    The idea is to use the Markovian property, that if the probability of being visited once after the initial time is $q,$ then, the probability of having $m$ visits is $q^m,$ to deduce that, at the limit $m\rightarrow \infty,$ it is either zero or one, depending on whether $0 \leq q < 1$ or $q = 1.$ 
+    
+    More precisely, we know that
     ```math
-        \tau_x(\omega) < \infty \quad \Longleftrightarrow \quad \eta_x(\omega) \geq 1,
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x = \infty | X_0 = x).
     ```
-    for every sample $\omega\in\Omega.$ In particular,
+    This means
     ```math
-        \mathbb{P}(\tau_x < \infty | X_0 = x) = \mathbb{P}(\eta_x \geq 1 | X_0 = x).
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x).
     ```
-
-    What about multiple visits? How can we measure the probability of having multiple visits? We can use the Markovian property, i.e. the independence on older events, to show that the probability of having at least $m$ visits is just a power of the probability of having at least one visit. When a state is visited at some time, the probability of future events is independent of whether the state had been visited earlier before or not. More precisely, we have
+    But
     ```math
-        \begin{align*}
-            \mathbb{P}(\eta_x \geq m) & = \mathbb{P}\left( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, 1\leq i \leq n_m \Leftrightarrow i = n_1, \ldots,n_m\right) \\
-            & = \mathbb{P}\left( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m | X_j = x, 1 \leq j \leq n_{m-1} \Leftrightarrow j = n_1, \ldots, n_{m-1}\right) \\
-            & \quad \times \mathbb{P}\left( \exist n_1, \ldots, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} | X_j = x, 1 \leq j \leq n_{m-2} \Leftrightarrow j = n_1, \ldots, n_{m-1}\right) \\
-            & \quad \times \cdots \times 
-        \end{align*}
+        \{\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x \} = \bigcap_{m\in\mathbb{N}}\{\eta_x \geq m, X_0 = x\},
     ```
-
-    Let
+    with the intersection being of non-increasing sets, with respect to increasing $m\in\mathbb{N}.$ Thus, by the continuity of probability measures,
+    ```math
+        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m, X_0 = x).
+    ```
+    Similarly,
+    ```math
+        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m | X_0 = x).
+    ```
+    We have already seen that
+    ```math
+        \mathbb{P}(\eta_x \geq m | X_0 = x) = q^m,
+    ```
+    where
     ```math
         q = \mathbb{P}(\tau_x < \infty | X_0 = x).
     ```
-    The idea is to show, using the Markovian property, that the probability of having two consecutive visits to $x$ is always $q.$ Then, the probability of having $m$ visits is $q^m.$ Finally, the probability of having infinitely many visits is $\lim_{m\rightarrow \infty} q^m.$ Thus, either $0 \leq q < 1$ and then $\lim_{m\rightarrow \infty} q^m = 0$ or $q = 1$ and $\lim_{m\rightarrow \infty} q^m = 1.$
+    Thus,
+    ```math
+        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} q^m.
+    ```
+    Clearly,
+    ```math
+        \lim_{m\rightarrow} q^m = 0, \quad \textrm{if } 0 < q \leq 1,
+    ```
+    and
+    ```math
+        \lim_{m\rightarrow} q^m = 1, \quad \textrm{if } q = 1.
+    ```
+    Since $q$ is a probability, which can only assume values in the range $0\leq q \leq 1,$ the only possible limits are 0 and 1, proving the result.
 
-When the chain is irreducible, every state is attainable from anywhere, including the state itself, so that, due to the time-homogenous assumption, every state is revisited infinitely often. But that doesn't say how significant such visits are, in a probabilistic way. When this happens with probability one, we say the state is recurrent, otherwise we say it is transient.
-
-More precisely, we have the following definition.
+With this in mind, we have the following definitions.
 
 !!! note "Definition (recurrent and transient states)"
     A state $x$ is called **recurrent** when
     ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1.
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1,
     ```
-    Otherwise, the state $x$ is called **transient,** i.e. if
+    and is called **transient** when
     ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) < 1.
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0,
     ```
+    with no intermediate values being possible.
 
 Equivalent definitions of recurrence can be made with the notions of number of passages and return time. In that regard, we have the following result, which we borrow, essentially, from [Lawler(2006)](https://doi.org/10.1201/9781315273600), except that we do not include the time $n=0$ in the number of passages, so the formula is slightly different.
 
@@ -119,7 +225,7 @@ Equivalent definitions of recurrence can be made with the notions of number of p
     ```math
         \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{\left( 1 - \mathbb{P}(\tau_x < \infty | X_0 = x) \right)^2},
     ```
-    with the understanding that the left hand side is infinite wen the probability in the right hand side is 1.
+    with the understanding that the left hand side is infinite when the probability in the right hand side is 1.
     
 !!! note "Proof"
     We have that $\tau_x = \infty$ iff $X_n$ never returns to $x.$ If $\tau_x < \infty,$ then it returns to $x$ in finite time at least once. If $\tau_x < \infty$ with probability one, then, with probability one, it will return again and again to $x,$ still with probability one, since the countable intersection of sets of full measure still has full measure. Thus,
