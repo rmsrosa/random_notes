@@ -44,7 +44,7 @@ Another useful quantity is the random variable denoting the *number of passages*
         \eta_x = \sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}}.
     ```
 
-Notice we did not include the starting time $n=0$ in the definition. Some authors do, while others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler(2006)](https://doi.org/10.1201/9781315273600) does).
+Notice we did not include the starting time $n=0$ in the definition. Some authors do, while others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler (2006)](https://doi.org/10.1201/9781315273600) does).
 
 ### Relations between return time and number of visits
 
@@ -210,7 +210,7 @@ With this in mind, we have the following definitions.
     ```
     with no intermediate values being possible.
 
-Equivalent definitions of recurrence can be made with the notions of number of passages and return time. In that regard, we have the following result, which we borrow, essentially, from [Lawler(2006)](https://doi.org/10.1201/9781315273600), except that we do not include the time $n=0$ in the number of passages, so the formula is slightly different.
+Equivalent definitions of recurrence can be made with the notions of number of passages and return time. In that regard, we have the following result, which we borrow, essentially, from [Lawler (2006)](https://doi.org/10.1201/9781315273600), except that we do not include the time $n=0$ in the number of passages, so the formula is slightly different.
 
 !!! note "Theorem"
     For any state $x\in\mathcal{X},$ we have
@@ -261,7 +261,7 @@ Equivalent definitions of recurrence can be made with the notions of number of p
     ```math
         \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{1 - \mathbb{P}(\tau_x < \infty | X_0 = x)}.
     ```
-    (In [Lawler(2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q).$)
+    (In [Lawler (2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q).$)
     
     When
     ```math
@@ -281,24 +281,33 @@ Equivalent definitions of recurrence can be made with the notions of number of p
 
 These equivalences are true, in general, only in the countable case; see page 222 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2).
 
-Another important aspect is that, when the probability of returning infinitely often is smaller than 1, its is actually zero.
+Another equivalence with recurrence is the following.
 
-!!! note "Fact"
-    If $x$ is a transient state, then, in fact,
+!!! note "Proposition"
+    Given a state $x\in\mathcal{X},$ we have the equality
     ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0.
+        \mathbb{E}[\eta_x | X_0 = x] = \sum_{n=1}^\infty K_n(x, x)
+    ```
+    and, therefore, $x$ is recurrent if, and only if,
+    ```math
+        \sum_{n=1}^\infty K_n(x, x) = \infty.
+    ```
+    and $x$ is transient if, and only if,
+    ```math
+        \sum_{n=1}^\infty K_n(x, x) < \infty.
     ```
 
-In the countable-space case that we are considering, an equivalent definition of recurrence can be made with the notion of return time.
-
-
-Another equivalent definition of recurrence can be made with the notion number of passages. Indeed, when the chain keeps coming back infinitely often to a state $x,$ counting such times adds up to infinity. When this happens with probability one or even with positive probability, then the expectation of such counts is also infinite. On the other hand, if $x$ is transient, then, in fact, $\mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0,$ so $\eta_x$ is finite almost surely, but that doesn't quise say that its expectation is finite. However, it is true, somehow, that we have the following equivalence.
-
-!!! note "Fact"
-    A state $x$ is recurrent if, and only if,
+!!! note "Proof"
+    The identity is proved using the definition of $\eta_x.$ Indeed,
     ```math
-        \mathbb{E}\left[\eta_x\right | X_0 = x] = \infty.
+        \begin{align*}
+            \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[\sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
+            & = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
+            & = \sum_{n=1}^\infty \mathbb{P}\left[X_n = x \bigg| X_0 = x\right] \\
+            & = \sum_{n=1}^\infty K_n(x, x).
+        \end{align*}
     ```
+    Now, the characterization of recurrence and transience of $x$ follow from this identity and from the corresponding characterizations in terms of the expectation $\mathbb{E}[\eta_x | X_0 = x].$
 
 When every state is recurrent we say that the chain is recurrent.
 
@@ -507,4 +516,4 @@ Suppose, again, that we have a finite-state Markov chain with an invariant proba
 ## References
 
 1. [C. P. Robert, G. Casella (2004), "Monte Carlo Statistical Methods", Second Edition, Springer Texts in Statistics, Springer New York, NY](https://doi.org/10.1007/978-1-4757-4145-2)
-1. [G. F. Lawler(2006), "Introduction to Stochastic Processes", 2nd Edition. Chapman and Hall/CRC, New York.](https://doi.org/10.1201/9781315273600)
+1. [G. F. Lawler (2006), "Introduction to Stochastic Processes", 2nd Edition. Chapman and Hall/CRC, New York.](https://doi.org/10.1201/9781315273600)
