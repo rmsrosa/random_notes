@@ -355,86 +355,53 @@ since
 
 ## Existence of invariant distribution
 
-Recurrence is a fundamental property associated with the existence of invariant measures.
+Recurrence is a fundamental property associated with the existence of invariant measures. But the associated invariant measure may be finite or infinite. If it is finite, then we can normalize it and obtain a stationary probability distribution. The condition for finiteness of the invariant measure associated with a recurrent state $x$ is that the expectation of $\tau_x,$ conditioned to $X_0 = x,$ be finite. If such expectation is finite, then necessarily $\tau_x$ is finite almost surely and, hence, $x$ is recurrent. But a state can be recurrent without this expectation being finite. Some authors call the latter case *null recurrence,* meaning that the state is recurrent but it is not associated with a stationary probabilit distribution. Otherwise, it is called *positive recurrence.*
 
 !!! note "Theorem (recurrence implies existence of invariant measure)"
     Suppose that $x\in\mathcal{X}$ is recurrent. Then
     ```math
-        P_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} | X_0 = x\right]
+        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} | X_0 = x\right]
     ```
-    defines an invariant measure for the Markov chain. If, moreover,
+    defines a non-trivial invariant measure for the Markov chain, which may be finite or infinite, with
+    ```math
+        {\tilde P}_x(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x].
+    ```
+    Thus, if, moreover,
     ```math
         \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
     ```
-    then, this measure is finite, with $P_x(\mathcal{X})$ exactly this expectation, so that this measure can be normalized to a stationary probability distribution
+    then this measure is finite and can be normalized to a stationary probability distribution
     ```math
-        P_x(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x)
+        P_x(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x).
     ```
 
-The assumption of recurrence of $x$ implies that $\tau_x$ is finite almost surely.
+The proof below is adapted from Theorem 6.37 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2). Notice we are not assuming irreducibility, so we are not claiming that this invariant distribution is unique. In fact, we may have several non-connected recurrent state, each associated with a different invariant measure. We'll later see the condition of *irreducibility* to avoid such non-connected states and find a *unique* invariant probability distribution.
 
-!!! note "Theorem"
-    Suppose that, for some $x\in\mathcal{X},$
-    ```math
-        \mathbb{E}[\tau_{x} | X_0 = x] < \infty.
-    ```
-    Then
-    ```math
-        P_x(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x)
-    ```
-    defines an invariant probability distribution for the Markov chain.
-    
-The proof below is adapted from Theorem 6.37 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2). Notice we are not assuming irreducibility, so we are not claiming that this invariant distribution is unique.
+**Proof.** First of all, since the space is discrete and each ${\tilde P}_x(z) \geq 0,$ for $z\in\mathcal{X},$ it follows that ${\tilde P}_x$ defines indeed a measure on $\mathcal{X}.$ Let us check that ${\tilde P}_x$ is in fact a nontrivial measure and that it is invariant. 
 
-**Proof.** For the proof, we consider, for the sake of simplicity, the unnormalized measure
-```math
-    {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x).
-```
-We show that it defines a positive and finite invariant measure, with ${\tilde P}_x(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x].$ After that, we obtain the desired result by normalizing ${\tilde P}_x$ by the expectation $\mathbb{E}[\tau_{x} | X_0 = x].$
-
-First of all, since the space is discrete and each ${\tilde P}_x(z) \geq 0,$ for $z\in\mathcal{X},$ it follows that ${\tilde P}_x$ defines indeed a measure on $\mathcal{X}.$ Let us check that ${\tilde P}_x$ is in fact a nontrivial and finite measure. We have
-```math
-    \begin{align*}
-        {\tilde P}_x(\mathcal{X}) & = \sum_{z\in\mathcal{X}} P_x(z) \\
-        & = \sum_{z\in\mathcal{X}}\sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
-        & = \sum_{n=1}^\infty \sum_{z\in\mathcal{X}} \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
-        & = \sum_{n=1}^\infty \mathbb{P}( \tau_{x} \geq n | X_0 = x) \\
-        & = \sum_{n=1}^\infty \sum_{m=n}^\infty \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-        & = \sum_{m=1}^\infty \sum_{n=1}^{m} \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-        & = \sum_{m=1}^\infty m \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-        & = \mathbb{E}[\tau_{x} | X_0 = x]
-    \end{align*}
-```
-Since it is assumed that 
-```math
-    \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
-```
-it follows that the measure ${\tilde P}$ is finite. And since, by definition, $\tau_x$ is an integer with $1 \leq \tau_x \leq +\infty,$ the measure is non-trivial, i.e. it is positive, with
-```math
-    1 \leq {\tilde P}(\mathcal{X}) < \infty.
-```
-
-In particular,
+In order to show that it is non-trivial, we prove that ${\tilde P}(x) = 1.$ This will also be a crucial fact in the proof of invariance. This follows from
 ```math
     \begin{align*}
         {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
         & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} = n | X_0 = x) \\
-        & = \sum_{n=1}^\infty \mathbb{P}(\tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}(\tau_{x} \geq n | X_0 = x).
+    \end{align*}
+```
+Thanks to the recurrence assumption on $x,$ we have $\tau_x < \infty$ almost surely, when conditioned on $X_0 = x,$ which means $\tau_x = \infty | X_0 = x$ has zero measure. Thus, 
+```math
+    \begin{align*}
+        {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(n \leq \tau_{x} < \infty | X_0 = x) \\
         & = \mathbb{P}(\cup_{n\in\mathbb{N}} \{\tau_{x} = n | X_0 = x\}) \\
         & = \mathbb{P}(\tau_{x} < \infty | X_0 = x).
     \end{align*}
 ```
-The condition
+Using again the fact that $x$ is recurrent, we have $\mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1,$ which means
 ```math
-    \mathbb{E}[\tau_{x} | X_0 = x] < \infty.
+    {\tilde P}(\mathcal{x}) = 1,
 ```
-implies that $\tau_{x}$ must be finite almost surely, so that
-```math
-    {\tilde P}(\mathcal{x}) = \mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1.
-```
+as we wanted.
 
-Now, let us check that ${\tilde P}_x$ is invariant.
-We need to show that
+Now, let us check that ${\tilde P}_x$ is invariant. We need to show that
 ```math
     \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) = {\tilde P}_x(z),
 ```
@@ -479,11 +446,34 @@ where in the last step we just reindexed the summation. Now we use that ${\tilde
 ```
 proving the invariance.
 
-Now, as mentioned above, since ${\tilde P}(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x]$ is finite and positive, we can normalize ${\tilde P}$ by this expectation to obtain the invariant probability distribution
+Now we compute ${\tilde P}_x(\mathcal{X}).$ We have
+```math
+    \begin{align*}
+        {\tilde P}_x(\mathcal{X}) & = \sum_{z\in\mathcal{X}} P_x(z) \\
+        & = \sum_{z\in\mathcal{X}}\sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \sum_{z\in\mathcal{X}} \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}( \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \sum_{m=n}^\infty \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \sum_{m=1}^\infty \sum_{n=1}^{m} \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \sum_{m=1}^\infty m \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \mathbb{E}[\tau_{x} | X_0 = x]
+    \end{align*}
+```
+If we assumed that 
+```math
+    \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
+```
+it follows that the measure ${\tilde P}$ is finite, so we can normalize ${\tilde P}$ by this expectation to obtain the invariant probability distribution
 ```math
     P(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x).
 ```
-□
+This concludes the proof.□
+
+Notice that ${\tilde P}_x(z)$ defines a measure regardless of $x$ being recurrent or not. And it is always non-trivial, in fact, because $\sum_{y\in \mathbb{Z}} K(x, z) = 1,$ there must exist some $z\in\mathcal{Z}$ for which $X_0 = x$ and $X_1 = z,$ with positive probability, and thus, since $\tau_x \geq 1$ always,
+```math
+    {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) \geq \mathbb{P}(X_1 = z, \tau_x \geq 1 | X_0 = 1) = \mathbb{P}(X_1 = z | X_0 1) = K(x, z) > 0.
+```
+But this measure may not be invariant. The recurrence is needed to assure that ${\tilde P}_x$ is invariant.
 
 ## Kac's Theorem on invariant distribution of an irreducible chain
 
