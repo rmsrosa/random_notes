@@ -355,7 +355,7 @@ since
 
 ## Existence of invariant distribution
 
-Recurrence is a fundamental property associated with the existence of invariant measures. But the associated invariant measure may be finite or infinite. If it is finite, then we can normalize it and obtain a stationary probability distribution. The condition for finiteness of the invariant measure associated with a recurrent state $x$ is that the expectation of $\tau_x,$ conditioned to $X_0 = x,$ be finite. If such expectation is finite, then necessarily $\tau_x$ is finite almost surely and, hence, $x$ is recurrent. But a state can be recurrent without this expectation being finite. Some authors call the latter case *null recurrence,* meaning that the state is recurrent but it is not associated with a stationary probabilit distribution. Otherwise, it is called *positive recurrence.*
+Recurrence is a fundamental property associated with the existence of invariant measures. But the associated invariant measure may be finite or infinite. If it is finite, then we can normalize it and obtain a stationary probability distribution. The condition for finiteness of the invariant measure associated with a recurrent state $x$ is that the expectation of $\tau_x,$ conditioned to $X_0 = x,$ be finite. If such expectation is finite, then necessarily $\tau_x$ is finite almost surely and, hence, $x$ is recurrent. But a state can be recurrent without this expectation being finite. Some authors call the latter case *null recurrence,* meaning that the state is recurrent but it is not associated with a stationary probability distribution. Otherwise, it is called *positive recurrence.*
 
 !!! note "Theorem (recurrence implies existence of invariant measure)"
     Suppose that $x\in\mathcal{X}$ is recurrent. Then
@@ -474,49 +474,6 @@ Notice that ${\tilde P}_x(z)$ defines a measure regardless of $x$ being recurren
     {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) \geq \mathbb{P}(X_1 = z, \tau_x \geq 1 | X_0 = 1) = \mathbb{P}(X_1 = z | X_0 1) = K(x, z) > 0.
 ```
 But this measure may not be invariant. The recurrence is needed to assure that ${\tilde P}_x$ is invariant.
-
-## Kac's Theorem on invariant distribution of an irreducible chain
-
-Kac's Theorem says that if $(X_n)_n$ is irreducible and it has a stationary distribution $P,$ then
-```math
-    P(x) = \frac{1}{\mathbb{E}[\tau_x | X_n = x]}, \quad \forall x\in\mathcal{X}.
-```
-
-The idea is that, $m_x = \mathbb{E}[\tau_x | X_n = x]$ is the average time that the chain takes to start from $x$ and come back to $x.$ Every state $x$ is visited repeatedly, with an average time of $m_x$ between consecutive visits.
-
-
-## Irreducibility in the discrete-space case
-
-In the discrete-space case, $P$-irreducibility can be stated with point sets, so that the Markov chain is $P$-irreducible if, and only if,
-```math
-    x, y\in\mathcal{X},\; P(y) > 0 \Longrightarrow \exists n=n(x, y)\in\mathbb{N}, \; K_n(x, y) > 0.
-```
-
-### Positivity of an invariant probability distribution
-
-If a discrete-space Markov chain has an invariant probability distribution $P$ and it is $P$-irreducible, then $P$ must be everywhere strictly positive, i.e. $P(x) > 0,$ for all $x\in \mathcal{X}.$
-
-Indeed, since $P$ is nontrivial, there exists $y\in\mathcal{X}$ such that $P(y) > 0.$ Now, for any $x,$ since the chain is $P$ irreducible, we have $K_n(x, y) > 0,$ for some $n\in\mathbb{N}.$
-
-Since $P$ is invariant, we have $P K_n = P,$ and then
-```math
-    P(x) = \sum_{z\in\mathcal{X}} K_n(z, x) P(z).
-```
-This can be estimated from below by restricting the summation to $z = y,$ so that
-```math
-    P(x) = \sum_{z\in\mathcal{X}} K_n(z, x) P(z) \geq K_n(y, x) P(z) > 0,
-```
-where we used that $K_n(y, x) > 0$ and $P(z) > 0.$ Thus,
-```math
-    P(x) > 0, \quad \forall x\in\mathcal{X},
-```
-showing that $P$ is everywhere strictly positive.
-
-### Uniqueness of the invariant probability distribution
-
-Suppose, again, that we have a finite-state Markov chain with an invariant probability distribution $P$ which is $P$-irreducible. We have just seen that $P$ must be everywhere strictly positive, i.e. $P(x) > 0,$ for all $x\in \mathcal{X}.$ We now use this to show that the invariant probability distribution must be unique.
-
-
 
 ## References
 
