@@ -18,17 +18,15 @@ We start with some fundamental definitions.
         \tau_x = \inf\left\{n\in\mathbb{N}\cup\{+\infty\}; \; n = \infty \textrm{ or } X_n = x\right\}.
     ```
 
-We call it *return time,* but, in the definition itself, we do not condition it on $X_0 = x,$ so it is not always a "return" time. Per se, the quantity
+By definition, $\tau_x$ is a random variable with values in $\mathbb{N}.$ We call it *return time,* but, in the definition itself, we do not condition it on $X_0 = x,$ so it is not always a "return" time, *per se;* the quantity
 ```math
     \mathbb{P}(\tau_x < \infty)
 ```
-is just the *probability of reaching $x$ in a finite number of steps.* It is more like a "first arrival" time. When conditioning it to $X_0 = x,$ then,
+is just the *probability of reaching $x$ in a finite number of steps.* It is more like a "first arrival" time. Only when conditioned to $X_0 = x$ that
 ```math
     \mathbb{P}(\tau_x < \infty | X_0 = x)
 ```
-is indeed the *probability of returning to $x$ in a finite number of steps.*
-
-Meanwhile, for $y \neq x,$
+is indeed the *probability of returning to $x$ in a finite number of steps.* Meanwhile, for $y \neq x,$
 ```math
     \mathbb{P}(\tau_y < \infty | X_0 = x)
 ```
@@ -41,10 +39,10 @@ Another useful quantity is the random variable denoting the *number of passages*
 !!! note "Definition (number of passages)"
     The **number of passages** through a given state $x\in\mathcal{X}$ is defined by
     ```math
-        \eta_x = \sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}}.
+        \eta_x = \#\{n\in\mathbb{N}; \;X_n = x\} = \sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}}.
     ```
 
-Notice we did not include the starting time $n=0$ in the definition. Some authors do, while others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler (2006)](https://doi.org/10.1201/9781315273600) does).
+By definition, $\eta_x$ is a random variable with nonnegative integer values. Notice we did not include the starting time $n=0$ in the definition. Some authors do, while others don't (e.g. [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2) don't, while [Lawler (2006)](https://doi.org/10.1201/9781315273600) does).
 
 ### Relations between return time and number of visits
 
@@ -62,7 +60,7 @@ The complement of that is
     \mathbb{P}(\tau_x = \infty | X_0 = x) = \mathbb{P}(\eta_x = 0 | X_0 = x).
 ```
 
-More generally, the chances of having multiple visits is a power of the return time. This follows from the Markovian property, since once back to $x$ for the $m-1$ time, the chances of coming back again is the same as coming back for the first time. And the chances of not returning after the $m-1$ visit is the same as the chances of never arriving any time.
+More generally, the chances of having multiple visits is a power of the return time. This follows from the Markov property of the chain, since once back to $x$ for the $m-1$ time, the chances of coming back again is the same as coming back for the first time. And the chances of not returning after the $m-1$ visit is the same as the chances of never arriving any time.
 
 !!! note "Proposition (return time and number of visits)"
     Let $x\in\mathcal{X}$ and set
@@ -79,58 +77,57 @@ More generally, the chances of having multiple visits is a power of the return t
     ```
     for any $m = 0, 1, 2, \ldots.$
 
-!!! note "Proof"
-    By definition, we have $\eta_x \geq 0,$ thus the equality $\mathbb{P}(\eta_x \geq m | X_0 = x) = q^m$ for $m = 0$ is trivial. Now, for $m\in\mathcal{N},$ we have
-    ```math
-        \begin{align*}
-            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \\
-            & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-1} \Leftrightarrow j = 0, n_1, \ldots, n_{m-1}\bigg) \\
-            & \quad \times \mathbb{P}\bigg( \exist n_1, \ldots, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \\
-            & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-2} \Leftrightarrow j = 0, n_1, \ldots, n_{m-2}\bigg) \\
-            & \quad \times \cdots \\
-            & \quad \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
-        \end{align*}
-    ```
+**Proof.** By definition, we have $\eta_x \geq 0,$ thus the equality $\mathbb{P}(\eta_x \geq m | X_0 = x) = q^m$ for $m = 0$ is trivial. Now, for $m\in\mathcal{N},$ we have
+```math
+    \begin{align*}
+        \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \\
+        & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-1} \Leftrightarrow j = 0, n_1, \ldots, n_{m-1}\bigg) \\
+        & \quad \times \mathbb{P}\bigg( \exist n_1, \ldots, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \\
+        & \hspace{1in} \bigg| X_j = x, 0 \leq j \leq n_{m-2} \Leftrightarrow j = 0, n_1, \ldots, n_{m-2}\bigg) \\
+        & \quad \times \cdots \\
+        & \quad \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
+    \end{align*}
+```
 
-    By the Markov property of the chain, only the most recent conditioned state is important, so that
-    ```math
-        \begin{align*}
-            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\left( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, 1\leq i \leq n_m \Leftrightarrow i = n_1, \ldots,n_m | X_0 = x\right) \\
-            & = \mathbb{P}\bigg( \exist n_{m-1}, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \bigg| X_{n_{m-1}} = x\bigg) \\
-            & \;\; \times \mathbb{P}\bigg( \exist n_{m-2}, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \bigg| X_{n_{m-2}} = x \bigg) \\
-            & \;\; \times \cdots \\
-            & \;\; \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
-        \end{align*}
-    ```
+By the Markov property of the chain, only the most recent conditioned state is important, so that
+```math
+    \begin{align*}
+        \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\left( \exist n_1, \ldots, n_m\in \mathbb{N}, X_i = x, 1\leq i \leq n_m \Leftrightarrow i = n_1, \ldots,n_m | X_0 = x\right) \\
+        & = \mathbb{P}\bigg( \exist n_{m-1}, n_m\in \mathbb{N}, X_i = x, n_{m-1} < i \leq n_m \Leftrightarrow i = n_m \bigg| X_{n_{m-1}} = x\bigg) \\
+        & \;\; \times \mathbb{P}\bigg( \exist n_{m-2}, n_{m-1} \in \mathbb{N}, X_i = x, n_{m-2} < i \leq n_{m-1} \Leftrightarrow i = n_{m-1} \bigg| X_{n_{m-2}} = x \bigg) \\
+        & \;\; \times \cdots \\
+        & \;\; \times \mathbb{P}\bigg( \exist n_1 \in \mathbb{N}, X_i = x, 0 < i \leq n_1 \Leftrightarrow i = n_1 \bigg| X_0 = x \bigg)
+    \end{align*}
+```
 
-    By the time-homogeneous property, we can shift each probability by $-n_{k-1}$ to see that only the time differences $d_k = n_{k} - n_{k-1}$ matters, for $k=1, \ldots, m,$ with all the events conditioned at the initial time $n_0 = 0,$, i.e.
-    ```math
-        \begin{align*}
-            \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist d_m \in \mathbb{N}, X_i = x, 0 < i \leq d_m \Leftrightarrow i = d_m \bigg| X_0 = x\bigg) \\
-            & \;\; \times \mathbb{P}\bigg( \exist d_{m-1} \in \mathbb{N}, X_i = x, 0 < i \leq d_{m-1} \Leftrightarrow i = d_{m-1} \bigg| X_0 = x \bigg) \\
-            & \;\; \times \cdots \\
-            & \;\; \times \mathbb{P}\bigg( \exist d_1 \in \mathbb{N}, X_i = x, 0 < i \leq d_1 \Leftrightarrow i = d_1 \bigg| X_0 = x \bigg)
-        \end{align*}
-    ```
-    The difference is just a matter of notation, for which we can denote them all by $d,$ and write
-    ```math
-        \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}\bigg( \exist d \in \mathbb{N}, X_i = x, 0 < i \leq d \Leftrightarrow i = d \bigg| X_0 = x\bigg)^m.
-    ```
-    The existence of one such $d$ is equivalent to $\eta_x \geq 1,$ which is equivalent to $\tau_x < \infty,$ se we can write
-    ```math
-        \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}(\tau_x < \infty | X_0 = x)^m = q^m,
-    ```
-    for all $m\in\mathbb{N},$ which completes the proof of the first statement.
+By the time-homogeneous property, we can shift each probability by $-n_{k-1}$ to see that only the time differences $d_k = n_{k} - n_{k-1}$ matters, for $k=1, \ldots, m,$ with all the events conditioned at the initial time $n_0 = 0,$, i.e.
+```math
+    \begin{align*}
+        \mathbb{P}(\eta_x \geq m | X_0 = x) & = \mathbb{P}\bigg( \exist d_m \in \mathbb{N}, X_i = x, 0 < i \leq d_m \Leftrightarrow i = d_m \bigg| X_0 = x\bigg) \\
+        & \;\; \times \mathbb{P}\bigg( \exist d_{m-1} \in \mathbb{N}, X_i = x, 0 < i \leq d_{m-1} \Leftrightarrow i = d_{m-1} \bigg| X_0 = x \bigg) \\
+        & \;\; \times \cdots \\
+        & \;\; \times \mathbb{P}\bigg( \exist d_1 \in \mathbb{N}, X_i = x, 0 < i \leq d_1 \Leftrightarrow i = d_1 \bigg| X_0 = x \bigg)
+    \end{align*}
+```
+The difference is just a matter of notation, for which we can denote them all by $d,$ and write
+```math
+    \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}\bigg( \exist d \in \mathbb{N}, X_i = x, 0 < i \leq d \Leftrightarrow i = d \bigg| X_0 = x\bigg)^m.
+```
+The existence of one such $d$ is equivalent to $\eta_x \geq 1,$ which is equivalent to $\tau_x < \infty,$ se we can write
+```math
+    \mathbb{P}(\eta_x \geq m | X_0 = x) = \mathbb{P}(\tau_x < \infty | X_0 = x)^m = q^m,
+```
+for all $m\in\mathbb{N},$ which completes the proof of the first statement.
 
-    Now, for any $m=0, 1, 2, \ldots,$ the events $\tau_x = m$ and $\tau_x \geq m+1$ are independent, so that
-    ```math
-        \begin{align*}
-            \mathbb{P}(\eta_x = m | X_0 = x) & = \mathbb{P}(\eta_x \geq m | X_0 = x) - \mathbb{P}(\eta_x \geq m + 1 | X_0 = x) \\
-            & = q^m - q^{m+1} \\
-            & = q^m (1 - q),
-        \end{align*}
-    ```
-    which completes the proof.    
+Now, for any $m=0, 1, 2, \ldots,$ the events $\tau_x = m$ and $\tau_x \geq m+1$ are independent, so that
+```math
+    \begin{align*}
+        \mathbb{P}(\eta_x = m | X_0 = x) & = \mathbb{P}(\eta_x \geq m | X_0 = x) - \mathbb{P}(\eta_x \geq m + 1 | X_0 = x) \\
+        & = q^m - q^{m+1} \\
+        & = q^m (1 - q),
+    \end{align*}
+```
+which completes the proof. □  
 
 ### Recurrence and Transience
 
@@ -140,9 +137,12 @@ The idea is that a state that is not visited after some instant in time is, in s
 ```math
     \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x).
 ```
-If the probability is one, we will almost surely observe this state infinitely many times. If the probability is zero, we will almost surely observe this state at most a finite number of times. What if the probability is in between zero and one? Could it be in a superpositioned state, i.e. in some instances it is visited infinitely often while in other instances it is visited only finitely-many times? Fortunately, this cannot happen. The probability is either zero or one, and we can definitely characterize it as recurrent or transient.
+If the probability is one, we will almost surely observe this state infinitely many times. If the probability is zero, we will almost surely observe this state at most a finite number of times. What if the probability is in between zero and one? Could it be in a superpositioned state, i.e. in some instances it is visited infinitely often while in other instances it is visited only finitely-many times? Fortunately, this cannot happen. The probability is either zero or one, and we can definitely characterize it as recurrent or transient. This is a manifestation of the Kolmogorov zero-one law for the tail event 
+```math
+    \{X_n = \textrm{i.o}\} = \bigcap_{n\in\mathbb{N}}\bigcup_{m\geq n}\{X_m = x\}.
+```
 
-!!! note "Proposition""
+!!! note "Proposition (zero-one law for infinitely-many visits)"
     Consider a state $x\in\mathcal{X}.$ Then either
     ```math
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1
@@ -152,50 +152,49 @@ If the probability is one, we will almost surely observe this state infinitely m
         \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 0
     ```
 
-!!! note "Proof"
-    The idea is to use the Markovian property, that if the probability of being visited once after the initial time is $q,$ then, the probability of having $m$ visits is $q^m,$ to deduce that, at the limit $m\rightarrow \infty,$ it is either zero or one, depending on whether $0 \leq q < 1$ or $q = 1.$ 
+**Proof.** The idea is to use the Markov property of the chain, that if the probability of being visited once after the initial time is $q,$ then, the probability of having $m$ visits is $q^m,$ to deduce that, at the limit $m\rightarrow \infty,$ it is either zero or one, depending on whether $0 \leq q < 1$ or $q = 1.$ 
     
-    More precisely, we know that
-    ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x = \infty | X_0 = x).
-    ```
-    This means
-    ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x).
-    ```
-    But
-    ```math
-        \{\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x \} = \bigcap_{m\in\mathbb{N}}\{\eta_x \geq m, X_0 = x\},
-    ```
-    with the intersection being of non-increasing sets, with respect to increasing $m\in\mathbb{N}.$ Thus, by the continuity of probability measures,
-    ```math
-        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m, X_0 = x).
-    ```
-    Similarly,
-    ```math
-        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m | X_0 = x).
-    ```
-    We have already seen that
-    ```math
-        \mathbb{P}(\eta_x \geq m | X_0 = x) = q^m,
-    ```
-    where
-    ```math
-        q = \mathbb{P}(\tau_x < \infty | X_0 = x).
-    ```
-    Thus,
-    ```math
-        \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} q^m.
-    ```
-    Clearly,
-    ```math
-        \lim_{m\rightarrow} q^m = 0, \quad \textrm{if } 0 < q \leq 1,
-    ```
-    and
-    ```math
-        \lim_{m\rightarrow} q^m = 1, \quad \textrm{if } q = 1.
-    ```
-    Since $q$ is a probability, which can only assume values in the range $0\leq q \leq 1,$ the only possible limits are 0 and 1, proving the result.
+More precisely, we know that
+```math
+    \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x = \infty | X_0 = x).
+```
+This means
+```math
+    \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x).
+```
+But
+```math
+    \{\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x \} = \bigcap_{m\in\mathbb{N}}\{\eta_x \geq m, X_0 = x\},
+```
+with the intersection being of non-increasing sets, with respect to increasing $m\in\mathbb{N}.$ Thus, by the continuity of probability measures,
+```math
+    \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N}, X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m, X_0 = x).
+```
+Similarly,
+```math
+    \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} \mathbb{P}(\eta_x \geq m | X_0 = x).
+```
+We have already seen that
+```math
+    \mathbb{P}(\eta_x \geq m | X_0 = x) = q^m,
+```
+where
+```math
+    q = \mathbb{P}(\tau_x < \infty | X_0 = x).
+```
+Thus,
+```math
+    \mathbb{P}(\eta_x \geq m, \;\forall m\in\mathbb{N} | X_0 = x) = \lim_{m\rightarrow} q^m.
+```
+Clearly,
+```math
+    \lim_{m\rightarrow} q^m = 0, \quad \textrm{if } 0 < q \leq 1,
+```
+and
+```math
+    \lim_{m\rightarrow} q^m = 1, \quad \textrm{if } q = 1.
+```
+Since $q$ is a probability, which can only assume values in the range $0\leq q \leq 1,$ the only possible limits are 0 and 1, proving the result. □
 
 With this in mind, we have the following definitions.
 
@@ -212,7 +211,7 @@ With this in mind, we have the following definitions.
 
 Equivalent definitions of recurrence can be made with the notions of number of passages and return time. In that regard, we have the following result, which we borrow, essentially, from [Lawler (2006)](https://doi.org/10.1201/9781315273600), except that we do not include the time $n=0$ in the number of passages, so the formula is slightly different.
 
-!!! note "Theorem"
+!!! note "Theorem (characterizations of recurrent and transient states)"
     For any state $x\in\mathcal{X},$ we have
     ```math
         x \textrm{ is recurrent } \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) = 1 \quad \Longleftrightarrow \quad \mathbb{E}[\eta_x | X_0 = x] = \infty,
@@ -227,87 +226,85 @@ Equivalent definitions of recurrence can be made with the notions of number of p
     ```
     with the understanding that the left hand side is infinite when the probability in the right hand side is 1.
     
-!!! note "Proof"
-    We have that $\tau_x = \infty$ iff $X_n$ never returns to $x.$ If $\tau_x < \infty,$ then it returns to $x$ in finite time at least once. If $\tau_x < \infty$ with probability one, then, with probability one, it will return again and again to $x,$ still with probability one, since the countable intersection of sets of full measure still has full measure. Thus,
-    ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1 \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) = 1.
-    ```
-    This proves that $x$ is recurrent if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) = 1,$ which is the first part of the equivalence in the recurrence case. The complement of that is precisely that $x$ is transient if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) < 1.$
+**Proof.** We have that $\tau_x = \infty$ iff $X_n$ never returns to $x.$ If $\tau_x < \infty,$ then it returns to $x$ in finite time at least once. If $\tau_x < \infty$ with probability one, then, with probability one, it will return again and again to $x,$ still with probability one, since the countable intersection of sets of full measure still has full measure. Thus,
+```math
+    \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1 \quad \Longleftrightarrow \quad \mathbb{P}(\tau_x < \infty | X_0 = x) = 1.
+```
+This proves that $x$ is recurrent if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) = 1,$ which is the first part of the equivalence in the recurrence case. The complement of that is precisely that $x$ is transient if, and only if, $\mathbb{P}(\tau_x < \infty | X_0 = x) < 1.$
 
-    For the remaining equivalences, let us suppose, first, that $x$ is transient. Then, as we have seen,
-    ```math
-        q = \mathbb{P}(\tau_x < \infty | X_0 = x) < 1.
-    ```
-    We compute the expectation of the number of passages by
-    ```math
-        \begin{align*}
-            \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[ \sum_{n=1}^\infty \mathbb{1}_{X_n = x} \bigg| X_0 = x\right] = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{X_n = x} \bigg| X_0 = x\right] \\
-            & = \sum_{n=1}^\infty \mathbb{P}(X_n = x | X_0 = x) = \sum_{n=1}^\infty p_n(x, x).
-        \end{align*}
-    ```
-    We can also compute this in a different way. Since $\eta_x$ is always an integer, its expectation is given by
-    ```math
-        \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m \mathbb{P}(\eta_x = m | X_0 = x).
-    ```
-    We need a way to calculate $\mathbb{P}(\eta_x = m | X_0 = x),$ for each integer $m\in\mathbb{N}.$ When $\eta_x = m,$ it means it returns to $x$ $m$ times and then it does not return anymore. This means that $\mathbb{P}(\eta_x = m | X_0 = x) = q^m.$ Thus,
-    ```math
-        \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m q^m.
-    ```
-    Let $S = \sum_{m=1}^\infty m q^m,$ so that $qS = \sum_{m=1}^\infty m q^{m+1} = \sum_{m=2}^\infty (m-1)q^m,$ and hence
-    ```math
-        (1 - q)S = S - qS = q + \sum_{m=1}^\infty q^m = \sum_{m=1}^\infty q^m = \frac{q}{1 - q}.
-    ```
-    Thus,
-    ```math
-        \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{1 - \mathbb{P}(\tau_x < \infty | X_0 = x)}.
-    ```
-    (In [Lawler (2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q).$)
-    
-    When
-    ```math
-        q = \mathbb{P}(\tau_x < \infty | X_0 = x) = 1,
-    ```
-    then
-    ```math
-        \mathbb{P}(\tau_x < \infty | X_0 = x) \geq r,
-    ```
-    for any $0 < r < 1,$ and we get, similarly, that
-    ```math
-        \mathbb{E}[\eta_x | X_0 = x] \geq \sum_{m=1}^\infty m r^m = \frac{r}{(1 - r)} \rightarrow \infty,
-    ```
-    as $r \rightarrow 1,$ so that $\mathbb{E}[\eta_x | X_0 = x] = \infty.$
-    
-    This proves the identity between the expectation and the probability. In particular, the expectation is finite if, and only if, the probability is strictly less than one, which proves the remaining equivalences.
+For the remaining equivalences, let us suppose, first, that $x$ is transient. Then, as we have seen,
+```math
+    q = \mathbb{P}(\tau_x < \infty | X_0 = x) < 1.
+```
+We compute the expectation of the number of passages by
+```math
+    \begin{align*}
+        \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[ \sum_{n=1}^\infty \mathbb{1}_{X_n = x} \bigg| X_0 = x\right] = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{X_n = x} \bigg| X_0 = x\right] \\
+        & = \sum_{n=1}^\infty \mathbb{P}(X_n = x | X_0 = x) = \sum_{n=1}^\infty p_n(x, x).
+    \end{align*}
+```
+We can also compute this in a different way. Since $\eta_x$ is always an integer, its expectation is given by
+```math
+    \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m \mathbb{P}(\eta_x = m | X_0 = x).
+```
+We need a way to calculate $\mathbb{P}(\eta_x = m | X_0 = x),$ for each integer $m\in\mathbb{N}.$ When $\eta_x = m,$ it means it returns to $x$ $m$ times and then it does not return anymore. This means that $\mathbb{P}(\eta_x = m | X_0 = x) = q^m.$ Thus,
+```math
+    \mathbb{E}[\eta_x | X_0 = x] = \sum_{m=1}^\infty m q^m.
+```
+Let $S = \sum_{m=1}^\infty m q^m,$ so that $qS = \sum_{m=1}^\infty m q^{m+1} = \sum_{m=2}^\infty (m-1)q^m,$ and hence
+```math
+    (1 - q)S = S - qS = q + \sum_{m=1}^\infty q^m = \sum_{m=1}^\infty q^m = \frac{q}{1 - q}.
+```
+Thus,
+```math
+    \mathbb{E}[\eta_x | X_0 = x] = \frac{\mathbb{P}(\tau_x < \infty | X_0 = x)}{1 - \mathbb{P}(\tau_x < \infty | X_0 = x)}.
+```
+(In [Lawler (2006)](https://doi.org/10.1201/9781315273600), the number of passages includes the initial time $n=1,$ so that the formula obtained is $1/(1-q),$ instead of $q/(1 - q).$)
+
+When
+```math
+    q = \mathbb{P}(\tau_x < \infty | X_0 = x) = 1,
+```
+then
+```math
+    \mathbb{P}(\tau_x < \infty | X_0 = x) \geq r,
+```
+for any $0 < r < 1,$ and we get, similarly, that
+```math
+    \mathbb{E}[\eta_x | X_0 = x] \geq \sum_{m=1}^\infty m r^m = \frac{r}{(1 - r)} \rightarrow \infty,
+```
+as $r \rightarrow 1,$ so that $\mathbb{E}[\eta_x | X_0 = x] = \infty.$
+
+This proves the identity between the expectation and the probability. In particular, the expectation is finite if, and only if, the probability is strictly less than one, which proves the remaining equivalences. □
 
 These equivalences are true, in general, only in the countable case; see page 222 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2).
 
 Another equivalence with recurrence is the following.
 
-!!! note "Proposition"
+!!! note "Proposition (characterizations of recurrent and transient states)"
     Given a state $x\in\mathcal{X},$ we have the equality
     ```math
         \mathbb{E}[\eta_x | X_0 = x] = \sum_{n=1}^\infty K_n(x, x)
     ```
-    and, therefore, $x$ is recurrent if, and only if,
+    and, therefore, $x$ is recurrent, when
     ```math
-        \sum_{n=1}^\infty K_n(x, x) = \infty.
+        \sum_{n=1}^\infty K_n(x, x) = \infty,
     ```
-    and $x$ is transient if, and only if,
+    and $x$ is transient, when
     ```math
         \sum_{n=1}^\infty K_n(x, x) < \infty.
     ```
 
-!!! note "Proof"
-    The identity is proved using the definition of $\eta_x.$ Indeed,
-    ```math
-        \begin{align*}
-            \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[\sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
-            & = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
-            & = \sum_{n=1}^\infty \mathbb{P}\left[X_n = x \bigg| X_0 = x\right] \\
-            & = \sum_{n=1}^\infty K_n(x, x).
-        \end{align*}
-    ```
-    Now, the characterization of recurrence and transience of $x$ follow from this identity and from the corresponding characterizations in terms of the expectation $\mathbb{E}[\eta_x | X_0 = x].$
+**Proof.** The identity is proved using the definition of $\eta_x.$ Indeed,
+```math
+    \begin{align*}
+        \mathbb{E}[\eta_x | X_0 = x] & = \mathbb{E}\left[\sum_{n=1}^\infty \mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
+        & = \sum_{n=1}^\infty \mathbb{E}\left[\mathbb{1}_{\{X_n = x\}} \bigg| X_0 = x\right] \\
+        & = \sum_{n=1}^\infty \mathbb{P}\left[X_n = x \bigg| X_0 = x\right] \\
+        & = \sum_{n=1}^\infty K_n(x, x).
+    \end{align*}
+```
+Now, the characterization of recurrence and transience of $x$ follow from this identity and from the corresponding characterizations in terms of the expectation $\mathbb{E}[\eta_x | X_0 = x].$ This completes the proof. □
 
 When every state is recurrent we say that the chain is recurrent.
 
@@ -358,7 +355,9 @@ since
 
 ## Existence of invariant distribution
 
-!!! note "Theorem"
+Recurrence is a fundamental property associated with the existence of invariant measures.
+
+!!! note "Theorem (recurrence implies existence of invariant measure)"
     Suppose that $x\in\mathcal{X}$ is recurrent. Then
     ```math
         P_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} | X_0 = x\right]
@@ -387,104 +386,104 @@ The assumption of recurrence of $x$ implies that $\tau_x$ is finite almost surel
     
 The proof below is adapted from Theorem 6.37 of [Robert and Casella (2004)](https://doi.org/10.1007/978-1-4757-4145-2). Notice we are not assuming irreducibility, so we are not claiming that this invariant distribution is unique.
 
-!!! note "Proof"
-    For the proof, we consider, for the sake of simplicity, the unnormalized measure
-    ```math
-        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x).
-    ```
-    We show that it defines a positive and finite invariant measure, with ${\tilde P}_x(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x].$ After that, we obtain the desired result by normalizing ${\tilde P}_x$ by the expectation $\mathbb{E}[\tau_{x} | X_0 = x].$
+**Proof.** For the proof, we consider, for the sake of simplicity, the unnormalized measure
+```math
+    {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x).
+```
+We show that it defines a positive and finite invariant measure, with ${\tilde P}_x(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x].$ After that, we obtain the desired result by normalizing ${\tilde P}_x$ by the expectation $\mathbb{E}[\tau_{x} | X_0 = x].$
 
-    First of all, since the space is discrete and each ${\tilde P}_x(z) \geq 0,$ for $z\in\mathcal{X},$ it follows that ${\tilde P}_x$ defines indeed a measure on $\mathcal{X}.$ Let us check that ${\tilde P}_x$ is in fact a nontrivial and finite measure. We have
-    ```math
-        \begin{align*}
-            {\tilde P}_x(\mathcal{X}) & = \sum_{z\in\mathcal{X}} P_x(z) \\
-            & = \sum_{z\in\mathcal{X}}\sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \sum_{z\in\mathcal{X}} \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \mathbb{P}( \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \sum_{m=n}^\infty \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-            & = \sum_{m=1}^\infty \sum_{n=1}^{m} \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-            & = \sum_{m=1}^\infty m \mathbb{P}(\tau_{x} = m | X_0 = x) \\
-            & = \mathbb{E}[\tau_{x} | X_0 = x]
-        \end{align*}
-    ```
-    Since it is assumed that 
-    ```math
-        \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
-    ```
-    it follows that the measure ${\tilde P}$ is finite. And since, by definition, $\tau_x$ is an integer with $1 \leq \tau_x \leq +\infty,$ the measure is non-trivial, i.e. it is positive, with
-    ```math
-        1 \leq {\tilde P}(\mathcal{X}) < \infty.
-    ```
+First of all, since the space is discrete and each ${\tilde P}_x(z) \geq 0,$ for $z\in\mathcal{X},$ it follows that ${\tilde P}_x$ defines indeed a measure on $\mathcal{X}.$ Let us check that ${\tilde P}_x$ is in fact a nontrivial and finite measure. We have
+```math
+    \begin{align*}
+        {\tilde P}_x(\mathcal{X}) & = \sum_{z\in\mathcal{X}} P_x(z) \\
+        & = \sum_{z\in\mathcal{X}}\sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \sum_{z\in\mathcal{X}} \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}( \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \sum_{m=n}^\infty \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \sum_{m=1}^\infty \sum_{n=1}^{m} \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \sum_{m=1}^\infty m \mathbb{P}(\tau_{x} = m | X_0 = x) \\
+        & = \mathbb{E}[\tau_{x} | X_0 = x]
+    \end{align*}
+```
+Since it is assumed that 
+```math
+    \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
+```
+it follows that the measure ${\tilde P}$ is finite. And since, by definition, $\tau_x$ is an integer with $1 \leq \tau_x \leq +\infty,$ the measure is non-trivial, i.e. it is positive, with
+```math
+    1 \leq {\tilde P}(\mathcal{X}) < \infty.
+```
 
-    In particular,
-    ```math
-        \begin{align*}
-            {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} = n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \mathbb{P}(\tau_{x} \geq n | X_0 = x) \\
-            & = \mathbb{P}(\cup_{n\in\mathbb{N}} \{\tau_{x} = n | X_0 = x\}) \\
-            & = \mathbb{P}(\tau_{x} < \infty | X_0 = x).
-        \end{align*}
-    ```
-    The condition
-    ```math
-        \mathbb{E}[\tau_{x} | X_0 = x] < \infty.
-    ```
-    implies that $\tau_{x}$ must be finite almost surely, so that
-    ```math
-        {\tilde P}(\mathcal{x}) = \mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1.
-    ```
+In particular,
+```math
+    \begin{align*}
+        {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} = n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}(\tau_{x} \geq n | X_0 = x) \\
+        & = \mathbb{P}(\cup_{n\in\mathbb{N}} \{\tau_{x} = n | X_0 = x\}) \\
+        & = \mathbb{P}(\tau_{x} < \infty | X_0 = x).
+    \end{align*}
+```
+The condition
+```math
+    \mathbb{E}[\tau_{x} | X_0 = x] < \infty.
+```
+implies that $\tau_{x}$ must be finite almost surely, so that
+```math
+    {\tilde P}(\mathcal{x}) = \mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1.
+```
 
-    Now, let us check that ${\tilde P}_x$ is invariant.
-    We need to show that
-    ```math
-        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) = {\tilde P}_x(z),
-    ```
-    for every $z\in\mathcal{X}.$ For that, we write
-    ```math
-        \begin{align*}
-            \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \sum_{y\in\mathcal{X}} K(y, z)\sum_{n=1}^\infty \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \sum_{y\in\mathcal{X}} K(y, z) \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x)
-        \end{align*}
-    ```
-    We split the sum according to $y=x$ and $y\neq x,$ so that
-    ```math
-        \begin{align*}
-            \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \sum_{n=1}^\infty K(x, z) \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
-            & \qquad + \sum_{n=1}^\infty \sum_{y\neq x} K(y, z) \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x) \\
-            & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) \\
-        \end{align*}
-    ```
-    For $y\neq z,$ we have
-    ```math
-        \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) = \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x).
-    ```
-    Thus,
-    ```math
-        \begin{align*}
-            \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x) \\
-            & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \mathbb{P}(X_{n+1} = z, \tau_{x} \geq n+1 | X_0 = x) \\
-            & = K(x, z) {\tilde P}(x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x),
-        \end{align*}
-    ```
-    where in the last step we just reindexed the summation. Now we use that ${\tilde P}(x) = 1$ (as proved above) and that 
-    ```math
-        K(x, z) = \mathbb{P}(X_1 = z | X_0 = x) = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x)
-    ```
-    (since $\tau_{x} \geq 1$ always), to obtain
-    ```math
-        \begin{align*}
-            \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
-            & = \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
-            & = {\tilde P}(z),
-        \end{align*}
-    ```
-    proving the invariance.
+Now, let us check that ${\tilde P}_x$ is invariant.
+We need to show that
+```math
+    \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) = {\tilde P}_x(z),
+```
+for every $z\in\mathcal{X}.$ For that, we write
+```math
+    \begin{align*}
+        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \sum_{y\in\mathcal{X}} K(y, z)\sum_{n=1}^\infty \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \sum_{y\in\mathcal{X}} K(y, z) \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x)
+    \end{align*}
+```
+We split the sum according to $y=x$ and $y\neq x,$ so that
+```math
+    \begin{align*}
+        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \sum_{n=1}^\infty K(x, z) \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
+        & \qquad + \sum_{n=1}^\infty \sum_{y\neq x} K(y, z) \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x) \\
+        & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) \\
+    \end{align*}
+```
+For $y\neq z,$ we have
+```math
+    \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) = \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x).
+```
+Thus,
+```math
+    \begin{align*}
+        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x) \\
+        & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \mathbb{P}(X_{n+1} = z, \tau_{x} \geq n+1 | X_0 = x) \\
+        & = K(x, z) {\tilde P}(x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x),
+    \end{align*}
+```
+where in the last step we just reindexed the summation. Now we use that ${\tilde P}(x) = 1$ (as proved above) and that 
+```math
+    K(x, z) = \mathbb{P}(X_1 = z | X_0 = x) = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x)
+```
+(since $\tau_{x} \geq 1$ always), to obtain
+```math
+    \begin{align*}
+        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
+        & = \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
+        & = {\tilde P}(z),
+    \end{align*}
+```
+proving the invariance.
 
-    Now, as mentioned above, since ${\tilde P}(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x]$ is finite and positive, we can normalize ${\tilde P}$ by this expectation to obtain the invariant probability distribution
-    ```math
-        P(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x).
-    ```
+Now, as mentioned above, since ${\tilde P}(\mathcal{X}) = \mathbb{E}[\tau_{x} | X_0 = x]$ is finite and positive, we can normalize ${\tilde P}$ by this expectation to obtain the invariant probability distribution
+```math
+    P(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x).
+```
+□
 
 ## Kac's Theorem on invariant distribution of an irreducible chain
 
