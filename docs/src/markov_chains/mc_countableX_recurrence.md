@@ -359,6 +359,22 @@ since
 ## Existence of invariant distribution
 
 !!! note "Theorem"
+    Suppose that $x\in\mathcal{X}$ is recurrent. Then
+    ```math
+        P_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} | X_0 = x\right]
+    ```
+    defines an invariant measure for the Markov chain. If, moreover,
+    ```math
+        \mathbb{E}[\tau_{x} | X_0 = x] < \infty,
+    ```
+    then, this measure is finite, with $P_x(\mathcal{X})$ exactly this expectation, so that this measure can be normalized to a stationary probability distribution
+    ```math
+        P_x(z) = \frac{1}{\mathbb{E}[\tau_{x} | X_0 = x]} \sum_{n=1}^\infty \mathbb{P}(X_n = z, \tau_{x} \geq n | X_0 = x)
+    ```
+
+The assumption of recurrence of $x$ implies that $\tau_x$ is finite almost surely.
+
+!!! note "Theorem"
     Suppose that, for some $x\in\mathcal{X},$
     ```math
         \mathbb{E}[\tau_{x} | X_0 = x] < \infty.
