@@ -497,59 +497,11 @@ But this measure may not be invariant. The recurrence is needed to assure that $
 ```math
         {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} \bigg| X_0 = x\right]
 ```
-for the invariant measure appears naturally when we assume that an invariant measure exists. In fact, if ${\tilde P}$ is a given invariant measure, then, using this invariance,
-```math
-    {\tilde P}(z) = \sum_{y_1} K(y_1, z){\tilde P}(y_1).
-```
-Splitting the summation into $y_1=x$ and $y_1\neq x,$ we have
-```math
-    {\tilde P}(z) = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(y_1, z){\tilde P}(y).
-```
-Using again the invariance for the term ${\tilde P}(y)$ inside the summation and spliting again the summation, we have
-```math
-    \begin{align*}
-        {\tilde P}(z) & = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(y_1, z)\left( \sum_{y_2} K(y_2, y_1){\tilde P}(y_2) \right) \\
-        & = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) + \sum_{y_1\neq x}\sum_{y_2\neq x} K(y_2, y_1)K(y_1, z){\tilde P}(y_2).
-    \end{align*}
-```
-By induction, we obtain
-```math
-    \begin{align*}
-        {\tilde P}(z) & = K(x, z){\tilde P}(x) \\
-        & \quad + \sum_{y_1\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) \\
-        & \quad + \sum_{y_1\neq x}\sum_{y_2\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) \\
-        & \quad + \cdots \\
-        & \quad + \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z){\tilde P}(x) \\
-        & \quad + \sum_{y_1\neq x}\cdots \sum_{y_k\neq x} K(y_k, y_{k-1})K(y_{k-1}, y_{k-2})\cdots K(y_1, z){\tilde P}(x),
-    \end{align*}
-```
-for every $k\in\mathbb{N}.$ Negleting the last term at each iteration $k,$ we find that
-```math
-    \begin{align*}
-        {\tilde P}(z) & \geq \bigg(K(x, z) + \sum_{y_1\neq x} K(x, y_1)K(y_1, z) + \cdots \\
-        & \qquad + \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z)\bigg){\tilde P}(x).
-    \end{align*}
-```
-Now notice that, for $k=1,$
-```math
-    K(x, z) = \mathbb{P}(X_1 = z | X_0 = x) = \mathbb{P}(X_1 = z, \tau_x \geq 1 | X_0 = x),
-```
-for $k=2,$
-```math
-    \sum_{y_1\neq x} K(x, y_1)K(y_1, z) = \mathbb{P}(X_2 = z, X_1 \neq x | X_0 = x) = \mathbb{P}(X_2 = z, \tau_x \geq 2 | X_0 = x),
-```
-and, more generally, for any $k\in\mathbb{K},$
-```math
-    \begin{align*}
-        \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z) & = \mathbb{P}(X_k = z, X_{k-1}\neq x, \ldots, X_1 \neq x | X_0 = x) \\
-        & = \mathbb{P}(X_k = z, \tau_x \geq k | X_0 = x).
-    \end{align*}
-```
-The summation of such $k$ terms is precisely ${\tilde P}_x(z),$ and we find
+for the invariant measure appears naturally when we assume that an invariant measure exists. Indeed, for an invariant measure ${\tilde P}$ and for any two states $x, z\in\mathcal{X},$ one can show, by recusively using that the measure in invariant and by splitting the corresponding summation into the state equal to $x$ and the states different from $x,$ that
 ```math
     {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x).
 ```
-Later we will see that this inequality (assuming $x$ is recurrent and ${\tilde P}(x) > 0$) implies that ${\tilde P}(z)$ is, in fact, a constant multiple of ${\tilde P}_x(z),$ from where we obtain the uniqueness up to a multiplicative constant. In any case, we see, from this calculation, that the expression for ${\tilde P}_x(z)$ appears naturally from the hypothesis of invariance.
+This will be addressed in the following pages. This is then used to prove the uniqueness of the invariant measure (local or global, depending on whether just the chain is reducible or irreducible).
 
 ## References
 
