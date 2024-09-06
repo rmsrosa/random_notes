@@ -141,3 +141,7 @@ then
 ```
 where the product $P_n K$ is to be understood as the matrix product of a row vector $[p_1, \ldots, p_n]$ of the distribution of $X_n$ with the transition matrix $K,$ to yield another row vector with the distributions for the next state. Thus, $K$ is also a representation of the Markov operator.
 
+## References
+
+1. [C. P. Robert, G. Casella (2004), "Monte Carlo Statistical Methods", Second Edition, Springer Texts in Statistics, Springer New York, NY](https://doi.org/10.1007/978-1-4757-4145-2)
+1. [G. F. Lawler (2006), "Introduction to Stochastic Processes", 2nd Edition. Chapman and Hall/CRC, New York.](https://doi.org/10.1201/9781315273600)

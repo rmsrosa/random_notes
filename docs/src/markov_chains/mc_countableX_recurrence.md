@@ -497,13 +497,8 @@ But this measure may not be invariant. The recurrence is needed to assure that $
 ```math
         {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} \bigg| X_0 = x\right]
 ```
-for the invariant measure appears naturally when we assume that an invariant measure exists. Indeed, for an invariant measure ${\tilde P}$ and for any two states $x, z\in\mathcal{X},$ one can show, by recusively using that the measure in invariant and by splitting the corresponding summation into the state equal to $x$ and the states different from $x,$ that
+for the invariant measure appears naturally when we assume that an invariant measure exists. Indeed, for an invariant measure ${\tilde P}$ and for any two states $x, z\in\mathcal{X},$ one can show, by recusively using that the measure is invariant and by splitting the corresponding summation into the state equal to $x$ and the states different from $x,$ that
 ```math
     {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x).
 ```
-This will be addressed in the following pages. This is then used to prove the uniqueness of the invariant measure (local or global, depending on whether just the chain is reducible or irreducible).
-
-## References
-
-1. [C. P. Robert, G. Casella (2004), "Monte Carlo Statistical Methods", Second Edition, Springer Texts in Statistics, Springer New York, NY](https://doi.org/10.1007/978-1-4757-4145-2)
-1. [G. F. Lawler (2006), "Introduction to Stochastic Processes", 2nd Edition. Chapman and Hall/CRC, New York.](https://doi.org/10.1201/9781315273600)
+This inequality will be proved in the following pages. This is then used to prove the uniqueness (up to a multiplicative constant) of the invariant measure (local or global, depending on whether just the chain is reducible or irreducible). In any case, we see, from this calculation, that the expression for ${\tilde P}_x(z)$ appears naturally from the hypothesis of invariance alone. This expression measures how often the chain visits a certain state $z.$ When in statistical equilibrium, this is what we expect as how frequent the state is observed.

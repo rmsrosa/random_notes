@@ -21,7 +21,7 @@ Markov chains are about the probability of states changing with time. If startin
 
 Connection can be characterized with respect to other random variables.
 !!! note "Fact"
-    A point $x$ is connected to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ in a finite number of steps, which can be written as
+    For any two states $x, y\in\mathcal{X},$ the state $x$ is connected to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ in a finite number of steps, which can be written as
     ```math
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\tau_y < \infty | X_0 = x) > 0.
     ```
@@ -29,13 +29,26 @@ Connection can be characterized with respect to other random variables.
 When $x$ is connected to $y,$ there is a positive probability that there is at least one passage from $x$ to $y,$ i.e. $\eta_y \geq 1$ is greater than one, with positive probability. Thus, we have the following equivalences.
 
 !!! note "Fact"
+    For any two states $x, y\in\mathcal{X},$ the state $x$ is connected to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ at least once, which can be written as
     ```math
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\eta_y \geq 1 | X_0 = x) > 0.
     ```
 
 ## Local uniqueness of invariant measures
 
-In fact, if ${\tilde P}$ is a given invariant measure, then, using this invariance,
+First we have the following result, without any special assumption, but which will be key, for the uniqueness, when the state $x$ is assumed to be recurrent and with positive probability for the assumed invariant measure.
+
+!!! note "Lemma"
+    Suppose ${\tilde P}$ is an invariant measure for the Markov chain. Then, for any two states $x, z\in\mathcal{X},$
+    ```math
+        {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x),
+    ```
+    where
+    ```math
+        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x).
+    ```
+
+**Proof.** If ${\tilde P}$ is a given invariant measure, then, using this invariance,
 ```math
     {\tilde P}(z) = \sum_{y_1} K(y_1, z){\tilde P}(y_1).
 ```
@@ -76,15 +89,17 @@ for $k=2,$
 ```math
     \sum_{y_1\neq x} K(x, y_1)K(y_1, z) = \mathbb{P}(X_2 = z, X_1 \neq x | X_0 = x) = \mathbb{P}(X_2 = z, \tau_x \geq 2 | X_0 = x),
 ```
-and, more generally, for any $k\in\mathbb{K},$
+and, more generally, for any $k\in\mathbb{N},$
 ```math
     \begin{align*}
         \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z) & = \mathbb{P}(X_k = z, X_{k-1}\neq x, \ldots, X_1 \neq x | X_0 = x) \\
         & = \mathbb{P}(X_k = z, \tau_x \geq k | X_0 = x).
     \end{align*}
 ```
-The summation of such $k$ terms is precisely ${\tilde P}_x(z),$ and we find
+The summation of all such $k\in\mathbb{N}$ terms is precisely ${\tilde P}_x(z),$ and we find
 ```math
     {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x).
 ```
-Later we will see that this inequality (assuming $x$ is recurrent and ${\tilde P}(x) > 0$) implies that ${\tilde P}(z)$ is, in fact, a constant multiple of ${\tilde P}_x(z),$ from where we obtain the uniqueness up to a multiplicative constant. In any case, we see, from this calculation, that the expression for ${\tilde P}_x(z)$ appears naturally from the hypothesis of invariance.
+This concludes the proof. □
+
+In the result above, we do not need to assume that $x$ is recurrent. If not, then both terms on the right hand side may vanish and the inequality is vacuous. However, if $x$ is recurrent and has positive measurability ${\tilde P}(x) > 0$ with respect to the invariant measure, then we deduce that ${\tilde P}$ must be a multiple of ${\tilde P}_x,$ meaning uniqueness up to a multiplicative constant, at least locally amongst all states connected to $x.$
