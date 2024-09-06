@@ -14,6 +14,18 @@ Sometimes it might be useful to consider measures with are not necessarily proba
 ```math
     \rho(E) = \int_{\mathcal{X}} K(x, E)\;\mathrm{d}\rho(x).
 ```
+When the transition probability has a kernel $k(x, y)$ with respect to a measure $\mu(x),$ such as the Lebesgue measure, this can be written as
+```math
+    \rho(E) = \int_E \int_{\mathcal{X}} k(x, y)\;\mathrm{d}\rho(x) \;\mathrm{d}\mu(y).
+```
+In the case of the Lebesgue measure, we simply have
+```math
+    \rho(E) = \int_E \int_{\mathcal{X}} k(x, y)\;\mathrm{d}\rho(x) \;\mathrm{d}y.
+```
+If, moreover, $\rho$ has a density $f$ with respect to the Lebesgue measure, this is equivalent to
+```math
+    f(y) = \int_{\mathcal{X}} k(x, y)f(y)\;\mathrm{d}\rho(x).
+```
 
 In case the space $\mathcal{X}$ is countable, with the discrete topology, this may be expressed pointwise:
 ```math
@@ -144,4 +156,16 @@ on the real line $\mathcal{X} = \mathbb{R},$ where
 ```math
     W_n \sim \mathcal{N}(0, 1)
 ```
-are independent normal random variables.
+are independent normal random variables. In this case, the kernel of the transition distribution is the Gaussian kernel
+```math
+    k(x, y) = \frac{1}{\sqrt{2\pi}} e^{-\frac{1}{2}(y - x)^2}.
+```
+We may easily check that the Lebesgue measure $\lambda$ is invariant for this random walk:
+```math
+    \begin{align*}
+        (\lambda K)(E) & = \int_E \int_{\mathbb{R}}k(x, y)\;\mathrm{d}x\;\mathrm{d}y \\
+        & = \frac{1}{\sqrt{2\pi}} \int_E \int_{\mathbb{R}} e^{-\frac{1}{2}(y - x)^2} \;\mathrm{d}x\;\mathrm{d}y \\
+        & = \int_E \;\mathrm{d}y \\
+        & = \lambda(E).
+    \end{align*}
+```
