@@ -1,16 +1,24 @@
 # Invariant distributions
 
-Of particular interest, for time-homogeneous Markov chains, are the stationary distributions, i.e. such that $X_n = X_0,$ for all $n=0, 1, 2, \ldots.$ This is the same as saying that they all have the same distribution $P,$ which is invariant by the Markov operator.
+Of particular interest, for time-homogeneous Markov chains, are the stationary distributions, i.e. such that $X_n$ have the same law as $X_0,$ for all $n=0, 1, 2, \ldots.$ This is the same as saying that they all have the same distribution $P,$ which is invariant by the Markov operator.
 
 ## Definition
 
 More precisely, a probability distribution $P$ on $\mathcal{X}$ is **(time-)invariant** or **stationary** for a time-homogenous discrete-time Markov chain $(X_n)_n$ when $P = PK,$ i.e.
 ```math
-    P(E) = \int_{\mathcal{X}} K(x, E);\mathrm{d}P(x),
+    P(E) = \int_{\mathcal{X}} K(x, E)\;\mathrm{d}P(x),
 ```
 where $K(x, E) = K_1(x, E) = K_{n,n+1}(x, E)$ is the one-step transition probability of the Markov chain and the $K$ in the equation $P = PK$ is the associated Markov operator on the space $\mathcal{P}(\mathcal{X})$ of probability distributions on $\mathcal{X}.$
 
-Sometimes it might be useful to consider measures with are not necessarily probability distributions. They may be finite or infinite, and $\sigma$-finite or not. In any case, we call a measure $\mu$ **(time-)invariant** or **stationary** for the Markov chain if $\mu = \mu K.$
+Sometimes it might be useful to consider measures with are not necessarily probability distributions. They may be finite or infinite, and $\sigma$-finite or not. In any case, we call a measure $\rho$ **(time-)invariant** or **stationary** for the Markov chain if $\rho = \rho K,$ i.e.
+```math
+    \rho(E) = \int_{\mathcal{X}} K(x, E)\;\mathrm{d}\rho(x).
+```
+
+In case the space $\mathcal{X}$ is countable, with the discrete topology, this may be expressed pointwise:
+```math
+    \rho(y) = \sum_{y\in\mathcal{X}} K(x, y)\rho(x), \quad \forall y\in\mathcal{X}.
+```
 
 ## Examples
 
@@ -59,7 +67,15 @@ Finally, if both $\alpha = \beta = 1,$ then $p=1/2$ and we have again a unique i
 
 In the finite-state case, we always have at least one invariant probability distribution. For a case with no invariant distribution, we need to go to an infinite-state case, either discrete or continuous. Here we consider an infinite but discrete example. Similary continuous-state examples can be easily constructed.
 
-Consider a random walk $X_n = X_n + W_n,$ on $\mathcal{X} = \mathbb{N},$ where the $W_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $0$ or $+1.$ This means the one-step transition probability is
+Consider a random walk
+```math
+    X_n = X_n + B_n, \quad n=0, 1, 2, \ldots,
+```
+on $\mathcal{X} = \mathbb{N},$ where the $B_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $0$ or $+1,$ 
+```math
+    B_n \sim \operatorname{Bernoulli}(\{0, 1\}, 1/2).
+```
+This means the one-step transition probability is
 ```math
     K(i, j) = \frac{1}{2}\delta_{i, j} + \frac{1}{2}\delta_{i,j-1},
 ```
@@ -81,7 +97,15 @@ which makes it impossible to be a probability distribution, with $\sum_{n\in\mat
 
 ### A symmetric random walk on the integers
 
-Even if we are allowed to move up or down, we may not have an invariant probability distribution. Consider, for instance, the random walk $X_n = X_n + W_n,$ on $\mathcal{X} = \mathbb{Z},$ where the $W_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $+1$ or $-1.$ This means the one-step transition probability is
+Even if we are allowed to move up or down, we may not have an invariant probability distribution. Consider, for instance, the random walk
+```math
+    X_{n+1} = X_n + B_n, \quad n = 0, 1, 2, \ldots,
+```
+on $\mathcal{X} = \mathbb{Z},$ where the $B_n$ are i.i.d. Bernoulli-type random variables with equal probabilities of being $+1$ or $-1,$
+```math
+    B_n \sim \operatorname{Bernoulli}(\{-1, +1\}, 1/2).
+```
+This means the one-step transition probability is
 ```math
     K(i, j) = \frac{1}{2}\delta_{i, j-1} + \frac{1}{2}\delta_{i,j+1},
 ```
@@ -109,3 +133,15 @@ where $\delta_n$ is the Dirac distribution at $n,$ i.e. $\delta_n(E) = 1,$ if $n
     \end{align*}
 ```
 showing that $P$ is invariant (or any constant multiple of $P$).
+
+### Random walk on the real line
+
+The last example is the random walk
+```math
+    X_{n+1} = X_n + W_n, \quad n = 0, 1, 2, \ldots,
+```
+on the real line $\mathcal{X} = \mathbb{R},$ where
+```math
+    W_n \sim \mathcal{N}(0, 1)
+```
+are independent normal random variables.

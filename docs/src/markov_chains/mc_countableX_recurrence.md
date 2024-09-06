@@ -1,6 +1,6 @@
 # Recurrence in the countable-space case
 
-Recurrence is a fundamental concept related to the existence of invariant measures. We explore such concept here.
+Recurrence is a fundamental concept related to the existence of invariant measures. We explore such concept here, in the context of a countable state space.
 
 ## Setting
 

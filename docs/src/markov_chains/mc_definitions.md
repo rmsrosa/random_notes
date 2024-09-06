@@ -1,12 +1,12 @@
 # Discrete-time Markov chains
 
-Many important probabilistic models fit the framework of a Markov chain, including the Markov Chain Monte Carlo (MCMC) methods. Here we explore some of its concepts and properties. Markov chains can be indexed with either discrete or continous "time" variables, but here we only consider the discrete-time case.
+Many important probabilistic models fit the framework of a Markov chain, including the Markov Chain Monte Carlo (MCMC) methods, as the name says it. Here we explore some of its concepts and properties. Markov chains can be indexed with either discrete or continous "time" variables, but here we only consider the discrete-time case.
 
 ## Definition
 
-Markov chains are families of random variables $(X_n)_{n\in N},$ over an index set $N,$ such that, essentially, only the most recent known state determines the future of the chain. The index set $I$ can be continuous or discrete, but here we are only interested on the discrete case $\mathbb{Z}_{\geq 0} = \{0, 1, 2, \ldots, \},$ or sometimes just $\mathbb{N}=\{1, 2, \ldots, \}.$ The index set is usually referred to as the *time* variable, while the values of the random variables live on a space $\mathcal{X}$ called the *state* or *event* space.
+Markov chains are families of random variables $(X_n)_{n\in I},$ over an index set $I,$ such that, essentially, only the most recent known state determines the future of the chain. The index set $I$ can be continuous or discrete, but here we are only interested on the discrete case $I = \mathbb{Z}_{\geq 0} = \{0, 1, 2, \ldots, \}.$ The index set is usually referred to as the *time* variable, while the values of the random variables live on a space $\mathcal{X}$ called the *state* or *event* space.
 
-The event space $\mathcal{X}$ can be either discrete (finite or infinite) or continuous. We are mostly interested in the continuous case $\mathcal{X} = \mathbb{R}^d,$ $d\in\mathbb{N},$ but some examples are given with $\mathcal{X} = \{1, \ldots, n\},$ $\mathcal{X}=\mathbb{Z},$ for illustrative purposes and intuitive assessment. In any case, we always assume it is a topological space, often a metrizable space.
+The event space $\mathcal{X}$ can be either countable (finite or infinite, with the discrete topology) or continuous (e.g. $\mathcal{X} = \mathbb{R}^d,$ $d\in\mathbb{N},$ or some infinite dimensional Hilbert or Banach space). We are mostly interested in the continuous case $\mathcal{X} = \mathbb{R}^d,$ $d\in\mathbb{N},$ but some examples are given with $\mathcal{X} = \{1, \ldots, n\},$ $n\in\mathbb{N},$ or $\mathcal{X}=\mathbb{Z},$ for illustrative purposes and intuitive assessment. In any case, we always assume it is a topological space.
 
 The random variables are functions $X_n:\Omega \rightarrow \mathcal{X}$ which are assumed to be measurable from a probability space $(\Omega, \mathcal{F}, \mathbb{P}),$ with $\sigma$-algebra $\mathcal{F}$ and probability distribution $\mathbb{P},$ to a measurable space, which we take here to be $(\mathcal{X}, \mathcal{B}(\mathcal{X})),$ where $\mathcal{B}(\mathcal{X})$ denotes the Borel $\sigma$-algebra of the topological space $\mathcal{X}.$
 
@@ -14,7 +14,7 @@ In the discrete-time case, the Markov property for the discrete-time process $(X
 ```math
     \mathbb{P}(X_{n+1}|X_0\in E_0, X_1 \in E_1, \ldots, X_n\in E_n) = \mathbb{P}(X_{n+1}|X_n\in E_n),
 ```
-for all Borel sets $E_0, \ldots, E_n.$ The continuos-time version has a similar condition, based on the notion of filtration of a $\sigma$-algebra, but we do not need to consider this in the time-discrete case.
+for all Borel sets $E_0, \ldots, E_n.$ The continuos-time version has a similar condition, based on the notion of filtration of a $\sigma$-algebra, but we do not need to worry about this in the time-discrete case.
 
 ## Transition probabilities
 
