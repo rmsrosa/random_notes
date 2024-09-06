@@ -306,15 +306,7 @@ Another equivalence with recurrence is the following.
 ```
 Now, the characterization of recurrence and transience of $x$ follow from this identity and from the corresponding characterizations in terms of the expectation $\mathbb{E}[\eta_x | X_0 = x].$ This completes the proof. □
 
-When every state is recurrent we say that the chain is recurrent.
-
-!!! note "Definition (recurrent chain)"
-    The Markov chain is called **recurrent** when every state is recurrent, i.e.
-    ```math
-        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1, \quad \forall x\in\mathcal{X}.
-    ```
-
-For instance, we have seen that the random walk $X_{n+1} = X_n + B_n,$ where $B_n$ are Bernoulli i.i.d. with states $+1$ with probability $p$ and $-1$ with probability $1 - p,$ where $0 < p < 1,$ but it is not recurrent. For any $x, \in\mathcal{X}=\mathbb{Z}$ and $n\in\mathbb{N},$ the transition probability $K_n(x, y)$ is zero if $|y - x|$ and $n$ have different parity or when $n < |y - x|,$ and is given by the binomial distribution
+For instance, we have seen that the random walk $X_{n+1} = X_n + B_n,$ where $B_n$ are Bernoulli i.i.d. with states $+1$ with probability $p$ and $-1$ with probability $1 - p,$ where $0 < p < 1.$ For any $x, y\in\mathcal{X}=\mathbb{Z}$ and $n\in\mathbb{N},$ the transition probability $K_n(x, y)$ is zero if $|y - x|$ and $n$ have different parity or when $n < |y - x|,$ and is given by the binomial distribution
 ```math
     p_n(m) = \begin{pmatrix} n \\ i \end{pmatrix} p^i(1-p)^j,
 ```
@@ -350,8 +342,34 @@ Thus, by the Borel-Cantelli Lemma,
 ```
 since
 ```math
-    \sum_{n\in\mathbb{N}} \mathbb{P}\left(X_m = x | X_0 = x\right) = \sum_{n\in\mathbb{N}, n \textrm{ even}} \begin{pmatrix} n \\ \frac{n}{2} \end{pmatrix} p^{n/2}(1-p)^{n/2} = \sum_{n\in\mathbb{N}} \begin{pmatrix} 2n \\ n \end{pmatrix} p^n(1-p)^n \approx \sum_{n\in\mathbb{N}} \frac{(2n)!}{2(n!)} (1/2)^n
+    \begin{align*}
+        \sum_{n\in\mathbb{N}} \mathbb{P}\left(X_m = x | X_0 = x\right) & = \sum_{n\in\mathbb{N}, n \textrm{ even}} \begin{pmatrix} n \\ \frac{n}{2} \end{pmatrix} p^{n/2}(1-p)^{n/2} \\
+        & = \sum_{n\in\mathbb{N}} \begin{pmatrix} 2n \\ n \end{pmatrix} p^n(1-p)^n = \sum_{n\in\mathbb{N}} \frac{(2n)!}{2(n!)} (p(1-p))^n.
+    \end{align*}
 ```
+Using Stirling's approximation
+```math
+    n! \approx \sqrt{2\pi n}\left(\frac{n}{e}\right)^n, \quad (2n)! \approx \sqrt{4\pi n}\left(\frac{2n}{e}\right)^{2n},
+```
+we have
+```math
+    \frac{(2n)!}{2(n!)} \approx \frac{\sqrt{4\pi n}}{2\sqrt{2\pi n}}\left(\frac{2n}{e}\right)^{2n}\left(\frac{e}{n}\right)^n = \frac{\sqrt{2}}{2}\left(\frac{4n}{e}\right)^n,
+```
+and we find
+```math
+    \sum_{n\in\mathbb{N}} \mathbb{P}\left(X_m = x | X_0 = x\right) \approx \frac{\sqrt{2}}{2}\sum_{n\in\mathbb{N}} \left(\frac{4np(1-p)}{e}\right)^n = \infty.
+```
+Thus, the chain is recurrent.
+
+### Recurrent chain
+
+When every state is recurrent we say that the chain is recurrent.
+
+!!! note "Definition (recurrent chain)"
+    The Markov chain is called **recurrent** when every state is recurrent, i.e.
+    ```math
+        \mathbb{P}(X_n = x \textrm{ infinitely often} | X_0 = x) = 1, \quad \forall x\in\mathcal{X}.
+    ```
 
 ## Existence of invariant distribution
 
@@ -360,7 +378,7 @@ Recurrence is a fundamental property associated with the existence of invariant 
 !!! note "Theorem (recurrence implies existence of invariant measure)"
     Suppose that $x\in\mathcal{X}$ is recurrent. Then
     ```math
-        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} | X_0 = x\right]
+        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} \bigg| X_0 = x\right]
     ```
     defines a non-trivial invariant measure for the Markov chain, which may be finite or infinite, with
     ```math
@@ -469,11 +487,69 @@ it follows that the measure ${\tilde P}$ is finite, so we can normalize ${\tilde
 ```
 This concludes the proof.□
 
-Notice that ${\tilde P}_x(z)$ defines a measure regardless of $x$ being recurrent or not. And it is always non-trivial, in fact, because $\sum_{y\in \mathbb{Z}} K(x, z) = 1,$ there must exist some $z\in\mathcal{Z}$ for which $X_0 = x$ and $X_1 = z,$ with positive probability, and thus, since $\tau_x \geq 1$ always,
+**Remark.** Notice that ${\tilde P}_x(z)$ defines a measure regardless of $x$ being recurrent or not. And it is always non-trivial, in fact, because $\sum_{y\in \mathbb{Z}} K(x, z) = 1,$ there must exist some $z\in\mathcal{Z}$ for which $X_0 = x$ and $X_1 = z,$ with positive probability, and thus, since $\tau_x \geq 1$ always,
 ```math
     {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) \geq \mathbb{P}(X_1 = z, \tau_x \geq 1 | X_0 = 1) = \mathbb{P}(X_1 = z | X_0 1) = K(x, z) > 0.
 ```
 But this measure may not be invariant. The recurrence is needed to assure that ${\tilde P}_x$ is invariant.
+
+**Remark.** The expression
+```math
+        {\tilde P}_x(z) = \sum_{n=1}^\infty \mathbb{P}(X_n = z, n \leq \tau_{x} | X_0 = x) = \mathbb{E}\left[\sum_{n=1}^{\tau_x} \mathbb{1}_{X_n = y} \bigg| X_0 = x\right]
+```
+for the invariant measure appears naturally when we assume that an invariant measure exists. In fact, if ${\tilde P}$ is a given invariant measure, then, using this invariance,
+```math
+    {\tilde P}(z) = \sum_{y_1} K(y_1, z){\tilde P}(y_1).
+```
+Splitting the summation into $y_1=x$ and $y_1\neq x,$ we have
+```math
+    {\tilde P}(z) = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(y_1, z){\tilde P}(y).
+```
+Using again the invariance for the term ${\tilde P}(y)$ inside the summation and spliting again the summation, we have
+```math
+    \begin{align*}
+        {\tilde P}(z) & = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(y_1, z)\left( \sum_{y_2} K(y_2, y_1){\tilde P}(y_2) \right) \\
+        & = K(x, z){\tilde P}(x) + \sum_{y_1\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) + \sum_{y_1\neq x}\sum_{y_2\neq x} K(y_2, y_1)K(y_1, z){\tilde P}(y_2).
+    \end{align*}
+```
+By induction, we obtain
+```math
+    \begin{align*}
+        {\tilde P}(z) & = K(x, z){\tilde P}(x) \\
+        & \quad + \sum_{y_1\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) \\
+        & \quad + \sum_{y_1\neq x}\sum_{y_2\neq x} K(x, y_1)K(y_1, z){\tilde P}(x) \\
+        & \quad + \cdots \\
+        & \quad + \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z){\tilde P}(x) \\
+        & \quad + \sum_{y_1\neq x}\cdots \sum_{y_k\neq x} K(y_k, y_{k-1})K(y_{k-1}, y_{k-2})\cdots K(y_1, z){\tilde P}(x),
+    \end{align*}
+```
+for every $k\in\mathbb{N}.$ Negleting the last term at each iteration $k,$ we find that
+```math
+    \begin{align*}
+        {\tilde P}(z) & \geq \bigg(K(x, z) + \sum_{y_1\neq x} K(x, y_1)K(y_1, z) + \cdots \\
+        & \qquad + \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z)\bigg){\tilde P}(x).
+    \end{align*}
+```
+Now notice that, for $k=1,$
+```math
+    K(x, z) = \mathbb{P}(X_1 = z | X_0 = x) = \mathbb{P}(X_1 = z, \tau_x \geq 1 | X_0 = x),
+```
+for $k=2,$
+```math
+    \sum_{y_1\neq x} K(x, y_1)K(y_1, z) = \mathbb{P}(X_2 = z, X_1 \neq x | X_0 = x) = \mathbb{P}(X_2 = z, \tau_x \geq 2 | X_0 = x),
+```
+and, more generally, for any $k\in\mathbb{K},$
+```math
+    \begin{align*}
+        \sum_{y_1\neq x}\cdots \sum_{y_{k-1}\neq x} K(x, y_{k-1})K(y_{k-2}, y_{k-1})\cdots K(y_1, z) & = \mathbb{P}(X_k = z, X_{k-1}\neq x, \ldots, X_1 \neq x | X_0 = x) \\
+        & = \mathbb{P}(X_k = z, \tau_x \geq k | X_0 = x).
+    \end{align*}
+```
+The summation of such $k$ terms is precisely ${\tilde P}_x(z),$ and we find
+```math
+    {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x).
+```
+Later we will see that this inequality (assuming $x$ is recurrent and ${\tilde P}(x) > 0$) implies that ${\tilde P}(z)$ is, in fact, a constant multiple of ${\tilde P}_x(z),$ from where we obtain the uniqueness up to a multiplicative constant. In any case, we see, from this calculation, that the expression for ${\tilde P}_x(z)$ appears naturally from the hypothesis of invariance.
 
 ## References
 
