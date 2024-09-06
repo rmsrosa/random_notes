@@ -14,7 +14,7 @@ Sometimes it might be useful to consider measures with are not necessarily proba
 ```math
     \rho(E) = \int_{\mathcal{X}} K(x, E)\;\mathrm{d}\rho(x).
 ```
-When the transition probability has a kernel $k(x, y)$ with respect to a measure $\mu(x),$ such as the Lebesgue measure, this can be written as
+When the transition probability has a kernel $k(x, y)$ with respect to a measure $\mu(x),$ this can be written as
 ```math
     \rho(E) = \int_E \int_{\mathcal{X}} k(x, y)\;\mathrm{d}\rho(x) \;\mathrm{d}\mu(y).
 ```
@@ -24,10 +24,10 @@ In the case of the Lebesgue measure, we simply have
 ```
 If, moreover, $\rho$ has a density $f$ with respect to the Lebesgue measure, this is equivalent to
 ```math
-    f(y) = \int_{\mathcal{X}} k(x, y)f(y)\;\mathrm{d}\rho(x).
+    f(y) = \int_{\mathcal{X}} k(x, y)f(y)\;\mathrm{d}x.
 ```
 
-In case the space $\mathcal{X}$ is countable, with the discrete topology, this may be expressed pointwise:
+In case the space $\mathcal{X}$ is countable, with the discrete topology, the invariance may be expressed pointwise:
 ```math
     \rho(y) = \sum_{y\in\mathcal{X}} K(x, y)\rho(x), \quad \forall y\in\mathcal{X}.
 ```
@@ -146,7 +146,7 @@ where $\delta_n$ is the Dirac distribution at $n,$ i.e. $\delta_n(E) = 1,$ if $n
 ```
 showing that $P$ is invariant (or any constant multiple of $P$).
 
-### Random walk on the real line
+### Gaussian random walk on the real line
 
 The last example is the random walk
 ```math
