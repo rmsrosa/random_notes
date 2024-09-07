@@ -397,10 +397,10 @@ The proof below is adapted from Theorem 6.37 of [Robert and Casella (2004)](http
 
 **Proof.** First of all, since the space is discrete and each ${\tilde P}_x(z) \geq 0,$ for $z\in\mathcal{X},$ it follows that ${\tilde P}_x$ defines indeed a measure on $\mathcal{X}.$ Let us check that ${\tilde P}_x$ is in fact a nontrivial measure and that it is invariant. 
 
-In order to show that it is non-trivial, we prove that ${\tilde P}(x) = 1.$ This will also be a crucial fact in the proof of invariance. This follows from
+In order to show that it is non-trivial, we prove that ${\tilde P}_x(x) = 1.$ This will also be a crucial fact in the proof of invariance. This follows from
 ```math
     \begin{align*}
-        {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
+        {\tilde P}_x(x) & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
         & = \sum_{n=1}^\infty \mathbb{P}(X_n = x, \tau_{x} = n | X_0 = x) \\
         & = \sum_{n=1}^\infty \mathbb{P}(\tau_{x} \geq n | X_0 = x).
     \end{align*}
@@ -408,14 +408,14 @@ In order to show that it is non-trivial, we prove that ${\tilde P}(x) = 1.$ This
 Thanks to the recurrence assumption on $x,$ we have $\tau_x < \infty$ almost surely, when conditioned on $X_0 = x,$ which means $\tau_x = \infty | X_0 = x$ has zero measure. Thus, 
 ```math
     \begin{align*}
-        {\tilde P}(\mathcal{x}) & = \sum_{n=1}^\infty \mathbb{P}(n \leq \tau_{x} < \infty | X_0 = x) \\
+        {\tilde P}_x(x) & = \sum_{n=1}^\infty \mathbb{P}(n \leq \tau_{x} < \infty | X_0 = x) \\
         & = \mathbb{P}(\cup_{n\in\mathbb{N}} \{\tau_{x} = n | X_0 = x\}) \\
         & = \mathbb{P}(\tau_{x} < \infty | X_0 = x).
     \end{align*}
 ```
 Using again the fact that $x$ is recurrent, we have $\mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1,$ which means
 ```math
-    {\tilde P}(\mathcal{x}) = 1,
+    {\tilde P}_x(x) = 1,
 ```
 as we wanted.
 
@@ -435,7 +435,7 @@ We split the sum according to $y=x$ and $y\neq x,$ so that
     \begin{align*}
         \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \sum_{n=1}^\infty K(x, z) \mathbb{P}(X_n = x, \tau_{x} \geq n | X_0 = x) \\
         & \qquad + \sum_{n=1}^\infty \sum_{y\neq x} K(y, z) \mathbb{P}(X_n = y, \tau_{x} \geq n | X_0 = x) \\
-        & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) \\
+        & = K(x, z) {\tilde P}_x(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n | X_0 = x) \\
     \end{align*}
 ```
 For $y\neq z,$ we have
@@ -445,12 +445,12 @@ For $y\neq z,$ we have
 Thus,
 ```math
     \begin{align*}
-        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x) \\
-        & = K(x, z) {\tilde P}(x) + \sum_{n=1}^\infty \mathbb{P}(X_{n+1} = z, \tau_{x} \geq n+1 | X_0 = x) \\
-        & = K(x, z) {\tilde P}(x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x),
+        \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = K(x, z) {\tilde P}_x(x) + \sum_{n=1}^\infty \sum_{y\neq x} \mathbb{P}(X_{n+1} = z, X_n = y, \tau_{x} \geq n+1 | X_0 = x) \\
+        & = K(x, z) {\tilde P}_x(x) + \sum_{n=1}^\infty \mathbb{P}(X_{n+1} = z, \tau_{x} \geq n+1 | X_0 = x) \\
+        & = K(x, z) {\tilde P}_x(x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x),
     \end{align*}
 ```
-where in the last step we just reindexed the summation. Now we use that ${\tilde P}(x) = 1$ (as proved above) and that 
+where in the last step we just reindexed the summation. Now we use that ${\tilde P}_x(x) = 1$ (as proved above) and that 
 ```math
     K(x, z) = \mathbb{P}(X_1 = z | X_0 = x) = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x)
 ```
@@ -459,7 +459,7 @@ where in the last step we just reindexed the summation. Now we use that ${\tilde
     \begin{align*}
         \sum_{y\in\mathcal{X}} K(y, z){\tilde P}_x(y) & = \mathbb{P}(X_1 = z, \tau_{x} \geq 1 | X_0 = x) + \sum_{n=2}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
         & = \sum_{n=1}^\infty \mathbb{P}(X_{n} = z, \tau_{x} \geq n | X_0 = x) \\
-        & = {\tilde P}(z),
+        & = {\tilde P}_x(z),
     \end{align*}
 ```
 proving the invariance.
