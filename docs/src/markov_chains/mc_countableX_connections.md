@@ -10,29 +10,41 @@ As before, we assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov 
 
 We start with some fundamental definitions.
 
-### Connected points
+### Communicated points
 
-Markov chains are about the probability of states changing with time. If starting at some state, some of the other states might be more likely to be observed in the future than others, and some might never be observed. We distinguish them by the notion of connectedness.
+Markov chains are about the probability of states changing with time. If starting at some state, some of the other states might be more likely to be observed in the future than others, and some might never be observed. We distinguish them by the notion of communication.
 
 !!! note "Definition (connected points)"
-    We say that **$x$ is connected to $y$** when there exists $n=n(x, y)\in\mathbb{N}$ such that $K_n(x, y) > 0.$ When $x$ is connected to $y$, we write $x \rightarrow y.$ When $x$ is connected to $y$ and $y$ is connected to $x,$ we say they are **connected to each other,** or **mutually connected,** and we write $x \leftrightarrow y.$
+    We say that **$x$ leads to $y$** when there exists $n=n(x, y)\in\mathbb{N}$ such that $K_n(x, y) > 0.$ When $x$ leads to $y$, we write $x \rightarrow y.$ When $x$ leads to $y$ and $y$ leads to $x,$ or when $y=x,$ we say they **communicate** with each other, and we write $x \leftrightarrow y.$
 
-### Characterization of connection in terms of the first return time and the number of visits
+### Characterization of $x\rightarrow y$ in terms of the first return time and the number of visits
 
 Connection can be characterized with respect to other random variables.
 !!! note "Fact"
-    For any two states $x, y\in\mathcal{X},$ the state $x$ is connected to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ in a finite number of steps, which can be written as
+    For any two states $x, y\in\mathcal{X},$ the state $x$ leads to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ in a finite number of steps, which can be written as
     ```math
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\tau_y < \infty | X_0 = x) > 0.
     ```
 
-When $x$ is connected to $y,$ there is a positive probability that there is at least one passage from $x$ to $y,$ i.e. $\eta_y \geq 1$ is greater than one, with positive probability. Thus, we have the following equivalences.
+When $x$ leads to $y,$ there is a positive probability that there is at least one passage from $x$ to $y,$ i.e. $\eta_y \geq 1$ is greater than one, with positive probability. Thus, we have the following equivalences.
 
 !!! note "Fact"
-    For any two states $x, y\in\mathcal{X},$ the state $x$ is connected to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ at least once, which can be written as
+    For any two states $x, y\in\mathcal{X},$ the state $x$ leads to $y$ if, and only if, there is a positive probability of reaching $y$ from $x$ at least once, which can be written as
     ```math
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\eta_y \geq 1 | X_0 = x) > 0.
     ```
+
+### Equivalence class of communicated states
+
+The relation of mutual connection $x \leftrightarrow y$ is an equivalence class.
+
+!!! note "Fact (communication is an equivalence class)
+    The relation $x \leftrightarrow y$ of communication between pairs of states is an equivalence class.
+
+In particular, the state space can be decomposed into one or more equivalence classes. When two states communicate with each other, either they are both transient or both recurrent.
+
+!!! note "Theorem (recurrence on all equivalence class)
+    If $x, y$ are two states in the same communicating equivalence class, then $x$ is recurrent if, and only if, $y$ is recurrent.
 
 ## Local uniqueness of invariant measures
 
@@ -103,3 +115,37 @@ The summation of all such $k\in\mathbb{N}$ terms is precisely ${\tilde P}_x(z),$
 This concludes the proof. □
 
 In the result above, we do not need to assume that $x$ is recurrent. If not, then both terms on the right hand side may vanish and the inequality is vacuous. However, if $x$ is recurrent and has positive measurability ${\tilde P}(x) > 0$ with respect to the invariant measure, then we deduce that ${\tilde P}$ must be a multiple of ${\tilde P}_x,$ meaning uniqueness up to a multiplicative constant, at least locally amongst all states connected to $x.$
+
+!!! note "Theorem (local uniqueness up to a multiplicative constant)
+    Suppose ${\tilde P}$ is an invariant measure for the Markov chain and that $x$ is a recurrent state with ${\tilde P}(x) > 0.$ Then, for any two states $x, z\in\mathcal{X},$
+    ```math
+        \frac{{\tilde P}(z)}{{\tilde P}_x(z)} \geq \frac{{\tilde P}(x)}{{\tilde P}_x(x)},
+    ```
+    which implies that ${\tilde P}$ and ${\tilde P}_x$ are proportional, i.e. there exists $C > 0$ such that
+    ```math
+        \frac{{\tilde P}(z)}{{\tilde P}_x(z)} = C, \quad \forall z\in\mathcal{X}.
+    ```
+
+**Proof.** It follows from the previous lemma that
+```math
+    {\tilde P}(z) \geq {\tilde P}_x(z){\tilde P}(x),
+```
+for all $z\in\mathcal{Z}.$ Since $x$ is a recurrent state, it follows that ${\tilde P}_x$ is an invariant measure and that, as computed previously,
+```math
+    {\tilde P}_x(x) = \mathbb{P}(\tau_{x} < \infty | X_0 = x) = 1.
+```
+Thus, we obtain the inequality
+```math
+    \frac{{\tilde P}(z)}{{\tilde P}_x(z)} \geq \frac{{\tilde P}(x)}{{\tilde P}_x(x)},
+```
+CAREFULL, NEED ${\tilde P}_x(z) > 0.$
+
+**Remark.** If we consider the chain
+```math
+    X_{n+1} = \begin{cases} 
+        X_n + 1, & n \neq -1, 0, \\
+        X_n + 2, & n = -1, \\
+        X_n, & n = 0.
+    \end{cases}
+```
+Then, the only recurrent state is $X_n = 0.$ The associated stationary probability distribution is the Dirac Delta at $X=0.$ On the other hand, the counting measure is also invariant and has measure 1 at any point, including the recurrent point $X=0,$ but this measure is not proportional to the Dirac Delta, so it does not suffice to assume that ${\tilde P}$ is an invariant measure with ${\tilde P}(x) > 0$ at a recurrent point $x.$ One must assume that ${\tilde P}$ is carried by the equivalence class of $x.$
