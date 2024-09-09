@@ -1,6 +1,6 @@
 # Connected states, irreducibility and uniqueness of invariant measures
 
-The notion of connected states is a fundamental concept related to the uniqueness of an invariant measure, when it exists, at least in a local scope. When every pair of states is connected, then we have the notion of irreducibility, which extends the uniquenesse to a global scope.
+The notion of communicating states is a fundamental concept related to the uniqueness of an invariant measure, at least in a local scope. When every pair of states communicate with each other, then we have the notion of irreducibility, which extends the uniquenesse to a global scope.
 
 ## Setting
 
@@ -10,12 +10,14 @@ As before, we assume that $(X_n)_n$ is a time-homogeneous, discrete-time Markov 
 
 We start with some fundamental definitions.
 
-### Communicated points
+### Communicating points
 
 Markov chains are about the probability of states changing with time. If starting at some state, some of the other states might be more likely to be observed in the future than others, and some might never be observed. We distinguish them by the notion of communication.
 
-!!! note "Definition (connected points)"
-    We say that **$x$ leads to $y$** when there exists $n=n(x, y)\in\mathbb{N}$ such that $K_n(x, y) > 0.$ When $x$ leads to $y$, we write $x \rightarrow y.$ When $x$ leads to $y$ and $y$ leads to $x,$ or when $y=x,$ we say they **communicate** with each other, and we write $x \leftrightarrow y.$
+!!! note "Definition (communicating points)"
+    We say that **$x$ leads to $y$** when there exists $n=n(x, y)\in\mathbb{N}$ such that $K_n(x, y) > 0.$ When $x$ leads to $y$, we write $x \rightarrow y.$ If $x$ does not lead to $y,$ we write $x \not\rightarrow y.$ When $x$ leads to $y$ and $y$ leads to $x,$ we say that these states **communicate** with each other, and we write $x \leftrightarrow y.$
+
+An alternative definition is to allow $n(x, y)$ to be a *nonnegative* integer, including $n=0,$ which automatically gives that any point communicates with itself. Otherwise, we must include $x \sim y$ when considering the equivalence class of communicating points.
 
 ### Characterization of $x\rightarrow y$ in terms of the first return time and the number of visits
 
@@ -26,6 +28,8 @@ Connection can be characterized with respect to other random variables.
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\tau_y < \infty | X_0 = x) > 0.
     ```
 
+**Remark.** The result above is true if we stick to our definition that $x\rightarrow y$ when there is a *positive* integer $n(x, y)$ such that $K_n(x, y) > 0.$ If we allow this integer to be zero, than this is not necessarily true when $y = x.$
+
 When $x$ leads to $y,$ there is a positive probability that there is at least one passage from $x$ to $y,$ i.e. $\eta_y \geq 1$ is greater than one, with positive probability. Thus, we have the following equivalences.
 
 !!! note "Fact"
@@ -33,18 +37,21 @@ When $x$ leads to $y,$ there is a positive probability that there is at least on
     ```math
         x \rightarrow y \quad \Longleftrightarrow \quad \mathbb{P}(\eta_y \geq 1 | X_0 = x) > 0.
     ```
+**Remark.** Similarly, this result is true if we stick to our definition that $x\rightarrow y$ when there is a *positive* integer $n(x, y)$ such that $K_n(x, y) > 0.$ If we allow this integer to be zero, than this is not necessarily true when $y = x.$
 
-### Equivalence class of communicated states
+### Equivalence class of communicating states
 
-The relation of mutual connection $x \leftrightarrow y$ is an equivalence class.
+The relation of mutual communication $x \leftrightarrow y$ is an equivalence class if we agree that $x$ communicates with itself $y.$
 
-!!! note "Fact (communication is an equivalence class)
-    The relation $x \leftrightarrow y$ of communication between pairs of states is an equivalence class.
+!!! note "Fact (communication is an equivalence relation)"
+    The relation $x \sim y$ defined by either $x = y$ or $x \leftrightarrow y$ is an equivalence relation which we term **communication relation.** The **communication class** of a state $x$ is denoted $[x].$
 
-In particular, the state space can be decomposed into one or more equivalence classes. When two states communicate with each other, either they are both transient or both recurrent.
+### Closed communication class
 
-!!! note "Theorem (recurrence on all equivalence class)
-    If $x, y$ are two states in the same communicating equivalence class, then $x$ is recurrent if, and only if, $y$ is recurrent.
+In particular, the state space can be decomposed into one or more communication classes. But a communication class may not carry an invariant measure. The chain may "leak" to other classes. More precisely, we may have one state in one class leading to another state in a different class. It is important to distinguish when this happens or not. For that, we have the following definition.
+
+!!! note "Definition (Closed communication class)"
+    A communication class $C$ is called **closed** when for every $x\in C$ and every $z\in\mathcal{X}$ such that $x\rightarrow z,$ we also have $z\in C.$ In other words, if $x\in C$ and $z\in \mathcal{X}\setminus C,$ then $x \not\rightarrow z.$
 
 ## Local uniqueness of invariant measures
 
@@ -114,9 +121,9 @@ The summation of all such $k\in\mathbb{N}$ terms is precisely ${\tilde P}_x(z),$
 ```
 This concludes the proof. □
 
-In the result above, we do not need to assume that $x$ is recurrent. If not, then both terms on the right hand side may vanish and the inequality is vacuous. However, if $x$ is recurrent and has positive measurability ${\tilde P}(x) > 0$ with respect to the invariant measure, then we deduce that ${\tilde P}$ must be a multiple of ${\tilde P}_x,$ meaning uniqueness up to a multiplicative constant, at least locally amongst all states connected to $x.$
+In the result above, we do not need to assume that $x$ is recurrent. If not, then both terms on the right hand side may vanish and the inequality is vacuous. However, if $x$ is recurrent and has positive measurability ${\tilde P}(x) > 0$ with respect to the invariant measure, then we deduce that ${\tilde P}$ must be a multiple of ${\tilde P}_x,$ meaning uniqueness up to a multiplicative constant, at least locally amongst all communicating states to $x.$
 
-!!! note "Theorem (local uniqueness up to a multiplicative constant)
+!!! note "Theorem (local uniqueness up to a multiplicative constant)"
     Suppose ${\tilde P}$ is an invariant measure for the Markov chain and that $x$ is a recurrent state with ${\tilde P}(x) > 0.$ Then, for any two states $x, z\in\mathcal{X},$
     ```math
         \frac{{\tilde P}(z)}{{\tilde P}_x(z)} \geq \frac{{\tilde P}(x)}{{\tilde P}_x(x)},
