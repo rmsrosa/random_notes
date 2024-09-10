@@ -12,8 +12,6 @@ allpages = [
         "Countable-space Markov chains" => [
             "markov_chains/mc_countableX_recurrence.md",
             "markov_chains/mc_countableX_connections.md",
-            "markov_chains/mc_discrete_irreducibility_and_recurrence.md",
-            "markov_chains/mc_aperiodicity.md",
         ],
         "Continuous-space Markov chains" => [
             "markov_chains/mc_irreducibility_and_recurrence.md",

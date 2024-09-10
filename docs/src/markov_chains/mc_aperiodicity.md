@@ -1,1 +1,0 @@
-# Periodicity and aperiodicity
