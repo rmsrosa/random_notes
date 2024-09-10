@@ -1,0 +1,1 @@
+# Aperiodicidade e convergência para a distribuição estacionária
