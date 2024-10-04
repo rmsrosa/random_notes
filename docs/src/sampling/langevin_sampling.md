@@ -144,7 +144,7 @@ In the Langevin model, both viscous and random collision forces affect the momen
 ```math
     m \ddot x_t = - a \mu \dot x_t + \alpha \xi_t,
 ```
-where $a$ is a caractheristic length of the particle; $\mu$ is the molecular viscosity, associated with the frictional drag force assumed proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a *white noise* term $\xi_t$ modeling the random collisions with the fluid particles, i.e. $\xi_t$ is a Gaussian process with zero mean, $\mathbb{E}[\xi_t] = 0,$ and delta correlated, $\mathbb{E}[\xi_t\xi_s] = \delta_0(t - s).$ The two coefficients are connected by
+where $a$ is a caractheristic length of the particle; $\mu$ is the molecular viscosity, associated with the frictional drag force assumed proportional to the velocity; and $\alpha$ is a proportionality coefficient associated with a *white noise* term $\xi_t$ modeling the random collisions with the fluid particles, i.e. $\xi_t$ is a Gaussian (distribution) process with zero mean, $\mathbb{E}[\xi_t] = 0,$ and delta correlated, $\mathbb{E}[\xi_t\xi_s] = \delta_0(t - s).$ The two coefficients are connected by
 ```math
     \alpha = \sqrt{2a\mu k_B T},
 ```
@@ -185,7 +185,7 @@ We want to check the physical dimensions of the terms in the Langevin equation
 ```
 where
 ```math
-    \alpha = \sqrt{2a\mu k_B T},
+    \alpha = \sqrt{2a\mu k_B T}.
 ```
 
 #### Basic physical dimensions
@@ -281,7 +281,7 @@ Since the $W_t \sim \mathcal{N}(0, t) = \sqrt{t}\mathcal{N}(0, 1),$ we see that
 ```math
     [\mathrm{d}W_t] = [W_t] = \sqrt{T}.
 ```
-This is consistent with the idea that the Wiener process is formally the time derivative of the white noise $\xi_t.$
+This is consistent with the idea that the white noise $\{\xi_t\}_t$ is formally the time derivative of the Wiener process $\{W_t\}_t.$ 
 
 Now, we see that
 ```math
@@ -417,7 +417,7 @@ Combining the terms, we obtain the adimensional equation
     \mathrm{d}{\tilde X}_{\tilde t} = - \nabla_{\tilde x} {\tilde U}({\tilde X}_{\tilde t})\;\mathrm{d}\tilde t + \sqrt{2}\;\mathrm{d}{\tilde W}_{\tilde t}.
 ```
 
-The factor $\sqrt{2}$ could have been included in the definition of ${\tilde W}_{\tilde t},$ but it was left out because it will compensate the one-halft term coming from the Itô formula and both eventually cancel out when computing the invariant distribution.
+The factor $\sqrt{2}$ could have been included in the definition of ${\tilde W}_{\tilde t},$ but it was left out because it will compensate the one-half term coming from the Itô formula and both eventually cancel out when computing the invariant distribution.
 
 #### The limit as $\nu \rightarrow \infty.$
 
