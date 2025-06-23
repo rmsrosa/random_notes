@@ -255,7 +255,7 @@ We use the classical Adam optimiser (see [Kingma and Ba (2015)](https://www.sema
 ```@example onedimscorematching
 opt = Adam(0.03)
 
-tstate_org = Lux.Training.TrainState(rng, model, opt)
+tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
 
 ### Automatic differentiation in the optimization

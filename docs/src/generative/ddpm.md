@@ -839,7 +839,7 @@ We do the usual setup.
 ```@example ddpmscorematching
 opt = Adam(0.001)
 
-tstate_org = Lux.Training.TrainState(rng, model, opt)
+tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
 
 ```@example ddpmscorematching

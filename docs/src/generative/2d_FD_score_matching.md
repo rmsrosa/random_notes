@@ -327,7 +327,7 @@ As usual, we use the ADAM optimization.
 ```@example twodimscorematching
 opt = Adam(0.003)
 
-tstate_org = Lux.Training.TrainState(rng, model, opt)
+tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
 
 ### Automatic differentiation in the optimization
