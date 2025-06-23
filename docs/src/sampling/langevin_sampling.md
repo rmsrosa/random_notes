@@ -301,13 +301,13 @@ establishing the consistency of the equation in terms of physical dimension.
 
 In the Langevin equation
 ```math
-    m \ddot x_t = - a \mu \dot x_t + \alpha \xi_t, \qquad \alpha = \sqrt{2a\mu k_B T},
+    m \ddot x_t = - a \mu \dot x_t - m\nabla U(x_t) + \alpha \xi_t, \qquad \alpha = \sqrt{2a\mu k_B T},
 ```
 the term $m \ddot x_t$ represents the inertial force. When the motion is relatively slow, this inertia might be negligible when compared with the drag force. Dropping this term yields the equation
 ```math
-    0 = - \mu \dot x_t - \nabla U(x_t) + \alpha \xi_t,
+    0 = - \nu \dot x_t - \nabla U(x_t) + \alpha \xi_t,
 ```
-which we can write as the usual form of the *overdamped Langevin equation*
+which we can write in the usual form of the *overdamped Langevin equation*
 ```math
     \mu \dot x_t = - \nabla U(x_t) + \alpha \xi_t.
 ```
@@ -316,19 +316,16 @@ The corresponding stochastic system reduces to a single equation
 ```math
     \nu \mathrm{d}X_t = - \nabla U(X_t)\;\mathrm{d}t + \sigma \;\mathrm{d}W_t.
 ```
-The time scale for this approximation is of the order of $1/\nu.$ Indeed, if we look at the relation
+
+For this approximation to be valid, we look at the ratio between the inertial force $m\ddot x_t$ and the damping force $-a\mu \dot x_t.$ We have
 ```math
-    m\frac{\mathrm{d}Y_t}{\mathrm{d}t} \ll - a\mu Y_t
+    \frac{m\ddot x_t}{a\mu \dot x_t} \sim \frac{1}{\nu}\frac{\Delta Y_t}{Y_t\Delta t}.
 ```
-and formally simplify $Y_t,$ we have
+The inertial force is negligible when
 ```math
-    \frac{m}{\Delta t} \ll a\mu,
+    \frac{\Delta Y_t}{Y_t} \ll \nu \Delta t,
 ```
-i.e.
-```math
-    \Delta t \gg \frac{m}{a\mu} = \frac{1}{\nu}.
-```
-Recall that $\nu$ has indeed the dimension of frequency, i.e. inverse of time (it is not a kinematic viscosity of the fluid).
+which can be interpreted as when the relative variations $\Delta Y_t/Y_t$ in velocity are relatively small or when the damping is relatively large. This is consistent with saying that we obtain the first order equation in the overdamped regime.
 
 In the absence of a force field $U=U(x)$, we are left with
 ```math
@@ -429,7 +426,7 @@ one obtains the overdamped limit exactly when taking the limit $\nu \rightarrow 
 
 ### The asymptotic distribution
 
-In the inviscid and deterministic case, the Langevin equation reads
+In the inviscid deterministic case, the Langevin equation reads
 ```math
     m \ddot x_t = - m \nabla U(x_t),
 ```
