@@ -206,7 +206,7 @@ We use the Adam optimiser.
 ```@example adscorematching
 opt = Adam(0.01)
 
-tstate_org = Lux.Training.TrainState(rng, model, opt)
+tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
 
 #### Automatic differentiation in the optimization
