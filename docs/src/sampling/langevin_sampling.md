@@ -444,7 +444,7 @@ the solutions tend to the equilibria states $\min_x U(x)$, or more precisely to 
 ```
 In the full viscous, stochastic equation, the tendency to go to the equilibria is balanced by the diffusion, and the system tends to a *stochastic* equilibrium represented by a distribution with probability density function
 ```math
-    p_U(x, v) = \frac{1}{Z} e^{-\frac{m}{k_B T}U(x) + \frac{v^2}{2}},
+    p_U(x, v) = \frac{1}{Z} e^{-\frac{m}{k_B T}\left( \frac{v^2}{2} + U(x)\right)},
 ```
 where $Z$ is a normalization constant to have $p_U(x, v)$ integrate to $1$.
 
@@ -456,7 +456,7 @@ where $Z_0$ is another normalization constant.
 
 We now discuss in more details the equilibrium distribution in the overdamped equation. For that, we look at the Fokker-Plank equation for
 ```math
-    \mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2k_B T}{m}}\;\mathrm{d}W_{t},
+    \nu\mathrm{d} X_t = - \nabla U(X_t)\;\mathrm{d}t + \sqrt{\frac{2\nu k_B T}{m}}\;\mathrm{d}W_{t},
 ```
 In general, a stochastic differential equation of the form
 ```math
@@ -468,11 +468,11 @@ is associated with the Fokker-Planck equation
 ```
 where $p(t, x)$ is such that $x \mapsto p(t, x)$ is the probability density function of the solution $X_t$, i.e. the marginal distribution at time $t$ of the process $\{X_t\}_t$. For the overdamped Langevin equation above, the Fokker-Planck equation takes the form
 ```math
-    \frac{\partial}{\partial t} p(t, x) = \nabla_x \cdot \left(\nabla U(x) p(t, x)\right) + \frac{k_B T}{m}\Delta_x p(t, x),
+    \frac{\partial}{\partial t} p(t, x) = \frac{1}{\nu}\nabla_x \cdot \left(\nabla U(x) p(t, x)\right) + \frac{k_B T}{\nu m}\Delta_x p(t, x),
 ```
 which can also be written as
 ```math
-    \frac{\partial}{\partial t} p(t, x) = \nabla_x \cdot \left(\nabla U(x) p(t, x) + \frac{k_B T}{m}\nabla_x p(t, x) \right),
+    \frac{\partial}{\partial t} p(t, x) = \frac{1}{\nu}\nabla_x \cdot \left(\nabla U(x) p(t, x) + \frac{k_B T}{m}\nabla_x p(t, x) \right),
 ```
 
 At the equilibrium, the probability density function $p(t, x) = p_\infty(x)$ is independent of time and satisfies
@@ -488,7 +488,7 @@ for some constant $C$. This can be written in the form of the first order differ
 ```math
     \frac{\partial p_\infty(x)}{\partial t} + \frac{m}{k_B T}\frac{\partial U(x)}{\partial x} p_\infty(x) = \frac{m}{k_B T} C.
 ```
-This equation can be solve using the integrating factor
+This equation can be solved using the integrating factor
 ```math
     e^{\frac{m}{k_B T} U(x)}.
 ```
@@ -551,7 +551,7 @@ which can be written as
 
 This lead to a sampling method to draw samples from a distribution using its score function, as introduced by [Gareth Roberts and Richard Tweedie (1996)](https://doi.org/10.2307/3318418).
 
-As mentioned above, questions about the conditions for the convergence, rate of converge and convergence metric are of great importance, and they are also important for sampling purposes. Other relevant question concern the stability of the equilibrium solution, when for instance an approximate score function is used. This is also relevant when the modeled score function (say via a neural network) might even not be exactly the gradient of a potential. We will leave these questions for another opportunity.
+As mentioned above, questions about the conditions for the convergence, rate of converge and convergence metric are of great importance, and they are also important for sampling purposes. Other relevant question concern the stability of the equilibrium solution, when for instance an approximate score function is used. This is also relevant when the modeled score function (say via a neural network) might even not be exactly the gradient of a potential. We will leave these questions to another opportunity.
 
 ## Numerical example
 
