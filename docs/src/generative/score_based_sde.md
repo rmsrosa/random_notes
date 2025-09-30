@@ -1,5 +1,9 @@
 # Score-based generative modeling through stochastic differential equations
 
+```@meta
+    Draft = false
+```
+
 ## Introduction
 
 ### Aim
@@ -87,7 +91,7 @@ and
 
 Thus,
 ```math
-    p(t, x | 0, x_0) = \mathcal{N}\left( x; 1, \sigma(t)^2 - \sigma(0)^2\right).
+    p(t, x | 0, x_0) = \mathcal{N}\left( x; x_0, \sigma(t)^2 - \sigma(0)^2\right).
 ```
 
 #### Variance-preserving SDE
@@ -324,16 +328,36 @@ surface(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * 
 heatmap(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * pdf(target_prob, x0), xrange)))
 ```
 
-```@example sdescorematching
-L = 6
-sigma_1 = 2.0
-sigma_L = 0.5
-theta = ( sigma_L / sigma_1 )^(1/(L-1))
-sigmas = [sigma_1 * theta ^ (i-1) for i in 1:L]
+### Preparation
+
+For the implementation, we consider the variance-exploding (VE) case, with $\sigma(t) = t,$ so that
+```math
+    f(t) = 0, \quad g(t) = \sqrt{\frac{\mathrm{d}(\sigma(t)^2)}{\mathrm{d}t}} = \sqrt{2t},
+```
+with
+```math
+    \mu(t) = 1,
+```
+```math
+    \zeta(t)^2 = \int_0^t \frac{\mathrm{d}(\sigma(s)^2)}{\mathrm{d}s}\;\mathrm{d}s = \sigma(t)^2 - \sigma(0)^2 = t^2.
+```
+and
+```math
+    p(t, x | 0, x_0) = \mathcal{N}\left( x; x_0, t^2\right).
+```
+The score conditioned on a initial condition reads
+```math
+    \nabla_x p(t, x | 0, x_0) = - \frac{x - x_0}{t^2}.
 ```
 
 ```@example sdescorematching
-data = (sample_points, sigmas)
+T = 1.0
+sigmafun(t) = t
+lambda(t) = 1
+```
+
+```@example sdescorematching
+data = copy(sample_points)
 ```
 
 ### The neural network model
@@ -355,20 +379,21 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 
 ```@example sdescorematching
 function loss_function_sde(model, ps, st, data)
-    sample_points, sigmas = data
+    sample_points = data
 
-    noisy_sample_points = sample_points .+ sigmas .* randn(rng, size(sample_points))
-    scores = ( sample_points .- noisy_sample_points ) ./ sigmas .^ 2
+    ts = randn(rng, size(sample_points))
 
-    flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
-    flattened_sigmas = repeat(sigmas', 1, length(sample_points))
-    model_input = [flattened_noisy_sample_points; flattened_sigmas]
+    noisy_sample_points = sample_points .+ ts .* randn(rng, size(sample_points))
+    scores = ( sample_points .- noisy_sample_points ) ./ ts .^ 2
+
+    #flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
+    #flattened_sigmas = repeat(sigmas', 1, length(sample_points))
+    #model_input = flattened_noisy_sample_points
+    model_input = [noisy_sample_points; ts]
 
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
-    
-    flattened_scores = reshape(scores, 1, :)
 
-    loss = mean(abs2, flattened_sigmas .* (y_score_pred .- flattened_scores)) / 2
+    loss = mean(abs2,  (y_score_pred .- scores)) / 2
 
     return loss, st, ()
 end
@@ -435,7 +460,7 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example sdescorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 1000, 20, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 10000, 100, 125)
 nothing # hide
 ```
 
