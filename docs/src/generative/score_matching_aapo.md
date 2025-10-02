@@ -18,7 +18,7 @@ It is worth noticing, in light of the main objective of score-matching diffusion
 
 We also mention that the work of [Aapo Hyvärinen (2005)](https://jmlr.org/papers/v6/hyvarinen05a.html) uses the modified loss function to fit some very specific predefined models. There are three examples. In these examples, the gradient of the model can be computed somewhat more explicitly. There is no artificial neural network involved and no need for automatic differention (AD) (those were proposed in subsequent works, as we will see).
 
-In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to fit the score function from a model probability with log-likelyhood obtained from a two-layer neural network, but in this case the gradient of the score function could still be expressed somehow explicitly.
+In a subsequent work, [Köster and Hyvärinen (2010)](https://doi.org/10.1162/neco_a_00010) applied the method to fit the score function from a model probability with log-likelihood obtained from a two-layer neural network, but in this case the gradient of the score function could still be expressed somehow explicitly.
 
 With that in mind, we illustrate this approach by fitting a Gaussian distribution to samples of a univariate radom variables.
 

@@ -86,7 +86,7 @@ where we may use either notation $\boldsymbol{\nabla}_{\mathbf{x}}$ or ${\boldsy
 
 For a parametrized model with pdf denoted by $p(\mathbf{x}; \boldsymbol{\theta})$, or $p(\mathbf{x} | \boldsymbol{\theta})$, and parameters $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_m),$ $m\in \mathbb{N}$, the score function becomes
 ```math
-    \boldsymbol{\psi}(\mathbf{x}; \boldsymbol{\theta}) = \boldsymbol{\nabla}_{\mathbf{x}}p(\mathbf{x}; \boldsymbol{\theta}) = \left( \frac{\partial}{\partial x_j} p(\mathbf{x}; \boldsymbol{\theta})\right)_{j=1, \ldots, d}.
+    \boldsymbol{\psi}(\mathbf{x}; \boldsymbol{\theta}) = \boldsymbol{\nabla}_{\mathbf{x}} \log p(\mathbf{x}; \boldsymbol{\theta}) = \left( \frac{\partial}{\partial x_j} \log p(\mathbf{x}; \boldsymbol{\theta})\right)_{j=1, \ldots, d}.
 ```
 
 In the univariate case, the score function is also univariate and is given by the derivative of the log of the pdf. For example, for a univariate Normal distribution $\mathcal{N}(\mu, \sigma^2)$, $\mu\in\mathbb{R}$, $\sigma > 0$, the pdf, logpdf and gradlogpdf are
@@ -135,15 +135,15 @@ quiver!(plt2b, xx, yy, quiver = (uu[1, :] ./ 8, uu[2, :] ./ 8), color=:yellow, a
 plot(plt1a, plt1b, plt2a, plt2b, size=(600, 400)) # hide
 ```
 
-This notion of score function used in generative models in machine learning is different from the more classical notion of score in Statistics. The classical score function is defined for a parametrized model and refers to the gradient of the log-likelyhood
+This notion of score function used in generative models in machine learning is different from the more classical notion of score in Statistics. The classical score function is defined for a parametrized model and refers to the gradient of the log-likelihood
 ```math
-    \ell(\boldsymbol{\theta}|\mathbf{x}) = \log\mathcal{L}(\boldsymbol{\theta}|\mathbf{x}) = p(\mathbf{x}|\boldsymbol{\theta}),
+    \ell(\boldsymbol{\theta}|\mathbf{x}) = \log\mathcal{L}(\boldsymbol{\theta}|\mathbf{x}) = \log p(\mathbf{x}|\boldsymbol{\theta}),
 ```
 of a parametrized model, with respect to the parameters, i.e.
 ```math
     s(\boldsymbol{\theta}; \mathbf{x}) = \boldsymbol{\nabla}_{\boldsymbol{\theta}}\log \mathcal{L}(\boldsymbol{\theta}|\mathbf{x}) = \frac{\boldsymbol{\partial}\log \mathcal{L}(\boldsymbol{\theta}|\mathbf{x})}{\boldsymbol{\partial}\boldsymbol{\theta}}.
 ```
-This notion measures the sensitivity of the model with respect to changes in the parameters and is useful, for instance, in the maximization of the likelyhood function when fitting a parametrized distribution to data.
+This notion measures the sensitivity of the model with respect to changes in the parameters and is useful, for instance, in the maximization of the likelihood function when fitting a parametrized distribution to data.
 
 The score function given by the gradlogpdf of a distribution is, on the other hand, useful for drawing samples via Langevin dynamics.
 

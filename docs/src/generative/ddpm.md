@@ -383,7 +383,7 @@ Now we need a loss function to train the parametrization $\boldsymbol{\epsilon}_
 
 #### The cross-entropy loss
 
-Ideally, one would maximize the (log-)likelyhood of the model, by minimizing the **cross-entropy loss** function
+Ideally, one would maximize the (log-)likelihood of the model, by minimizing the **cross-entropy loss** function
 ```math
     L_{\mathrm{CE}}(\boldsymbol{\theta}) = H(p_0, p_{\boldsymbol{\theta}}) = \mathbb{E}_{p_0}\left[-\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\right] = -\int_{\mathbb{R}^d} p_0(\mathbf{x}_0)\log p_{\boldsymbol{\theta}}(\mathbf{x}_0)\;\mathrm{d}\mathbf{x}_0 \approx -\frac{1}{N}\sum_{n=1}^N \log p_{\boldsymbol{\theta}}(\mathbf{x}_0^n).
 ```
@@ -619,9 +619,9 @@ While [Ho, Jain, and Abbeel (2020)](https://proceedings.neurips.cc/paper/2020/ha
 
 Another improvement was to use a nonlinear cosine variance schedule $\beta_k$ changing very little near the extremes $k=1$ and $k=K$ and with a linear dropoff of $\tilde\alpha_k$ in the middle.
 
-The motivation was that while DDPM had showed very good results with CIFAR-10 and LSUN datasets, it did not achieve log-likelyhood competitiveness with other likelyhood based models. This casted doubts whether DDPM would capture all the modes of a distribution and perform well on a more diverse datasets.
+The motivation was that while DDPM had showed very good results with CIFAR-10 and LSUN datasets, it did not achieve log-likelihood competitiveness with other likelihood based models. This casted doubts whether DDPM would capture all the modes of a distribution and perform well on a more diverse datasets.
 
-With the improvements above, [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ), showed that log-likelyhood competitiveness could indeed be achieved with DDPM.
+With the improvements above, [Nichol and Dhariwal (2021)](https://openreview.net/forum?id=-NEXDKk8gZ), showed that log-likelihood competitiveness could indeed be achieved with DDPM.
 
 ## Numerical example
 

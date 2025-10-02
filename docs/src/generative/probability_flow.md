@@ -82,7 +82,7 @@ i.e. just a Random ODE (more specifically an ODE with random initial data) of th
 
 This equation did not receive any special name in the original work [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802), but got the name **probability flow ODE** in the work [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), which we discuss next.
 
-Before that, we remark that one difficulty with the probability flow ODE is that it requires knownledge of the Stein score function $\nabla_x \log p(t, x)$ of the supposedly unknown distribution. This is circumvented in [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) by using a gradient log density estimator obtained from samples of the forward diffusion process, i.e. from a maximum likelyhood estimation based on the evolution of the empiral distribution of $X_0.$
+Before that, we remark that one difficulty with the probability flow ODE is that it requires knownledge of the Stein score function $\nabla_x \log p(t, x)$ of the supposedly unknown distribution. This is circumvented in [Maoutsa, Reich, Opper (2020)](https://doi.org/10.3390/e22080802) by using a gradient log density estimator obtained from samples of the forward diffusion process, i.e. from a maximum likelihood estimation based on the evolution of the empiral distribution of $X_0.$
 
 On the other hand, [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456) models the score function directly as a (trained) neural network.
 

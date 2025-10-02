@@ -72,6 +72,11 @@ The probability density function $p(t, x)$ can also be obtained with the help of
 ```
 whose fundamental solutions are precisely $p(t, x | 0, x_0) = \mathcal{N}(x; \mu(t)x_0, \zeta(t)^2).$
 
+For the Stein score, we have
+```math
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - \mu(t)x_0}{\zeta(t)^2}.
+```
+
 ### Examples
 
 #### Variance-exploding SDE
@@ -94,6 +99,11 @@ Thus,
     p(t, x | 0, x_0) = \mathcal{N}\left( x; x_0, \sigma(t)^2 - \sigma(0)^2\right).
 ```
 
+The Stein score becomes
+```math
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0}{\sigma(t)^2 - \sigma(0)^2}.
+```
+
 #### Variance-preserving SDE
 
 In the variance-preserving case (VP SDE), as discussed in [Song, Sohl-Dickstein, Kingma, Kumar, Ermon, Poole (2020)](https://arxiv.org/abs/2011.13456), as the continuous limit of the *Denoising Diffusion Probabilistic Model,*
@@ -111,7 +121,12 @@ and
 
 Thus,
 ```math
-    p(t, x | 0, x_0) = \mathcal{N}\left( x; e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}, 1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right).
+    p(t, x | 0, x_0) = \mathcal{N}\left( x; x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}, 1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right).
+```
+
+The Stein score becomes
+```math
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}}.
 ```
 
 #### Sub-variance-preserving SDE
@@ -140,7 +155,12 @@ and
 
 Thus,
 ```math
-    p(t, x | 0, x_0) = \mathcal{N}\left( x; e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}, \left(1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right)^2\right).
+    p(t, x | 0, x_0) = \mathcal{N}\left( x; x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}, \left(1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right)^2\right).
+```
+
+The Stein score becomes
+```math
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{\left(1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right)^2}.
 ```
 
 ## Loss function
@@ -160,7 +180,7 @@ with
 
 The continuous version becomes
 ```math
-    J_{\textrm{SDE}}^*(\boldsymbol{\theta}) = \frac{1}{2}\lambda(t) \mathbb{E}_{p_0(\mathbf{x}_0)p(t, \tilde{\mathbf{x}}|0, \mathbf{x}_0)}\left[ \left\| s_{\boldsymbol{\theta}}(t, \tilde{\mathbf{x}}) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} p(t, \tilde{\mathbf{x}}|0, \mathbf{x}_0) \right\|^2 \right],
+    J_{\textrm{SDE}}^*(\boldsymbol{\theta}) = \frac{1}{2}\lambda(t) \mathbb{E}_{p_0(\mathbf{x}_0)p(t, \tilde{\mathbf{x}}|0, \mathbf{x}_0)}\left[ \left\| s_{\boldsymbol{\theta}}(t, \tilde{\mathbf{x}}) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p(t, \tilde{\mathbf{x}}|0, \mathbf{x}_0) \right\|^2 \right],
 ```
 with
 ```math
@@ -169,13 +189,13 @@ with
 
 In practice, the empirical distribution is considered for $p_0(\mathbf{x}_0),$ and a stochastic approach is taken by sampling a single $\tilde{\mathbf{x}}_n \sim p(t_n, \tilde{\mathbf{x}}|0, \mathbf{x}_n),$ besides $t_n \sim \operatorname{Uniform}([0, T]).$ Thus, the loss takes the form
 ```math
-    {\tilde J}_{\textrm{SDE}}^*(\boldsymbol{\theta}) = \frac{1}{2N}\sum_{n=1}^N \lambda(t_n) \left[ \left\| s_{\boldsymbol{\theta}}(t_n, \tilde{\mathbf{x}}_n) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} p(t_n, \tilde{\mathbf{x}}_n|0, \mathbf{x}_n) \right\|^2 \right],
+    {\tilde J}_{\textrm{SDE}}^*(\boldsymbol{\theta}) = \frac{1}{2N}\sum_{n=1}^N \lambda(t_n) \left[ \left\| s_{\boldsymbol{\theta}}(t_n, \tilde{\mathbf{x}}_n) - \boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p(t_n, \tilde{\mathbf{x}}_n|0, \mathbf{x}_n) \right\|^2 \right],
 ```
 with
 ```math
     \mathbf{x}_n \sim p_0, \quad t_n \sim \operatorname{Uniform}[0, T], \quad \mathbf{x}_n \sim p(t_n, x | 0, \mathbf{x}_n).
 ```
-The explicit form for the distribution $p(t_n, x | 0, \mathbf{x}_n)$ and its score $\boldsymbol{\nabla}_{\tilde{\mathbf{x}}} p(t_n, \tilde{\mathbf{x}}_n|0, \mathbf{x}_n)$ depends on the choice of the SDE.
+The explicit form for the distribution $p(t_n, x | 0, \mathbf{x}_n)$ and its score $\boldsymbol{\nabla}_{\tilde{\mathbf{x}}} \log p(t_n, \tilde{\mathbf{x}}_n|0, \mathbf{x}_n)$ depends on the choice of the SDE.
 
 ## Numerical example
 
@@ -381,19 +401,19 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 function loss_function_sde(model, ps, st, data)
     sample_points = data
 
-    ts = randn(rng, size(sample_points))
+    ts = rand(rng, size(sample_points, 2))
 
     noisy_sample_points = sample_points .+ ts .* randn(rng, size(sample_points))
     scores = ( sample_points .- noisy_sample_points ) ./ ts .^ 2
 
-    #flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
-    #flattened_sigmas = repeat(sigmas', 1, length(sample_points))
-    #model_input = flattened_noisy_sample_points
-    model_input = [noisy_sample_points; ts]
+    flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
+    flattened_ts = repeat(ts', 1, length(sample_points))
+    flattened_scores = reshape(scores, 1, :)
+    model_input = [flattened_noisy_sample_points; flattened_ts]
 
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
 
-    loss = mean(abs2,  (y_score_pred .- scores)) / 2
+    loss = mean(abs2,  (y_score_pred .- flattened_scores)) / 2
 
     return loss, st, ()
 end
@@ -460,7 +480,7 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example sdescorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 10000, 100, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 200, 100, 125)
 nothing # hide
 ```
 
