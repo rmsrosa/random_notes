@@ -263,9 +263,9 @@ We build the usual target model and draw samples from it.
 
 ```@setup sdescorematching
 target_prob = MixtureModel([Normal(-3, 1), Normal(3, 1)], [0.1, 0.9])
-target_prob = MixtureModel([Normal(-1, 0.2), Normal(1, 0.2)], [0.5, 0.5])
+target_prob = MixtureModel([Normal(-1, 0.4), Normal(1, 0.3)], [0.8, 0.2])
 
-xrange = range(-2, 2, 200)
+xrange = range(-3, 3, 200)
 dx = Float64(xrange.step)
 xx = permutedims(collect(xrange))
 target_pdf = pdf.(target_prob, xrange')
@@ -317,7 +317,7 @@ g_ve(t; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = σₘᵢₙ * ( σ�
 
 prob_kernel_ve(t, x0; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = Normal( x0, σₘᵢₙ^2 * (σₘₐₓ/σₘᵢₙ)^(2t) )
 p_kernel_ve(t, x, x0) = pdf(prob_kernel_ve(t, x0), x)
-score_kernel_ve(t, x, x0) = gradlogpdf(prob_kernel_ve(t, x, x0), x)
+score_kernel_ve(t, x, x0) = gradlogpdf(prob_kernel_ve(t, x0), x)
 ```
 
 ```@example sdescorematching
@@ -338,6 +338,8 @@ f_vp(t; βₘᵢₙ=beta_min, βₘₐₓ=beta_max) = ( βₘᵢₙ + t * ( β�
 g_vp(t; βₘᵢₙ=beta_min, βₘₐₓ=beta_max) = √( βₘᵢₙ + t * ( βₘₐₓ - βₘᵢₙ ) )
 
 prob_kernel_vp(t, x0; βₘᵢₙ=beta_min, βₘₐₓ=beta_max) = Normal( x0 * exp( - t^4 * ( βₘₐₓ - βₘᵢₙ ) / 4 - t * βₘᵢₙ / 2 ), 1 - exp( - t^4 * ( βₘₐₓ - βₘᵢₙ ) / 2 - t * βₘᵢₙ ))
+p_kernel_vp(t, x, x0) = pdf(prob_kernel_vp(t, x0), x)
+score_kernel_vp(t, x, x0) = gradlogpdf(prob_kernel_vp(t, x0), x)
 ```
 
 ```@example sdescorematching
@@ -372,7 +374,9 @@ The score conditioned on a initial condition reads
 
 ```@example sdescorematching
 T = 1.0
-sigmafun(t) = t
+sigmafun(t) = 0.1 + 20t
+zeta(t) = sqrt( sigmafun(t)^2 - sigmafun(0)^2 )
+mu(t) = 1.0
 lambda(t) = 1
 ```
 
@@ -384,10 +388,10 @@ data = copy(sample_points)
 
 The neural network we consider is a simple feed-forward neural network made of a single hidden layer, obtained as a chain of a couple of dense layers. This is implemented with the [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package.
 
-We will see that we don't need a big neural network in this simple example. We go as low as it works.
+We need a little bigger neural network to capture the time-dependent score.
 
 ```@example sdescorematching
-model = Chain(Dense(2 => 64, relu), Dense(64 => 1))
+model = Chain(Dense(2 => 64, swish), Dense(64 => 64, swish), Dense(64 => 1))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
@@ -401,20 +405,20 @@ ps, st = Lux.setup(rng, model) # initialize and get the parameters and states of
 function loss_function_sde(model, ps, st, data)
     sample_points = data
 
-    ts = rand(rng, size(sample_points, 2))
+    ts = reshape(0.001 .+ (T - 0.001) * rand(rng, size(sample_points, 2)), 1, :)
 
-    noisy_sample_points = sample_points .+ ts .* randn(rng, size(sample_points))
-    scores = ( sample_points .- noisy_sample_points ) ./ ts .^ 2
+    ws = randn(rng, size(sample_points))
+    diffused = zeta.(ts) .* ws
+    noisy_sample_points = sample_points .+ diffused
+##    scores = ( sample_points .- noisy_sample_points ) ./ zeta.(ts) .^ 2 
 
-    flattened_noisy_sample_points = reshape(noisy_sample_points, 1, :)
-    flattened_ts = repeat(ts', 1, length(sample_points))
-    flattened_scores = reshape(scores, 1, :)
-    model_input = [flattened_noisy_sample_points; flattened_ts]
+    model_input = [noisy_sample_points; ts]
+    
 
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
 
-    loss = mean(abs2,  (y_score_pred .- flattened_scores)) / 2
-
+##    loss = mean(abs2, (y_score_pred .- scores)) / 2
+    loss = mean(abs2, zeta.(ts) .* y_score_pred .+ ws)
     return loss, st, ()
 end
 ```
@@ -426,7 +430,7 @@ end
 We use the Adam optimiser.
 
 ```@example sdescorematching
-opt = Adam(0.01)
+opt = Adam(0.002)
 
 tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
@@ -480,7 +484,7 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example sdescorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 200, 100, 125)
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 8000, 200, 125)
 nothing # hide
 ```
 
@@ -491,26 +495,8 @@ Checking out the trained model.
 plt = plot(title="Fitting", titlefont=10)
 plot!(plt, xrange, target_score', linewidth=4, label="score function", legend=:topright)
 scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-for sigmai in sigmas
-    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
-    plot!(plt, xx', y_predi', linewidth=2, label="\$\\sigma = $(round(sigmai, digits=3))\$")
-end
-```
-
-```@example sdescorematching
-plt # hide
-```
-
-Visualizing the result with the smallest noise.
-```@setup sdescorematching
-y_pred = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
-plt = plot(title="Last Fitting", titlefont=10)
-
-plot!(plt, xrange, target_score', linewidth=4, label="score function")
-
-scatter!(plt, sample_points', s -> gradlogpdf(target_prob, s), label="data", markersize=2)
-
-plot!(plt, xx', y_pred', linewidth=2, label="predicted MLP")
+y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange')], tstate.parameters, tstate.states)[1]
+plot!(plt, xx', y_predi', linewidth=2, label="model")
 ```
 
 ```@example sdescorematching
@@ -522,25 +508,10 @@ Recovering the PDF of the distribution from the trained score function.
 plt = plot(title="Original PDF and PDF from predicted score functions", titlefont=10, legend=:topleft)
 plot!(plt, xrange, target_pdf', label="original")
 scatter!(plt, sample_points', s -> pdf(target_prob, s), label="data", markersize=2)
-for sigmai in sigmas
-    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmai], tstate.parameters, tstate.states)[1]
-    paux = exp.(accumulate(+, y_predi) .* dx)
-    pdf_pred = paux ./ sum(paux) ./ dx
-    plot!(plt, xrange, pdf_pred', label="\$\\sigma = $(round(sigmai, digits=3))\$")
-end
-```
-
-```@example sdescorematching
-plt # hide
-```
-
-With the smallest noise.
-```@setup sdescorematching
-paux = exp.(accumulate(+, y_pred) .* dx)
+y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange')], tstate.parameters, tstate.states)[1]
+paux = exp.(accumulate(+, y_predi) .* dx)
 pdf_pred = paux ./ sum(paux) ./ dx
-plt = plot(title="Original PDF and PDF from predicted score function", titlefont=10)
-plot!(plt, xrange, target_pdf', label="original")
-plot!(plt, xrange, pdf_pred', label="recoverd")
+plot!(plt, xrange, pdf_pred', label="model")
 ```
 
 ```@example sdescorematching
@@ -552,7 +523,7 @@ Just for the fun of it, let us see an animation of the optimization process.
 ymin, ymax = extrema(target_score)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange')], tstate.parameters, tstate.states)[1]
     plot(title="Fitting evolution", titlefont=10)
 
     plot!(xrange, target_score', linewidth=4, label="score function")
@@ -572,7 +543,7 @@ And the animation of the evolution of the PDF.
 ymin, ymax = extrema(target_pdf)
 epsilon = (ymax - ymin) / 10
 anim = @animate for (epoch, tstate) in tstates
-    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange') .+ sigmas[end]], tstate.parameters, tstate.states)[1]
+    y_predi = Lux.apply(tstate.model, [xrange'; zero(xrange')], tstate.parameters, tstate.states)[1]
     paux = exp.(accumulate(+, y_predi) * dx)
     pdf_pred = paux ./ sum(paux) ./ dx
     plot(title="Fitting evolution", titlefont=10, legend=:topleft)
@@ -599,7 +570,7 @@ plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", yl
 Now we sample the modeled distribution with the annealed Langevin method described earlier.
 
 ```@setup sdescorematching
-function solve_annealed_langevin_1d(rng, x0, M, tstate, sigmas, dt)
+function solve_annealed_langevin_1d(rng, x0, M, tstate, dt)
     
     L = length(sigmas)
     xt = zeros(L * M, length(x0))
