@@ -55,7 +55,7 @@ Thus, the probability density function $p(t, x)$ can be obtained by conditioning
 ```
 and
 ```math
-    p(t, x | 0, x_0) = \mathcal{N}(x; \mu(t)x_0, \zeta(t)^2),
+    p(t, x | 0, x_0) = \mathcal{N}(x; \mu(t)x_0, \sigma(t)^2),
 ```
 where
 ```math
@@ -63,18 +63,18 @@ where
 ```
 and
 ```math
-    \zeta(t)^2 = \int_0^t e^{2\int_s^t f(\tau)\;\mathrm{d}\tau}g(s)^2\;\mathrm{d}s.
+    \sigma(t)^2 = \int_0^t e^{2\int_s^t f(\tau)\;\mathrm{d}\tau}g(s)^2\;\mathrm{d}s.
 ```
 
 The probability density function $p(t, x)$ can also be obtained with the help of the Fokker-Planck equation
 ```math
     \frac{\partial p}{\partial t} + \nabla_x \cdot (f(t) p(t, x)) = \frac{1}{2}\Delta_x \left( g(t)^2 p(t, x) \right),
 ```
-whose fundamental solutions are precisely $p(t, x | 0, x_0) = \mathcal{N}(x; \mu(t)x_0, \zeta(t)^2).$
+whose fundamental solutions are precisely $p(t, x | 0, x_0) = \mathcal{N}(x; \mu(t)x_0, \sigma(t)^2).$
 
 For the Stein score, we have
 ```math
-    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - \mu(t)x_0}{\zeta(t)^2}.
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\sigma(t)^2} \right) = - \frac{x - \mu(t)x_0}{\sigma(t)^2}.
 ```
 
 ### Examples
@@ -91,7 +91,7 @@ so that
 ```
 and
 ```math
-    \zeta(t)^2 = \int_0^t \frac{\mathrm{d}(\sigma(s)^2)}{\mathrm{d}s}\;\mathrm{d}s = \sigma(t)^2 - \sigma(0)^2.
+    \sigma(t)^2 = \int_0^t \frac{\mathrm{d}(\sigma(s)^2)}{\mathrm{d}s}\;\mathrm{d}s = \sigma(t)^2 - \sigma(0)^2.
 ```
 
 Thus,
@@ -101,7 +101,7 @@ Thus,
 
 The Stein score becomes
 ```math
-    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0}{\sigma(t)^2 - \sigma(0)^2}.
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\sigma(t)^2} \right) = - \frac{x - x_0}{\sigma(t)^2 - \sigma(0)^2}.
 ```
 
 #### Variance-preserving SDE
@@ -116,7 +116,7 @@ so that
 ```
 and
 ```math
-    \zeta(t)^2 = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s = \left. -e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau} \right|_{s=0}^{s=t} = 1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}.
+    \sigma(t)^2 = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s = \left. -e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau} \right|_{s=0}^{s=t} = 1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}.
 ```
 
 Thus,
@@ -126,7 +126,7 @@ Thus,
 
 The Stein score becomes
 ```math
-    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}}.
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\sigma(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}}.
 ```
 
 #### Sub-variance-preserving SDE
@@ -142,7 +142,7 @@ so that
 and
 ```math
     \begin{align*}
-        \zeta(t)^2 & = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)(1 - e^{-2\int_0^s \beta(\tau)\;\mathrm{d}\tau})\;\mathrm{d}s \\
+        \sigma(t)^2 & = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)(1 - e^{-2\int_0^s \beta(\tau)\;\mathrm{d}\tau})\;\mathrm{d}s \\
         & = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s - \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}e^{-2\int_0^s \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s \\
         & = \int_0^t e^{-\int_s^t \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s - \int_0^t e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}e^{-\int_0^s \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s \\
         & = 1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau} - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau} \int_0^t e^{-\int_0^s \beta(\tau)\;\mathrm{d}\tau}\beta(s)\;\mathrm{d}s \\
@@ -160,7 +160,7 @@ Thus,
 
 The Stein score becomes
 ```math
-    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\zeta(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{\left(1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right)^2}.
+    \nabla_x \log p(t, x | 0, x_0) = \nabla_x \left( - \frac{(x - \mu(t)x_0)^2}{2\sigma(t)^2} \right) = - \frac{x - x_0 e^{-\frac{1}{2}\int_0^t \beta(s)\;\mathrm{d}s}}{\left(1 - e^{-\int_0^t \beta(\tau)\;\mathrm{d}\tau}\right)^2}.
 ```
 
 ## Loss function
@@ -308,14 +308,15 @@ trange = 0.0:0.01:1.0
 
 #### Variance exploding
 
+We start visualizing the score function in the variance exploding case, with $\sigma(t) = \sqrt{t}$, so that $g(t) = \sqrt{\mathrm{d}(\sigma(t)^2)/\mathrm{d}t} = 1$, besides $f(t) = 0$ and $\mu(t) = 1.$
+
 ```@example sdescorematching
-sigma_min = 0.01
-sigma_max = 1.0
-
 f_ve(t) = 0.0
-g_ve(t; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = σₘᵢₙ * ( σₘₐₓ / σₘᵢₙ)^t * √(2 * log(σₘₐₓ/σₘᵢₙ))
+g_ve(t) = 1.0
+mu_ve(t) = 1.0
+sigma_ve(t) = sqrt(t)
 
-prob_kernel_ve(t, x0; σₘᵢₙ = sigma_min, σₘₐₓ = sigma_max) = Normal( x0, σₘᵢₙ^2 * (σₘₐₓ/σₘᵢₙ)^(2t) )
+prob_kernel_ve(t, x0) = Normal( x0, sigma_ve(t) )
 p_kernel_ve(t, x, x0) = pdf(prob_kernel_ve(t, x0), x)
 score_kernel_ve(t, x, x0) = gradlogpdf(prob_kernel_ve(t, x0), x)
 ```
@@ -329,6 +330,8 @@ heatmap(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_ve(t, x0), x) * 
 ```
 
 #### Variance preserving
+
+We also visualize the variance preserving case.
 
 ```@example sdescorematching
 beta_min = 0.1
@@ -352,16 +355,16 @@ heatmap(trange, xrange, (t, x) -> log(sum(x0 -> pdf(prob_kernel_vp(t, x0), x) * 
 
 ### Preparation
 
-For the implementation, we consider the variance-exploding (VE) case, with $\sigma(t) = t,$ so that
+For the implementation, we consider the variance-exploding (VE) case, with $\sigma(t) = \sqrt{t},$ so that
 ```math
-    f(t) = 0, \quad g(t) = \sqrt{\frac{\mathrm{d}(\sigma(t)^2)}{\mathrm{d}t}} = \sqrt{2t},
+    f(t) = 0, \quad g(t) = \sqrt{\frac{\mathrm{d}(\sigma(t)^2)}{\mathrm{d}t}} = 1,
 ```
 with
 ```math
     \mu(t) = 1,
 ```
 ```math
-    \zeta(t)^2 = \int_0^t \frac{\mathrm{d}(\sigma(s)^2)}{\mathrm{d}s}\;\mathrm{d}s = \sigma(t)^2 - \sigma(0)^2 = t^2.
+    \sigma(t)^2 = \int_0^t \frac{\mathrm{d}(\sigma(s)^2)}{\mathrm{d}s}\;\mathrm{d}s = \sigma(t)^2 - \sigma(0)^2 = t^2.
 ```
 and
 ```math
@@ -374,9 +377,7 @@ The score conditioned on a initial condition reads
 
 ```@example sdescorematching
 T = 1.0
-sigmafun(t) = 0.1 + 20t
-zeta(t) = sqrt( sigmafun(t)^2 - sigmafun(0)^2 )
-mu(t) = 1.0
+sigma(t) = sqrt(t)
 lambda(t) = 1
 ```
 
@@ -391,7 +392,7 @@ The neural network we consider is a simple feed-forward neural network made of a
 We need a little bigger neural network to capture the time-dependent score.
 
 ```@example sdescorematching
-model = Chain(Dense(2 => 64, swish), Dense(64 => 64, swish), Dense(64 => 1))
+model = Chain(Dense(2 => 64, relu), Dense(64 => 64, relu), Dense(64 => 1))
 ```
 
 The [LuxDL/Lux.jl](https://github.com/LuxDL/Lux.jl) package uses explicit parameters, that are initialized (or obtained) with the `Lux.setup` function, giving us the *parameters* and the *state* of the model.
@@ -408,9 +409,9 @@ function loss_function_sde(model, ps, st, data)
     ts = reshape(0.001 .+ (T - 0.001) * rand(rng, size(sample_points, 2)), 1, :)
 
     ws = randn(rng, size(sample_points))
-    diffused = zeta.(ts) .* ws
+    diffused = sigma.(ts) .* ws
     noisy_sample_points = sample_points .+ diffused
-##    scores = ( sample_points .- noisy_sample_points ) ./ zeta.(ts) .^ 2 
+##    scores = ( sample_points .- noisy_sample_points ) ./ sigma.(ts) .^ 2 
 
     model_input = [noisy_sample_points; ts]
     
@@ -418,7 +419,7 @@ function loss_function_sde(model, ps, st, data)
     y_score_pred, st = Lux.apply(model, model_input, ps, st)
 
 ##    loss = mean(abs2, (y_score_pred .- scores)) / 2
-    loss = mean(abs2, zeta.(ts) .* y_score_pred .+ ws)
+    loss = mean(abs2, sigma.(ts) .* y_score_pred .+ ws)
     return loss, st, ()
 end
 ```
@@ -430,7 +431,7 @@ end
 We use the Adam optimiser.
 
 ```@example sdescorematching
-opt = Adam(0.002)
+opt = Adam(0.01)
 
 tstate_org = Lux.Training.TrainState(model, ps, st, opt)
 ```
@@ -484,8 +485,8 @@ end
 
 Now we train the model with the objective function ${\tilde J}_{\mathrm{ESM{\tilde p}_\sigma{\tilde p}_0}}({\boldsymbol{\theta}})$.
 ```@example sdescorematching
-@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 8000, 200, 125)
-nothing # hide
+@time tstate, losses, tstates = train(tstate_org, vjp_rule, data, loss_function_sde, 2000,80, 80)
+#nothing # hide
 ```
 
 ### Results
@@ -562,29 +563,27 @@ gif(anim, fps = 10) # hide
 
 We also visualize the evolution of the losses.
 ```@example sdescorematching
-plot(losses, title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
+plot(losses[8:end], title="Evolution of the loss", titlefont=10, xlabel="iteration", ylabel="error", legend=false) # hide
 ```
 
-## Sampling with annealed Langevin
+## Sampling with reverse SDE
 
-Now we sample the modeled distribution with the annealed Langevin method described earlier.
+Now we sample the modeled distribution with the reverse SDE.
 
 ```@setup sdescorematching
-function solve_annealed_langevin_1d(rng, x0, M, tstate, dt)
+function solve_reverseSDE_eulermaruyama(rng, x0, T, N, tstate)
     
-    L = length(sigmas)
-    xt = zeros(L * M, length(x0))
-    sqrt2dt = √(2dt)
+    xt = zeros(N, length(x0))
     zs = zeros(length(x0))
-    tt = range(0, L*M*dt, length=L*M)
-    xt[1, :] .= x0
-    k1 = 1
-    for k in 2:L*M
-        i = div(k, M+1) + 1
-        sigma = sigmas[i]
+    dt = T / ( N - 1 )
+    sqrtdt = √(dt)
+    tt = range(0, T, length=N)
+    xt[end, :] .= x0
+    k1 = N
+    for k in N-1:-1:1
         randn!(rng, zs)
         for j in axes(xt, 2)
-            xt[k, j] = xt[k1, j] + first(tstate.model([xt[k1, j], sigma], tstate.parameters, tstate.states))[1] * dt + sqrt2dt * zs[j]
+            xt[k, j] = xt[k1, j] + first(tstate.model([xt[k1, j], tt[k1]], tstate.parameters, tstate.states))[1] * dt + sqrtdt * zs[j]
         end
         k1 = k
     end
@@ -594,15 +593,14 @@ end
 
 ```@setup sdescorematching
 x0 = randn(rng, 256)
-M = 50
-dt = 10 / L / M
-tt, xt = solve_annealed_langevin_1d(rng, x0, M, tstate, sigmas, dt)
+N = 200
+tt, xt = solve_reverseSDE_eulermaruyama(rng, x0, T, N, tstate)
 # nothing
 ```
 
 Here are the trajectories.
 ```@example sdescorematching
-plot(title="$(length(x0)) annealed Langevin trajectories with \$M=$M\$ and \$\\mathrm{dt}=$(round(dt, sigdigits=2))\$", titlefont=10, legend=false) # hide
+plot(title="$(length(x0)) reverse SDE trajectories", titlefont=10, legend=false) # hide
 plot!(tt, xt, xlabel="\$t\$", ylabel="\$x\$") # hide
 ```
 
@@ -610,8 +608,9 @@ The sample histogram obtained at the end of the trajectories.
 
 ```@example sdescorematching
 plot(title="Histogram at the end of sampling", titlefont=10) # hide
-histogram(xt[end, :], bins=40, normalize=:pdf, label="sample") # hide
-plot!(range(-6, 6, length=200), x -> pdf(target_prob, x), label="target PDF", xlabel="\$x\$") # hide
+histogram!(xt[begin, :], bins=40, normalize=:pdf, xlims=extrema(xrange), label="sample") # hide
+plot!(xrange, x -> pdf(target_prob, x), label="target PDF", xlabel="\$x\$") # hide
+plot!(xrange, pdf_pred', label="model PDF") # hide
 ```
 
 ## References
