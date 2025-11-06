@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Modeling mortality tables · Random notes</title><meta name="title" content="Modeling mortality tables · Random notes"/><meta property="og:title" content="Modeling mortality tables · Random notes"/><meta property="twitter:title" content="Modeling mortality tables · Random notes"/><meta name="description" content="Documentation for Random notes."/><meta property="og:description" content="Documentation for Random notes."/><meta property="twitter:description" content="Documentation for Random notes."/><meta property="og:url" content="https://github.com/rmsrosa/random_notes/bayesian/mortality_tables/"/><meta property="twitter:url" content="https://github.com/rmsrosa/random_notes/bayesian/mortality_tables/"/><link rel="canonical" href="https://github.com/rmsrosa/random_notes/bayesian/mortality_tables/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/style.css" rel="stylesheet" type="text/css"/><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="Random notes logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Random notes</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Random Notes</a></li><li><span class="tocitem">Probability Essentials</span><ul><li><a class="tocitem" href="../../probability/kernel_density_estimation/">Kernel Density Estimation</a></li><li><a class="tocitem" href="../../probability/convergence_notions/">Convergence notions</a></li></ul></li><li><span class="tocitem">Discrete-time Markov chains</span><ul><li><a class="tocitem" href="../../markov_chains/mc_definitions/">Essential definitions</a></li><li><a class="tocitem" href="../../markov_chains/mc_invariance/">Invariant distributions</a></li><li><input class="collapse-toggle" id="menuitem-3-3" type="checkbox"/><label class="tocitem" for="menuitem-3-3"><span class="docs-label">Countable-space Markov chains</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../markov_chains/mc_countableX_recurrence/">Recurrence in the countable-space case</a></li><li><a class="tocitem" href="../../markov_chains/mc_countableX_connections/">Connected states, irreducibility and uniqueness of invariant measures</a></li><li><a class="tocitem" href="../../markov_chains/mc_countableX_convergencia/">Aperiodicidade e convergência para a distribuição estacionária</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-4" type="checkbox"/><label class="tocitem" for="menuitem-3-4"><span class="docs-label">Continuous-space Markov chains</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../markov_chains/mc_irreducibility_and_recurrence/">Irreducibility and recurrence in the continuous-space case</a></li></ul></li></ul></li><li><span class="tocitem">Sampling methods</span><ul><li><a class="tocitem" href="../../sampling/overview/">Overview</a></li><li><a class="tocitem" href="../../sampling/prng/">Random number generators</a></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Transform methods</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../sampling/invFtransform/">Probability integral transform</a></li><li><a class="tocitem" href="../../sampling/box_muller/">Box-Muller transform</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Accept-Reject methods</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../sampling/rejection_sampling/">Rejection sampling</a></li><li><a class="tocitem" href="../../sampling/empiricalsup_rejection/">Empirical supremum rejection sampling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Markov Chain Monte Carlo (MCMC)</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../sampling/mcmc/">Overview</a></li><li><a class="tocitem" href="../../sampling/metropolis/">Metropolis and Metropolis-Hastings</a></li><li><a class="tocitem" href="../../sampling/convergence_metropolis/">Convergence of Metropolis-Hastings</a></li><li><a class="tocitem" href="../../sampling/gibbs/">Gibbs sampling</a></li><li><a class="tocitem" href="../../sampling/hmc/">Hamiltonian Monte Carlo (HMC)</a></li></ul></li><li><a class="tocitem" href="../../sampling/langevin_sampling/">Langevin sampling</a></li></ul></li><li><span class="tocitem">Bayesian inference</span><ul><li><input class="collapse-toggle" id="menuitem-5-1" type="checkbox"/><label class="tocitem" for="menuitem-5-1"><span class="docs-label">Bayes Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../bayes/">Bayes Theorem</a></li><li><a class="tocitem" href="../bayes_inference/">Bayesian inference</a></li><li><a class="tocitem" href="../bernstein_vonmises/">Bernstein–von Mises theorem</a></li></ul></li><li><a class="tocitem" href="../bayesian_probprog/">Bayesian probabilistic programming</a></li><li><input class="collapse-toggle" id="menuitem-5-3" type="checkbox" checked/><label class="tocitem" for="menuitem-5-3"><span class="docs-label">Examples</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../find_pi/">Estimating π via frequentist and Bayesian methods</a></li><li><a class="tocitem" href="../linear_regression/">Many Ways to Linear Regression</a></li><li><a class="tocitem" href="../tilapia_alometry/">Alometry law for the Nile Tilapia</a></li><li class="is-active"><a class="tocitem" href>Modeling mortality tables</a><ul class="internal"><li><a class="tocitem" href="#The-Gompertz-Makeham-model"><span>The Gompertz-Makeham model</span></a></li><li><a class="tocitem" href="#The-Heligman-Pollard-model"><span>The Heligman-Pollard model</span></a></li><li><a class="tocitem" href="#A-mortality-table"><span>A mortality table</span></a></li><li><a class="tocitem" href="#The-Gompertz-Makeham-model-in-Turing.jl"><span>The Gompertz-Makeham model in Turing.jl</span></a></li><li><a class="tocitem" href="#The-Heligman-Pollard-in-Turing.jl"><span>The Heligman-Pollard in Turing.jl</span></a></li></ul></li></ul></li></ul></li><li><span class="tocitem">Generative models</span><ul><li><input class="collapse-toggle" id="menuitem-6-1" type="checkbox"/><label class="tocitem" for="menuitem-6-1"><span class="docs-label">Score matching</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../generative/overview/">Overview</a></li><li><a class="tocitem" href="../../generative/stein_score/">Stein score function</a></li><li><a class="tocitem" href="../../generative/score_matching_aapo/">Score matching of Aapo Hyvärinen</a></li><li><a class="tocitem" href="../../generative/score_matching_neural_network/">Score matching a neural network</a></li><li><a class="tocitem" href="../../generative/parzen_estimation_score_matching/">Score matching with Parzen estimation</a></li><li><a class="tocitem" href="../../generative/denoising_score_matching/">Denoising score matching of Pascal Vincent</a></li><li><a class="tocitem" href="../../generative/sliced_score_matching/">Sliced score matching</a></li><li><a class="tocitem" href="../../generative/1d_FD_score_matching/">1D finite-difference score matching</a></li><li><a class="tocitem" href="../../generative/2d_FD_score_matching/">2D finite-difference score matching</a></li><li><a class="tocitem" href="../../generative/ddpm/">Denoising diffusion probabilistic models</a></li><li><a class="tocitem" href="../../generative/mdsm/">Multiple denoising score matching</a></li><li><a class="tocitem" href="../../generative/probability_flow/">Probability flow</a></li><li><a class="tocitem" href="../../generative/reverse_flow/">Reverse probability flow</a></li><li><a class="tocitem" href="../../generative/score_based_sde/">Score-based SDE model</a></li></ul></li></ul></li><li><span class="tocitem">Sensitivity analysis</span><ul><li><a class="tocitem" href="../../sensitivity/overview/">Overview</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Bayesian inference</a></li><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Modeling mortality tables</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Modeling mortality tables</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/rmsrosa/random_notes" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/rmsrosa/random_notes/blob/main/docs/src/bayesian/mortality_tables.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Modeling-mortality-tables"><a class="docs-heading-anchor" href="#Modeling-mortality-tables">Modeling mortality tables</a><a id="Modeling-mortality-tables-1"></a><a class="docs-heading-anchor-permalink" href="#Modeling-mortality-tables" title="Permalink"></a></h1><p>In this section, we attempt to fit the Gompertz-Makeham and the Heligman-Pollard models to a selected mortality table.</p><h2 id="The-Gompertz-Makeham-model"><a class="docs-heading-anchor" href="#The-Gompertz-Makeham-model">The Gompertz-Makeham model</a><a id="The-Gompertz-Makeham-model-1"></a><a class="docs-heading-anchor-permalink" href="#The-Gompertz-Makeham-model" title="Permalink"></a></h2><p>In the Gompertz-Makeham model, the <em>force of mortality</em> (akin to the hazard function) <span>$\mu_x$</span> is given by</p><p class="math-container">\[    \mu_x = Ae^{Bx} + C,\]</p><p>for age <span>$x$</span>. The <a href="https://en.wikipedia.org/wiki/Force_of_mortality">force of mortality</a> represents the <em>instantaneous</em> rate of mortality at a certain age <span>$x$</span>, in an annual basis.  It is closely related to the <a href="https://en.wikipedia.org/wiki/Mortality_rate">mortality rate</a> <span>$q_x$</span>, which is the percentage of deaths in a population per year, which can be interpreted as the probability a person at an age <span>$x$</span>, in years, dies before reaching age <span>$x+1$</span>. Under certain assumptions, the two are related by</p><p class="math-container">\[    \mu_x = \frac{q_x}{1 - q_x}, \qquad q_x = \frac{\mu_x}{1 + \mu_x}.\]</p><p>The terms <span>$A$</span> and <span>$B$</span> are associated with the <em>Gompertz law</em> <span>$Ae^{Bx}$</span>, while the term <span>$C$</span> is an additional term provided by <em>Makeham,</em> which combine to form the Gompertz-Makeham model.</p><h2 id="The-Heligman-Pollard-model"><a class="docs-heading-anchor" href="#The-Heligman-Pollard-model">The Heligman-Pollard model</a><a id="The-Heligman-Pollard-model-1"></a><a class="docs-heading-anchor-permalink" href="#The-Heligman-Pollard-model" title="Permalink"></a></h2><p>The Gompertz-Makeham model approximates reasonably well the force of mortality, especially the growth seen in adult years, but a better model is the Heligman-Pollard, that also approximates well the childhood and young groups and the eldery years. This model takes the form</p><p class="math-container">\[    \mu_x = A^{(x + B)^C} + D e^{-E \ln(x/F)^2} + \frac{GH^x}{1 + KGH^x},\]</p><p>for suitable coefficients <span>$A, B, C, D, E, F, G, H, K$</span>. It is common to see the Heligman-Pollard models with <span>$K=0$</span>, which is the main model suggested by the authors, but in the same paper they also discuss two extensions of the model, one of them being the one above.</p><p>We can clearly distinguish three terms in the model, with the first term, with parameters <span>$A, B, C$</span>, modeling the steep exponential decline in mortality in the early childhood years due in part to a relatively high degree of mortality in the newborn; the second term, with parameters <span>$D, E, F$</span>, representing the log-normal bump in mortality in the youth ages; and the last term, with parameters <span>$G, H, K$</span>, with the exponential growth at middle to older ages. Notice the last term follows the original Gompertz law (without the additional term due to Makeham).</p><h2 id="A-mortality-table"><a class="docs-heading-anchor" href="#A-mortality-table">A mortality table</a><a id="A-mortality-table-1"></a><a class="docs-heading-anchor-permalink" href="#A-mortality-table" title="Permalink"></a></h2><p>We start by loading the necessary packages</p><pre><code class="language-julia hljs">using Distributions, Turing, StatsPlots</code></pre><p>We illustrate the modeling process with the <a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=&amp;ved=2ahUKEwiirPed8Kn8AhXyL7kGHeuiA5wQFnoECA8QAQ&amp;url=http%3A%2F%2Fwww.epidemiolog.net%2Fstudymat%2FLifetable.xls&amp;usg=AOvVaw2Dsu6y07w6bRNDIcvyDYQK">United States 1997 mortality table</a>. We removed the data from ages 0-1 and 100+ hoping for a better fit.</p><pre><code class="language-julia hljs">x = collect(1:99)
+# mortality rate
+qx = [
+    0.00055
+    0.00036
+    0.00029
+    0.00023
+    0.00021
+    0.00020
+    0.00019
+    0.00017
+    0.00015
+    0.00014
+    0.00014
+    0.00019
+    0.00028
+    0.00041
+    0.00055
+    0.00068
+    0.00078
+    0.00085
+    0.00089
+    0.00093
+    0.00098
+    0.00101
+    0.00101
+    0.00101
+    0.00100
+    0.00099
+    0.00100
+    0.00103
+    0.00108
+    0.00114
+    0.00119
+    0.00126
+    0.00133
+    0.00140
+    0.00149
+    0.00157
+    0.00167
+    0.00178
+    0.00192
+    0.00206
+    0.00222
+    0.00239
+    0.00257
+    0.00278
+    0.00300
+    0.00325
+    0.00352
+    0.00380
+    0.00411
+    0.00444
+    0.00482
+    0.00524
+    0.00571
+    0.00623
+    0.00685
+    0.00755
+    0.00833
+    0.00916
+    0.01005
+    0.01101
+    0.01208
+    0.01321
+    0.01439
+    0.01560
+    0.01679
+    0.01802
+    0.01948
+    0.02127
+    0.02338
+    0.02565
+    0.02799
+    0.03043
+    0.03297
+    0.03563
+    0.03843
+    0.04147
+    0.04494
+    0.04904
+    0.05385
+    0.05938
+    0.06555
+    0.07241
+    0.07990
+    0.08812
+    0.09653
+    0.10556
+    0.11539
+    0.12616
+    0.13802
+    0.15085
+    0.16429
+    0.17813
+    0.19250
+    0.20764
+    0.22354
+    0.23999
+    0.25653
+    0.27295
+    0.28915
+]
+# mx = - log.(1.0 .- qx) # force of mortality # roughly the same as below
+mx = qx ./ (1.0 .- qx) # force of mortality
+scatter(x, qx, yscale=:log10, legend=:topleft, label=&quot;qx&quot;)
+scatter!(x, mx, yscale=:log10, legend=:topleft, label=&quot;mx&quot;)</code></pre><img src="b9b0916c.svg" alt="Example block output"/><h2 id="The-Gompertz-Makeham-model-in-Turing.jl"><a class="docs-heading-anchor" href="#The-Gompertz-Makeham-model-in-Turing.jl">The Gompertz-Makeham model in Turing.jl</a><a id="The-Gompertz-Makeham-model-in-Turing.jl-1"></a><a class="docs-heading-anchor-permalink" href="#The-Gompertz-Makeham-model-in-Turing.jl" title="Permalink"></a></h2><p>First we start by defining the function that characterizes the Gompertz-Makeham model</p><pre><code class="language-julia hljs">function gompertz_makeham(x, p)
+    A, B, C = p
+    m = A * exp(B * x) + C
+    return m
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">gompertz_makeham (generic function with 1 method)</code></pre><p>Now we define the compound probability model, assigning Beta distributions to the parameters. But, as mentioned before, the initial prior is very important. It is not easy to get a good fit. So, first, we approximate by &quot;hand&quot;, with trial and error, to get the following approximate fit:</p><pre><code class="language-julia hljs">let (A, B, C) = (0.00001, 0.1, 0.001)
+    m = A * exp.(B * x) .+ C
+    plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+    plot!(plt, x, m, label=&quot;Gompertz-Makeham hand-fit&quot;)
+    scatter!(plt, x, mx, label=&quot;data&quot;)
+end</code></pre><img src="3c5a8205.svg" alt="Example block output"/><p>With these values, we define the prior Beta distributions for the compound probability model with parameters that yield a mean near those values.</p><pre><code class="language-julia hljs">@model function gompertz_makeham_model(x, m)
+    A ~ Beta(2, 99998)
+    B ~ Beta(2, 18)
+    C ~ Beta(2, 1998)
+    σ² ~ InverseGamma()
+    σ = sqrt(σ²)
+    p = (A, B, C)
+
+    for i in eachindex(x)
+        y = gompertz_makeham(x[i], p)
+        m[i] ~ Normal(y, σ)
+    end
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">gompertz_makeham_model (generic function with 2 methods)</code></pre><p>Now we instantiate the Turing model</p><pre><code class="language-julia hljs">model_gm = gompertz_makeham_model(x, mx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">DynamicPPL.Model{typeof(Main.gompertz_makeham_model), (:x, :m), (), (), Tuple{Vector{Int64}, Vector{Float64}}, Tuple{}, DynamicPPL.DefaultContext}(Main.gompertz_makeham_model, (x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  90, 91, 92, 93, 94, 95, 96, 97, 98, 99], m = [0.0005503026664665567, 0.0003601296466728022, 0.00029008412439607484, 0.00023005291216979904, 0.00021004410926294523, 0.00020004000800160032, 0.00019003610686030346, 0.00017002890491383537, 0.0001500225033755063, 0.0001400196027443842  …  0.17764823647176592, 0.19658733292649364, 0.21673744022777328, 0.23839009287925697, 0.2620526023524661, 0.2878963501017438, 0.31577216089261984, 0.34504418470146736, 0.3754212227494671, 0.4067665470915102]), NamedTuple(), DynamicPPL.DefaultContext())</code></pre><p>and fit it:</p><pre><code class="language-julia hljs"># chain_gm = sample(model_gm, HMC(0.05, 10), 40_000)
+chain_gm = sample(model_gm, NUTS(0.65), 5_000)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (5000×18×1 Array{Float64, 3}):
+
+Iterations        = 1001:1:6000
+Number of chains  = 1
+Samples per chain = 5000
+Wall duration     = 15.66 seconds
+Compute duration  = 15.66 seconds
+parameters        = A, B, C, σ²
+internals         = n_steps, is_accept, acceptance_rate, log_density, hamiltonian_energy, hamiltonian_energy_error, max_hamiltonian_energy_error, tree_depth, numerical_error, step_size, nom_step_size, lp, logprior, loglikelihood
+
+Use `describe(chains)` for summary statistics and quantiles.
+</code></pre><p>Here is the result of the MCMC:</p><pre><code class="language-julia hljs">plot(chain_gm)</code></pre><img src="5cbdb255.svg" alt="Example block output"/><p>We can see the mean values of the parameters as follows</p><pre><code class="language-julia hljs">mean(chain_gm)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Mean
+
+  parameters      mean
+      Symbol   Float64
+
+           A    0.0000
+           B    0.1018
+           C    0.0010
+          σ²    0.0205
+
+</code></pre><p>The mean fit is given by</p><pre><code class="language-julia hljs">m_gm = [gompertz_makeham(xi, mean(chain_gm, [:A, :B, :C]).nt.mean) for xi in x]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">99-element Vector{Float64}:
+ 0.0010234687434658926
+ 0.001026028260829178
+ 0.001028862085523824
+ 0.001031999615479737
+ 0.0010354733992472543
+ 0.001039319473653882
+ 0.0010435777376482157
+ 0.0010482923662092725
+ 0.0010535122686151145
+ 0.0010592915958248083
+ ⋮
+ 0.22872934513952914
+ 0.25313548643578204
+ 0.2801572706590285
+ 0.31007502020183664
+ 0.3431991000298521
+ 0.3798731373896066
+ 0.42047758657726647
+ 0.4654336757490191
+ 0.5152077767170669</code></pre><p>and we plot it</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+plot!(plt, x, m_gm, label=&quot;Gompertz-Makeham fit&quot;)
+scatter!(plt, x, mx, label=&quot;data&quot;)</code></pre><img src="ffb89b96.svg" alt="Example block output"/><p>It remains to compute the 95% credible interval,</p><pre><code class="language-julia hljs">quantiles_gm = reduce(
+    hcat,
+    quantile(
+        [
+            gompertz_makeham(xi, (A, B, C)) for (A, B, C) in eachrow(view(chain_gm.value.data, :, 1:3, 1))
+        ],
+        [0.025, 0.975]
+        )
+    for xi in x
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×99 Matrix{Float64}:
+ 0.000128336  0.000130552  0.000133619  …  0.235868  0.258821  0.285299
+ 0.00278358   0.00278918   0.00279264      0.440141  0.489145  0.546154</code></pre><p>and plot it</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+plot!(plt, x, m_gm, ribbon=(m_gm .- view(quantiles_gm, 1, :), view(quantiles_gm, 2, :) .- m_gm), label=&quot;Gompertz-Makeham fit&quot;)
+scatter!(plt, x, mx, label=&quot;data&quot;)</code></pre><img src="79312954.svg" alt="Example block output"/><p>Notice how the function with the means of the parameters is outside the quantiles, which is based on the function values of the parameter samples. Let&#39;s check the last portion of the ensemble.</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=nothing)
+plot!(plt, x, m_gm, label=&quot;Bayesian fitted line&quot;, color=2)
+for (A, B, C) in eachrow(view(chain_gm.value.data, 4500:5000, 1:3, 1))
+    plot!(plt, x, x -&gt; gompertz_makeham(x, (A, B, C)), alpha=0.1, color=2, label=false)
+end
+scatter!(plt, x, mx, color=1)</code></pre><img src="98793c19.svg" alt="Example block output"/><p>Let&#39;s look at just a few samples to have a better look at the dependence of the function on the sampled values:<sup class="footnote-reference"><a id="citeref-off" href="#footnote-off">[off]</a></sup></p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=nothing)
+plot!(plt, x, m_gm, label=&quot;Bayesian fitted line&quot;, color=2)
+for (A, B, C) in eachrow(view(chain_gm.value.data, 1000:50:2000, 1:3, 1))
+    plot!(plt, x, x -&gt; gompertz_makeham(x, (A, B, C)), alpha=0.4, color=3, label=false)
+end
+scatter!(plt, x, mx, color=1)</code></pre><img src="b2f8e67f.svg" alt="Example block output"/><h2 id="The-Heligman-Pollard-in-Turing.jl"><a class="docs-heading-anchor" href="#The-Heligman-Pollard-in-Turing.jl">The Heligman-Pollard in Turing.jl</a><a id="The-Heligman-Pollard-in-Turing.jl-1"></a><a class="docs-heading-anchor-permalink" href="#The-Heligman-Pollard-in-Turing.jl" title="Permalink"></a></h2><p>Now we consider the Heligman-Pollard model.</p><p>First we start by defining the function that characterizes the model:</p><pre><code class="language-julia hljs">function heligman_pollard(x, p)
+    A, B, C, D, E, F, G, H, K = p
+    m = A^((x + B)^C) + D * exp(-E * log(x / F)^2) + (G * H^x) / (1 + K * G * H^x)
+    return m
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">heligman_pollard (generic function with 1 method)</code></pre><p>Now we define the compound probability model. As mentioned before, the initial prior is very important. We start with numbers of the order of those given in the original article by Heligman and Pollard. They considered a number of examples, but, as a starting point, we borrow only the data from the 1970-1972 period, separated by gender:</p><table><tr><th style="text-align: right">Parameter</th><th style="text-align: right">Males 1970-72</th><th style="text-align: right">Females 1970-1972</th></tr><tr><td style="text-align: right">A</td><td style="text-align: right">0.00160</td><td style="text-align: right">0.00142</td></tr><tr><td style="text-align: right">B</td><td style="text-align: right">0.00112</td><td style="text-align: right">0.0350</td></tr><tr><td style="text-align: right">C</td><td style="text-align: right">0.1112</td><td style="text-align: right">0.1345</td></tr><tr><td style="text-align: right">D</td><td style="text-align: right">0.00163</td><td style="text-align: right">0.00038</td></tr><tr><td style="text-align: right">E</td><td style="text-align: right">16.71</td><td style="text-align: right">21.86</td></tr><tr><td style="text-align: right">F</td><td style="text-align: right">20.03</td><td style="text-align: right">18.27</td></tr><tr><td style="text-align: right">G</td><td style="text-align: right">0.0000502</td><td style="text-align: right">0.0000507</td></tr><tr><td style="text-align: right">H</td><td style="text-align: right">1.1074</td><td style="text-align: right">1.0937</td></tr><tr><td style="text-align: right">K</td><td style="text-align: right">2.416</td><td style="text-align: right">-2.800</td></tr></table><p>The difference in the sign of <span>$K$</span> between the male and female populations is justified by the difference in mortality for the elderly, although the data showed in the article both look more like in the description of the male mortality. Let&#39;s see how an approximation of that looks like, keeping a positive sign for <span>$K$</span> because of this observation.</p><pre><code class="language-julia hljs">let (A, B, C, D, E, F, G, H, K) = (0.0015, 0.018, 0.012, 0.001, 19.0, 19.0, 0.00005, 1.1, 1.0)
+    m = [heligman_pollard(xi, (A, B, C, D, E, F, G, H, K)) for xi in x]
+    plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+    plot!(plt, x, m, label=&quot;Heligman-Pollard hand-fit&quot;)
+    scatter!(plt, x, mx, label=&quot;data&quot;)
+end</code></pre><img src="553899f0.svg" alt="Example block output"/><p>Ok, that seems like a reasonable starting point. So we choose the following priors for each parameter:</p><table><tr><th style="text-align: right">Parameter</th><th style="text-align: right">prior</th><th style="text-align: right">mean</th></tr><tr><td style="text-align: right">A</td><td style="text-align: right">Beta(15, 9985)</td><td style="text-align: right">0.0015</td></tr><tr><td style="text-align: right">B</td><td style="text-align: right">Beta(18, 982)</td><td style="text-align: right">0.018</td></tr><tr><td style="text-align: right">C</td><td style="text-align: right">Beta(12, 988)</td><td style="text-align: right">0.012</td></tr><tr><td style="text-align: right">D</td><td style="text-align: right">Beta(2, 1998)</td><td style="text-align: right">0.001</td></tr><tr><td style="text-align: right">E</td><td style="text-align: right">Gamma(38, 0.5)</td><td style="text-align: right">19.0</td></tr><tr><td style="text-align: right">F</td><td style="text-align: right">Gamma(38, 0.5)</td><td style="text-align: right">19.0</td></tr><tr><td style="text-align: right">G</td><td style="text-align: right">Beta(5, 99995)</td><td style="text-align: right">0.00005</td></tr><tr><td style="text-align: right">H</td><td style="text-align: right">Gamma(2, 0.5)</td><td style="text-align: right">1.0</td></tr><tr><td style="text-align: right">K</td><td style="text-align: right">Gamma(2, 0.5)</td><td style="text-align: right">1.0</td></tr></table><p>But these turned out not to be so good. We either look for better informative priors or use slightly less informative priors. We fiddle a little bit with the parameters to get the following improvement.</p><pre><code class="language-julia hljs">let (A, B, C, D, E, F, G, H, K) = (0.0003, 0.02, 0.08, 0.0008, 15.0, 20.0, 0.00005, 1.1, 1.0)
+    m = [heligman_pollard(xi, (A, B, C, D, E, F, G, H, K)) for xi in x]
+    plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+    plot!(plt, x, m, label=&quot;Heligman-Pollard hand-fit&quot;)
+    scatter!(plt, x, mx, label=&quot;data&quot;)
+end</code></pre><img src="7d4a45ae.svg" alt="Example block output"/><p>Based on that, we choose the following priors:</p><pre><code class="language-julia hljs">@model function heligman_pollard_model(x, m)
+    A ~ Beta(3, 9997) # Beta(1, 660) # Beta(15, 9985)
+    B ~ Beta(2, 98) # Beta(1, 50) # Beta(18, 982)
+    C ~ Beta(8, 92) # Beta(12, 988)
+    D ~ Beta(8, 9992) # Beta(1, 999) # Beta(2, 1998)
+    E ~ Gamma(30, 0.5) # Gamma(19, 1) # Gamma(38, 0.5)
+    F ~ Gamma(40, 0.5) # Gamma(19, 1) # Gamma(38, 0.5)
+    G ~ Beta(5, 99995) # Beta(1, 19999) # Beta(5, 99995)
+    H ~ Gamma(2.2, 0.5) # Gamma(1, 1) # Gamma(2, 0.5)
+    K ~ Gamma(2.0, 0.5) # Gamma(1, 1) # Gamma(2, 0.5)
+    σ² ~ InverseGamma()
+    σ = sqrt(σ²)
+
+    for i in eachindex(x)
+        y = A ^ ((x[i] + B) ^ C) + D * exp( - E * (log(x[i]) - log(F)) ^ 2) + G * H ^ (x[i]) # / (1 + K * G * H ^ (x[i]) )
+        m[i] ~ Normal(y, σ)
+    end
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">heligman_pollard_model (generic function with 2 methods)</code></pre><p>Now we instantiate the Heligman-Pollard Turing model</p><pre><code class="language-julia hljs">model_hp = heligman_pollard_model(x, mx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">DynamicPPL.Model{typeof(Main.heligman_pollard_model), (:x, :m), (), (), Tuple{Vector{Int64}, Vector{Float64}}, Tuple{}, DynamicPPL.DefaultContext}(Main.heligman_pollard_model, (x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10  …  90, 91, 92, 93, 94, 95, 96, 97, 98, 99], m = [0.0005503026664665567, 0.0003601296466728022, 0.00029008412439607484, 0.00023005291216979904, 0.00021004410926294523, 0.00020004000800160032, 0.00019003610686030346, 0.00017002890491383537, 0.0001500225033755063, 0.0001400196027443842  …  0.17764823647176592, 0.19658733292649364, 0.21673744022777328, 0.23839009287925697, 0.2620526023524661, 0.2878963501017438, 0.31577216089261984, 0.34504418470146736, 0.3754212227494671, 0.4067665470915102]), NamedTuple(), DynamicPPL.DefaultContext())</code></pre><p>and fit it:</p><pre><code class="language-julia hljs"># chain_hp = sample(model_hp, HMC(0.05, 10), 4_000) # Pure HMC didn&#39;t converge
+# chain_hp = sample(model_hp, MH(), 5_000) # Metropolis-Hasting didn&#39;t converge
+# chain_hp = sample(model_hp, Gibbs(MH(:A, :B, :C), MH(:D, :E, :F), HMC(0.65, 5, :G, :H, :K)), 5_000) # I am afraid I am not getting this right
+chain_hp = sample(model_hp, NUTS(0.85), 5_000)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chains MCMC chain (5000×24×1 Array{Float64, 3}):
+
+Iterations        = 1001:1:6000
+Number of chains  = 1
+Samples per chain = 5000
+Wall duration     = 331.98 seconds
+Compute duration  = 331.98 seconds
+parameters        = A, B, C, D, E, F, G, H, K, σ²
+internals         = n_steps, is_accept, acceptance_rate, log_density, hamiltonian_energy, hamiltonian_energy_error, max_hamiltonian_energy_error, tree_depth, numerical_error, step_size, nom_step_size, lp, logprior, loglikelihood
+
+Use `describe(chains)` for summary statistics and quantiles.
+</code></pre><p>Here is the result of the MCMC:</p><pre><code class="language-julia hljs">plot(chain_hp)</code></pre><img src="e28c38cf.svg" alt="Example block output"/><p>We can see the mean values of the parameters as follows</p><pre><code class="language-julia hljs">mean(chain_hp)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Mean
+
+  parameters      mean
+      Symbol   Float64
+
+           A    0.0003
+           B    0.0202
+           C    0.0793
+           D    0.0008
+           E   14.9585
+           F   19.9340
+           G    0.0000
+           H    1.0961
+           K    0.9851
+          σ²    0.0204
+
+</code></pre><p>The mean fit is given by</p><pre><code class="language-julia hljs">m_hp = [heligman_pollard(xi, mean(chain_hp, [:A, :B, :C, :D, :E, :F, :G, :H, :K]).nt.mean) for xi in x]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">99-element Vector{Float64}:
+ 0.000344356615497387
+ 0.0002438255460274079
+ 0.0002047297872461956
+ 0.00018530330538722018
+ 0.00017522184231304568
+ 0.00017060780208862385
+ 0.00016967385961952488
+ 0.0001714974156758935
+ 0.0001756216747607638
+ 0.00018223240390656612
+ ⋮
+ 0.17400764845529615
+ 0.1876407541650505
+ 0.20208541856316548
+ 0.21735002605951442
+ 0.23343665537293418
+ 0.2503403343467278
+ 0.2680483594080291
+ 0.28653971181997584
+ 0.3057846039578195</code></pre><p>and we plot it</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+plot!(plt, x, m_hp, label=&quot;Heligman-Pollard fit&quot;)
+scatter!(plt, x, mx, label=&quot;data&quot;)</code></pre><img src="acb07c4d.svg" alt="Example block output"/><p>It remains to compute the 95% credible interval,</p><pre><code class="language-julia hljs">quantiles_hp = reduce(
+    hcat,
+    quantile(
+        [
+            heligman_pollard(xi, p) for p in eachrow(view(chain_hp.value.data, :, 1:9, 1))
+        ],
+        [0.025, 0.975]
+        )
+    for xi in x
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×99 Matrix{Float64}:
+ 0.000104507  7.88129e-5   7.00588e-5   …  0.163658  0.172869  0.181889
+ 0.000754819  0.000549245  0.000465002     0.356528  0.387067  0.421133</code></pre><p>and plot it</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=:topleft)
+plot!(plt, x, m_hp, ribbon=(m_hp .- view(quantiles_hp, 1, :), view(quantiles_hp, 2, :) .- m_hp), label=&quot;Heligman-Pollard fit&quot;)
+scatter!(plt, x, mx, label=&quot;data&quot;)</code></pre><img src="1c1acdec.svg" alt="Example block output"/><p>Notice how the function with the means of the parameters is again outside the quantiles, which is based on the function values of the parameter samples. Let&#39;s check the last portion of the ensemble:</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=nothing)
+plot!(plt, x, m_hp, label=&quot;Bayesian fitted line&quot;, color=2)
+for p in eachrow(view(chain_hp.value.data, 4500:5000, 1:9, 1))
+    plot!(plt, x, x -&gt; heligman_pollard(x, p), alpha=0.1, color=2, label=false)
+end
+scatter!(plt, x, mx, color=1)</code></pre><img src="5f4404f9.svg" alt="Example block output"/><p>Let&#39;s look at just a few samples to have a better look at the dependence of the function on the sampled values:</p><pre><code class="language-julia hljs">plt = plot(yscale=:log10, title=&quot;Force of mortality&quot;, titlefont=10, xlabel=&quot;age&quot;, ylabel=&quot;force of mortality&quot;, legend=nothing)
+plot!(plt, x, m_hp, label=&quot;Bayesian fitted line&quot;, color=2)
+for p in eachrow(view(chain_hp.value.data, 1000:50:2000, 1:9, 1))
+    plot!(plt, x, x -&gt; heligman_pollard(x, p), alpha=0.4, color=3, label=false)
+end
+scatter!(plt, x, mx, color=1)</code></pre><img src="5f7f622d.svg" alt="Example block output"/><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-off"><a class="tag is-link" href="#citeref-off">off</a>How often do you see <span>$x \mapsto f_{\mathrm{mean}(p)}(x)$</span> fall off the credible interval of the family <span>$x \mapsto \{f_p(x)\}_p$</span>, where <span>$p$</span> is the set of parameters? It happens.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tilapia_alometry/">« Alometry law for the Nile Tilapia</a><a class="docs-footer-nextpage" href="../../generative/overview/">Overview »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Thursday 6 November 2025 15:39">Thursday 6 November 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
