@@ -1,9 +1,5 @@
 # Score-based generative modeling through stochastic differential equations
 
-```@meta
-    Draft = false
-```
-
 ## Introduction
 
 ### Aim
